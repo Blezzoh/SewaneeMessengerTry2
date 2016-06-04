@@ -101,7 +101,7 @@ public class Inbox {
      * @param auth Authenticator that performs the oauth authentication
      */
     public Inbox(Authenticator auth) {
-        userId = "me";
+        auth.userId = "me";
         this.auth = auth;
         try {
             inbox = getInbox();
@@ -270,7 +270,7 @@ public class Inbox {
      * @throws IOException
      */
     private Message getRawVersion(Message message) throws IOException {
-        return auth.service.users().messages().get(userId, message.getId()).set("format","RAW").execute();
+        return auth.service.users().messages().get(auth.userId, message.getId()).set("format", "RAW").execute();
     }
 
     /**
@@ -280,7 +280,7 @@ public class Inbox {
      * @throws IOException
      */
     public Message getFullMessageInstance(Message message) throws IOException {
-        return auth.service.users().messages().get(userId, message.getId()).execute();
+        return auth.service.users().messages().get(auth.userId, message.getId()).execute();
     }
 
     /**
@@ -293,14 +293,14 @@ public class Inbox {
     public List<Message> listMessagesMatchingQuery(String query)
                                                         throws IOException, MessagingException {
         ListMessagesResponse response = auth.service.users()
-                .messages().list(userId).setQ(query).setMaxResults(10L).execute();
+                .messages().list(auth.userId).setQ(query).setMaxResults(10L).execute();
 
         List<Message> messages = new ArrayList<Message>();
         while (response.getMessages() != null) {
             messages.addAll(response.getMessages());
             if (response.getNextPageToken() != null) {
                 String pageToken = response.getNextPageToken();
-                response = auth.service.users().messages().list(userId).setQ(query)
+                response = auth.service.users().messages().list(auth.userId).setQ(query)
                         .setPageToken(pageToken).execute();
             } else {
                 break;
@@ -410,7 +410,7 @@ public class Inbox {
     public void sendMessage(MimeMessage email)
             throws MessagingException, IOException {
         Message message = createMessageWithEmail(email);
-        message = auth.service.users().messages().send(userId, message).execute();
+        message = auth.service.users().messages().send(auth.userId, message).execute();
 
         System.out.println("Message id: " + message.getId());
         System.out.println(message.toPrettyString());

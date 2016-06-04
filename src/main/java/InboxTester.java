@@ -18,6 +18,5 @@ public class InboxTester {
 
         FullMessage m = new FullMessage(inbox, messages.get(0));
 
-        System.out.println(m.get);
     }
 }

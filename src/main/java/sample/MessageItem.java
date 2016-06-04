@@ -1,10 +1,14 @@
 package sample;
 
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 /**
@@ -21,43 +25,54 @@ public class MessageItem extends HBox {
     private Text snippetField;
     private Image imageField;
 
-    public MessageItem(){
+    public MessageItem() {
         super();
     }
 
-    public MessageItem(String sender, String subject, String snippet, String imageUrl){
+    public MessageItem(String sender, String subject, String snippet, String imageUrl) {
         this();
+
         senderField = new Text(sender);
-        subjectField = new Text(subject);
+        subjectField = new Text("S: " + subject + "\n");
         snippetField = new Text(snippet);
         subjectField.setWrappingWidth(190);
+        //font families
+        System.out.println(javafx.scene.text.Font.getFamilies());
+        subjectField.setFont(Font.font("Constantia", FontWeight.BLACK, 13));
         ///subjectField.setStyle("" + "-fx-font: bold;" +" -fx-font-family: ");
         snippetField.setWrappingWidth(190);
         senderField.setWrappingWidth(100);
 
-        imageField = new Image(imageUrl, 50, 50, true, true, true);
-        ImageView imageView = new ImageView(imageField);
+        imageField = new Image(imageUrl, 80, 0, true, true, false);
+        ImagePattern imageView = new ImagePattern(imageField);
+        //ImageView imageView = new ImageView(imageField);
 
 
-        picField = new VBox(imageView, senderField);
+        Rectangle canvas = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
+        canvas.setArcHeight(20);
+        canvas.setArcWidth(20);
+        picField = new VBox(canvas, senderField);
         msgSummary = new VBox(subjectField, snippetField);
         options = new HBox();
         container = new VBox(msgSummary, options);
 
-       // msgItem = new HBox(picField, container);
+        // msgItem = new HBox(picField, container);
 
-        getChildren().addAll(picField,container);
+        getChildren().addAll(picField, container);
 
-        setSize(imageView, 100.0, 100.0);
-        setSize(this, 300.0,200.0);
-        setSize(picField, 100.0,200.0);
-        setSize(msgSummary,200.0, 160.0);
-        setSize(container,200.0,200.0);
-        setStyle("" + "-fx-background-color: rgba(195, 0, 255, 1);");
+        //setSize(imageView, 100.0, 100.0);
+        setSize(this, 300.0, 200.0);
+        setSize(picField, 100.0, 200.0);
+        setSize(msgSummary, 200.0, 160.0);
+        setSize(container, 200.0, 200.0);
+        setStyle("-fx-padding: 10px; " + "-fx-border-radius: 10px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;");
+        container.setBackground(new Background(new BackgroundFill(Color.rgb(208, 0, 255, 0.4), new CornerRadii(5), new Insets(0))));
+        container.setPadding(new Insets(4));
+
 
     }
 
-    private static void  setSize (Node node, Double w, Double h){
+    private static void setSize(Node node, Double w, Double h) {
 
         node.prefHeight(h);
         node.maxHeight(h);

@@ -1,4 +1,3 @@
-import org.jetbrains.annotations.Contract;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -13,7 +12,6 @@ import java.io.IOException;
 public class MessageParser {
 
     /**
-     *
      * @param message Any gmail message
      * @return all img tags in message
      * @throws IOException
@@ -73,7 +71,6 @@ public class MessageParser {
      * @return Document representing the jsoup parsed version of the email message
      * @throws IOException
      */
-    @Contract("null -> fail")
     private static Document generateDocument(FullMessage message)
             throws IOException {
         if(message == null) throw new NullPointerException("message can't be null");
