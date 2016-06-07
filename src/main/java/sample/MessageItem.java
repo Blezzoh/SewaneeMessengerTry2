@@ -24,6 +24,7 @@ public class MessageItem extends HBox {
     private Text subjectField;
     private Text snippetField;
     private Image imageField;
+    private Image img;
 
     public MessageItem() {
         super();
