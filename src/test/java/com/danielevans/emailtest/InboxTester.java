@@ -2,6 +2,8 @@ package com.danielevans.emailtest;
 
 import com.danielevans.email.Authenticator;
 import com.danielevans.email.Inbox;
+import com.danielevans.email.LabelMaker;
+import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.Message;
 
 import java.io.IOException;
@@ -21,6 +23,13 @@ public class InboxTester {
         i = new Inbox(new Authenticator("evansdb0"));
 
         m = i.getDefaultInbox();
+
+        List<Label> labels = LabelMaker.listLabels(i);
+        /*
+        blaise loop through labels above and call method in
+        sout below to get your label names
+         */
+        System.out.println(labels.get(0).getName());
 
 //        System.out.println(MessageParser.parseEmailAddress(e));
 

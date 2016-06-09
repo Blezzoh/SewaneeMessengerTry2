@@ -62,7 +62,7 @@ public class Controller extends Application {
         how many messages in the user's inbox == around 4100 for me
          */
         System.out.println("the messages size is " + messages.size());
-        List<String> emailAddresses = inbox.loadEmailAddresses(messages);
+//        List<String> emailAddresses = inbox.loadEmailAddresses(messages);
         /**
          *
          *   root container of the interface
@@ -99,8 +99,8 @@ public class Controller extends Application {
          */
         scene.setOnKeyPressed(event -> {
             try {
-                setMessageToUser(searchEmailAddressOnKeyPressed
-                        (emailAddresses, searchField.getText()));
+ /*               setMessageToUser(searchEmailAddressOnKeyPressed
+                        (emailAddresses, searchField.getText()));*/
                 if(event.getCode() == KeyCode.ENTER) {
                     searchTime = System.currentTimeMillis();
                     userSearchForMessages(root,sp);

@@ -17,7 +17,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -456,7 +459,7 @@ public class Inbox {
     
     public List<String> loadEmailAddresses(List<Message> inbox) {
         List<String> emailAddresses = null;
-        try {
+/*        try {
             emailAddresses = new ArrayList<>(25);
             for (int i = 0; i < inbox.size()/25; i++) {
                 FullMessage fm = new FullMessage(this,inbox.get(i));
@@ -467,7 +470,7 @@ public class Inbox {
         } catch (IOException e) {
 
 
-        }
+        }*/
         return  emailAddresses;
     }
 
