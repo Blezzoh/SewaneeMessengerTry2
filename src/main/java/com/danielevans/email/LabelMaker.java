@@ -2,6 +2,8 @@ package com.danielevans.email;
 
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListLabelsResponse;
+import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.ModifyMessageRequest;
 
 import java.io.IOException;
 import java.util.List;
@@ -76,6 +78,42 @@ public class LabelMaker {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    /**
+     * Modify the labels a message is associated with.
+     * <p>
+     * can be used to indicate the authenticated user.
+     *
+     * @param messageId      ID of Message to Modify.
+     * @param labelsToAdd    List of label ids to add.
+     * @param labelsToRemove List of label ids to remove.
+     */
+    public static Message modifyMessage(Inbox inbox, String messageId
+            , List<String> labelsToAdd, List<String> labelsToRemove) {
+        if (labelsToAdd == null && labelsToRemove == null)
+            throw new IllegalArgumentException
+                    ("labelsToAdd and labelsToRemove cannot both be null");
+        ModifyMessageRequest mods = null;
+        if (labelsToRemove == null)
+            mods = new ModifyMessageRequest()
+                    .setAddLabelIds(labelsToAdd);
+        else if (labelsToAdd == null) {
+            mods = new ModifyMessageRequest()
+                    .setRemoveLabelIds(labelsToRemove);
+        } else {
+            mods = new ModifyMessageRequest().setAddLabelIds(labelsToAdd)
+                    .setRemoveLabelIds(labelsToRemove);
+        }
+        Message message = null;
+        try {
+            message = inbox.getService().users().messages().modify(inbox.getUser(), messageId, mods).execute();
+            return message;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         return null;
     }
 

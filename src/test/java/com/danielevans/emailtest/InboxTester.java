@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * Created by d\aniel on 6/2/16.
+ * Created by d\janiel on 6/2/16.
  */
 public class InboxTester {
 
