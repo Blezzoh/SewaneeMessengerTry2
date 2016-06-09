@@ -1,3 +1,5 @@
+package com.danielevans.email;
+
 import com.google.api.services.gmail.model.Thread;
 
 import java.io.IOException;

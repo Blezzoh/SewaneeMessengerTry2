@@ -1,3 +1,5 @@
+package com.danielevans.email;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -41,6 +43,18 @@ public class MessageParser {
 
         Document doc = generateDocument(message);
         return doc.select("img").first().attr("src");
+    }
+
+    public static String parseEmailAddress(String emailAddress) {
+        String backwardEmailAddress = "";
+        for (int i = emailAddress.length()-2; i >=0; i--) {
+            if(emailAddress.charAt(i) !=  '<') {
+                backwardEmailAddress += emailAddress.charAt(i);
+            }
+            else
+                break;
+        }
+        return new StringBuilder(backwardEmailAddress).reverse().toString();
     }
 
     /**

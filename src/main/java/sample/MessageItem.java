@@ -1,5 +1,6 @@
 package sample;
 
+import com.danielevans.email.FullMessage;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -30,15 +31,14 @@ public class MessageItem extends HBox {
         super();
     }
 
-    public MessageItem(String sender, String subject, String snippet, String imageUrl) {
+    public MessageItem(FullMessage m, String imageUrl) {
         this();
 
-        senderField = new Text(sender);
-        subjectField = new Text("S: " + subject + "\n");
-        snippetField = new Text(snippet);
+        senderField = new Text(m.getFrom());
+        subjectField = new Text("S: " + m.getSubject() + "\n");
+        snippetField = new Text(m.getSnippet());
         subjectField.setWrappingWidth(190);
         //font families
-        System.out.println(javafx.scene.text.Font.getFamilies());
         subjectField.setFont(Font.font("Constantia", FontWeight.BLACK, 13));
         ///subjectField.setStyle("" + "-fx-font: bold;" +" -fx-font-family: ");
         snippetField.setWrappingWidth(190);
@@ -46,7 +46,7 @@ public class MessageItem extends HBox {
 
         imageField = new Image(imageUrl, 80, 0, true, true, false);
         ImagePattern imageView = new ImagePattern(imageField);
-        //ImageView imageView = new ImageView(imageField);
+//        ImageView imageView = new ImageView(imageField);
 
 
         Rectangle canvas = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
@@ -57,11 +57,11 @@ public class MessageItem extends HBox {
         options = new HBox();
         container = new VBox(msgSummary, options);
 
-        // msgItem = new HBox(picField, container);
+         msgItem = new HBox(picField, container);
 
         getChildren().addAll(picField, container);
 
-        //setSize(imageView, 100.0, 100.0);
+//        setSize(imageView, 100.0, 100.0);
         setSize(this, 300.0, 200.0);
         setSize(picField, 100.0, 200.0);
         setSize(msgSummary, 200.0, 160.0);
@@ -71,6 +71,15 @@ public class MessageItem extends HBox {
         container.setPadding(new Insets(4));
 
 
+    }
+    public void setSenderField(String text) {
+        senderField.setText(text);
+    }
+    public void setSubjectField(String text) {
+        subjectField.setText(text);
+    }
+    public void setSnippetField(String text) {
+        snippetField.setText(text);
     }
 
     private static void setSize(Node node, Double w, Double h) {

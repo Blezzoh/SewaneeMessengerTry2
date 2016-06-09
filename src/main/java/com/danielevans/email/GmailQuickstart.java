@@ -1,3 +1,4 @@
+package com.danielevans.email;
 
 import com.google.api.client.util.store.FileDataStoreFactory;
 

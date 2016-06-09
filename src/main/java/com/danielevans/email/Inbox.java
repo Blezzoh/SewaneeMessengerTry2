@@ -1,9 +1,12 @@
+package com.danielevans.email;
+
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.StringUtils;
 import com.google.api.client.util.Base64;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.*;
 import com.google.api.services.gmail.model.Thread;
@@ -14,10 +17,9 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by daniel on 6/2/16.
@@ -33,63 +35,63 @@ public class Inbox {
     private String host = "localhost";
 
 
-        private static final String DATE = "Date";
-        private static final String DELIVERED_TO = "Delivered-To";
-        private static final String FROM = "From";
-        private static final String TO = "To";
-        private static final String REPLY_TO = "Reply-To";
-        private static final String SUBJECT = "Subject";
-        private static final String LIST_UNSUBSCRIBE = "List-Unsubscribe";
-        private static final String MAILING_LIST = "Mailing-List";
+    private static final String DATE = "Date";
+    private static final String DELIVERED_TO = "Delivered-To";
+    private static final String FROM = "From";
+    private static final String TO = "To";
+    private static final String REPLY_TO = "Reply-To";
+    private static final String SUBJECT = "Subject";
+    private static final String LIST_UNSUBSCRIBE = "List-Unsubscribe";
+    private static final String MAILING_LIST = "Mailing-List";
 
-        /**
-         * Application name.
-         */
-        private static final String APPLICATION_NAME =
-                "Gmail API Java Quickstart";
+    /**
+     * Application name.
+     */
+    private static final String APPLICATION_NAME =
+            "Gmail API Java Quickstart";
 
-        /**
-         * Directory to store user credentials for this application.
-         */
-        private static final java.io.File DATA_STORE_DIR = new java.io.File(
-                System.getProperty("user.home"), ".credentials/gmail-java-quickstart.json");
+    /**
+     * Directory to store user credentials for this application.
+     */
+    private static final java.io.File DATA_STORE_DIR = new java.io.File(
+            System.getProperty("user.home"), ".credentials/gmail-java-quickstart.json");
 
-        /**
-         * Global instance of the {@link FileDataStoreFactory}.
-         */
-        private static FileDataStoreFactory DATA_STORE_FACTORY;
+    /**
+     * Global instance of the {@link FileDataStoreFactory}.
+     */
+    private static FileDataStoreFactory DATA_STORE_FACTORY;
 
-        /**
-         * Global instance of the JSON factory.
-         */
-        private static final JsonFactory JSON_FACTORY =
-                JacksonFactory.getDefaultInstance();
+    /**
+     * Global instance of the JSON factory.
+     */
+    private static final JsonFactory JSON_FACTORY =
+            JacksonFactory.getDefaultInstance();
 
-        /**
-         * Global instance of the HTTP transport.
-         */
-        private static HttpTransport HTTP_TRANSPORT;
+    /**
+     * Global instance of the HTTP transport.
+     */
+    private static HttpTransport HTTP_TRANSPORT;
 
-        /**
-         * Global instance of the scopes required by this quickstart.
-         * <p>
-         * If modifying these scopes, delete your previously saved credentials
-         * at ~/.credentials/gmail-java-quickstart.json
-         */
-        private static final List<String> SCOPES =
-                Arrays.asList(GmailScopes.GMAIL_LABELS
-                        , GmailScopes.GMAIL_COMPOSE
-                        ,GmailScopes.GMAIL_MODIFY);
+    /**
+     * Global instance of the scopes required by this quickstart.
+     * <p>
+     * If modifying these scopes, delete your previously saved credentials
+     * at ~/.credentials/gmail-java-quickstart.json
+     */
+    private static final List<String> SCOPES =
+            Arrays.asList(GmailScopes.GMAIL_LABELS
+                    , GmailScopes.GMAIL_COMPOSE
+                    ,GmailScopes.GMAIL_MODIFY);
 
-       /* static {
-            try {
-                HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-                DATA_STORE_FACTORY = new FileDataStoreFactory(DATA_STORE_DIR);
-            } catch (Throwable t) {
-                t.printStackTrace();
-                System.exit(1);
-            }
-        }
+    /* static {
+         try {
+             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+             DATA_STORE_FACTORY = new FileDataStoreFactory(DATA_STORE_DIR);
+         } catch (Throwable t) {
+             t.printStackTrace();
+             System.exit(1);
+         }
+     }
 */
     private List<Message> inbox;
     private Authenticator auth;
@@ -291,103 +293,85 @@ public class Inbox {
      * @throws MessagingException
      */
     public List<Message> listMessagesMatchingQuery(String query)
-                                                        throws IOException, MessagingException {
-        ListMessagesResponse response = auth.service.users()
-                .messages().list(auth.userId).setQ(query).setMaxResults(10L).execute();
+    {
+        ListMessagesResponse response = null;
+        List<Message> messages = null;
+        try {
+            response = auth.service.users().messages()
+                    .list(auth.userId)
+                    .set("format","metadata")
+                    .set("metadataHeaders","To")
+                    .set("metadataHeaders","From")
+                    .set("metadataHeaders","Date")
+                    .set("metadataHeaders","Subject")
+                    .setQ(query)
+                    .execute();
+
+            messages = new ArrayList<Message>();
+            while (response.getMessages() != null) {
+                messages.addAll(response.getMessages());
+                if (response.getNextPageToken() != null) {
+                    String pageToken = response.getNextPageToken();
+                    response = auth.service.users().messages()
+                            .list(auth.userId)
+                            .set("format","metadata")
+                            .set("metadataHeaders","To")
+                            .set("metadataHeaders","From")
+                            .set("metadataHeaders","Date")
+                            .set("metadataHeaders","Subject")
+                            .setQ(query)
+                            .setPageToken(pageToken)
+                            .execute();
+                } else {
+                    break;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("messages size " + 100);
+        return messages;
+    }
+    public Gmail getService() {
+        return auth.service;
+    }
+
+    public String getUser() {
+        return auth.userId;
+    }
+
+    /**
+     * @return list of messages that contain their respective messageId and threadId
+     * @throws IOException
+     */
+    public List<Message> getInbox() throws IOException {
+        ListMessagesResponse response = auth.service.users().messages()
+                .list(auth.userId)
+                .set("format","metadata")
+                .set("metadataHeaders","To")
+                .set("metadataHeaders","From")
+                .set("metadataHeaders","Date")
+                .set("metadataHeaders","Subject")
+                 .execute();
 
         List<Message> messages = new ArrayList<Message>();
         while (response.getMessages() != null) {
             messages.addAll(response.getMessages());
             if (response.getNextPageToken() != null) {
                 String pageToken = response.getNextPageToken();
-                response = auth.service.users().messages().list(auth.userId).setQ(query)
-                        .setPageToken(pageToken).execute();
+                response = auth.service.users().messages()
+                        .list(auth.userId)
+                        .set("format","metadata")
+                        .set("metadataHeaders","To")
+                        .set("metadataHeaders","From")
+                        .set("metadataHeaders","Date")
+                        .set("metadataHeaders","Subject")
+                        .setPageToken(pageToken)
+                        .execute();
             } else {
                 break;
             }
         }
-        return messages;
-    }
-
-    /**
-     *
-     * @return returns a Credential either authorized by the user
-     * or throws an exception if the user provide access consent
-     * @throws IOException
-     */
-/*    public static Credential authorize() throws IOException {
-        // Load client secrets.
-        InputStream in =
-                Inbox.class.getResourceAsStream("/client_secret.json");
-        GoogleClientSecrets clientSecrets =
-                GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
-
-        // Build flow and trigger user authorization request.
-        GoogleAuthorizationCodeFlow flow =
-                new GoogleAuthorizationCodeFlow.Builder(
-                        HTTP_TRANSPORT, JSON_FACTORY, clientSecrets, SCOPES)
-                        .setDataStoreFactory(DATA_STORE_FACTORY)
-                        .setAccessType("offline")
-                        .build();
-        Credential credential = new AuthorizationCodeInstalledApp(
-                flow, new LocalServerReceiver()).authorize("user");
-        System.out.println(
-                "Credentials saved to " + DATA_STORE_DIR.getAbsolutePath());
-        return credential;
-    }
-
-    /**
-     *
-     * @return returns the gmail service authorized with the user's credential
-     * @throws IOException
-     */
- /*   public static Gmail getGmailService() throws IOException {
-        Credential credential = authorize();
-        return new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
-                .setApplicationName(APPLICATION_NAME)
-                .build();
-    }
-*/
-    /**
-     * @return list of messages that contain their respective messageId and threadId
-     * @throws IOException
-     */
-    public List<Message> getInbox() throws IOException {
-        int  numMessages = 0;
-        // list messages in inbox
-        ListMessagesResponse response = auth.service.users().messages().list("me")
-                .execute();
-        // array list to store messages from each page
-        List<Message> messages = new ArrayList<>();
-        while (response.getMessages() != null) {
-
-            messages.addAll(response.getMessages());
-/*            for(Message m : response.getMessages()) {
-                // TODO: store messageIds here
-                // TODO: store numMessages
-                // TODO: need to limit the number of messages returned here
-                System.out.println(m.getId());
-                System.out.println(++numMessages);
-            }
-
-            if (response.getNextPageToken() != null) {
-
-                String pageToken = response.getNextPageToken();
-                response = service.users().messages().list(userId)
-                        .setPageToken(pageToken).execute();
-            } else {
-                break;
-            }
-            */
-            break;
-        }
-/*
-        int i = 0;
-        for (Message message : messages) {
-            System.out.println(++i);
-            System.out.println(message.getId());
-        }
-*/
         return messages;
     }
 
@@ -455,19 +439,49 @@ public class Inbox {
      * @throws MessagingException
      */
     public MimeMessage composeMessage(Session session,
-                                     String to,
-                                     String subject,
-                                     String message) throws MessagingException {
+                                      String to,
+                                      String subject,
+                                      String message) throws MessagingException {
 
         MimeMessage m = new MimeMessage(session);
         m.setFrom(new InternetAddress(me));
 
         // TODO: if CC/BCC contains an email address, iterate through the
         // TODO: email addresses using this method
-        m.addRecipients(javax.mail.Message.RecipientType.CC, to);
+        m.addRecipients(javax.mail.Message.RecipientType.CC,to);
         m.setSubject(subject);
         m.setText(message);
         return m;
+    }
+    
+    public List<String> loadEmailAddresses(List<Message> inbox) {
+        List<String> emailAddresses = null;
+        try {
+            emailAddresses = new ArrayList<>(25);
+            for (int i = 0; i < inbox.size()/25; i++) {
+                FullMessage fm = new FullMessage(this,inbox.get(i));
+                if(!emailAddresses.contains(fm.getFrom()))
+                    emailAddresses.add(MessageParser.parseEmailAddress(fm.getFrom()));
+            }
+            Collections.sort(emailAddresses);
+        } catch (IOException e) {
+
+
+        }
+        return  emailAddresses;
+    }
+
+    public boolean isEmailAddress(String email) {
+        String pattern = "^[_A-Za-z0-9-\\\\+]+(\\\\.[_A-Za-z0-9-]+)*\n" +
+                "@[A-Za-z0-9-]+(\\\\.[A-Za-z0-9]+)*(\\\\.[A-Za-z]{2,})$;";
+        Pattern r = Pattern.compile(pattern);
+        Matcher m = r.matcher(email);
+        if(m.find()) {
+            System.out.println("valid email address");
+            return true;
+        }
+        System.out.println("not a valid email address");
+        return false;
     }
 
     /**
