@@ -44,6 +44,9 @@ public class FullMessage {
         this.auth = inbox.getAuth();
         this.m = m;
     }*/
+    public Authenticator getAuth() {
+        return auth;
+    }
     /**
      * @return the message body in HTML
      * @throws IOException
@@ -229,5 +232,9 @@ public class FullMessage {
      */
     private Thread getFullThreadInstance(Thread thread) throws IOException {
         return auth.service.users().threads().get(auth.userId, thread.getId()).execute();
+    }
+
+    public String getId() {
+        return m.getId();
     }
 }

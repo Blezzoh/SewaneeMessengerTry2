@@ -4,6 +4,7 @@ import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListLabelsResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyMessageRequest;
+import org.apache.http.auth.AUTH;
 
 import java.io.IOException;
 import java.util.List;
@@ -155,6 +156,19 @@ public class LabelMaker {
         try {
             response = i.getService().users().labels()
                     .list(i.getUser()).execute();
+            return response.getLabels();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static List<Label> listLabels(Authenticator auth) {
+
+        ListLabelsResponse response = null;
+        try {
+            response = auth.service.users().labels()
+                    .list(auth.userId).execute();
             return response.getLabels();
         } catch (IOException e) {
             e.printStackTrace();
