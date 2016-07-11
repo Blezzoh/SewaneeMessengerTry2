@@ -68,7 +68,8 @@ public class Controller extends Application {
          *   root container of the interface
          */
         BorderPane root = new BorderPane();
-        root.setRight(new ComposeMessage(inbox,this).getRoot());
+        ComposeMessage cm = new ComposeMessage(inbox, this);
+        root.setRight(cm.getRoot());
 
         /**
          *        creates and loads the messages for the center of the root
@@ -83,7 +84,7 @@ public class Controller extends Application {
         sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setFitToWidth(true);
 
-        HBox bottomMenu = makeBottomMenu(root,sp);
+        HBox bottomMenu = makeBottomMenu(root, sp, cm);
         root.setBottom(bottomMenu);
 
 
@@ -103,7 +104,7 @@ public class Controller extends Application {
                         (emailAddresses, searchField.getText()));*/
                 if(event.getCode() == KeyCode.ENTER) {
                     searchTime = System.currentTimeMillis();
-                    userSearchForMessages(root,sp);
+                    userSearchForMessages(root, sp, cm);
                 }
                 char key = event.getText().charAt(0);
                 // if the key is either an upper/lowercase alpha-numeric key
@@ -120,7 +121,7 @@ public class Controller extends Application {
         /**
          * creates the paginator based on the messages in the @field{messages} field
          */
-        createPaginator(root,sp);
+        createPaginator(root, sp, cm);
         /**
          *     if the user clicks on the scroll pane,
          */
@@ -151,7 +152,7 @@ public class Controller extends Application {
      * this method requires that the messages field and center field not be null
      * @param root the root interface of the application
      */
-    public void createPaginator(BorderPane root,ScrollPane sp) {
+    public void createPaginator(BorderPane root, ScrollPane sp, ComposeMessage cm) {
         pagination = new Pagination((int)Math.ceil(messages.size()/itemsPerPage()));
         pagination.setStyle("-fx-border-color:red;");
 
@@ -163,7 +164,7 @@ public class Controller extends Application {
                         {
                             try {
                                 pagingTime = System.currentTimeMillis();
-                                return createPage(pageIndex,sp);
+                                return createPage(pageIndex, sp, cm);
 
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -192,7 +193,8 @@ public class Controller extends Application {
         root.setCenter(pagination);
     }
 
-    public void userSearchForMessages(BorderPane root,ScrollPane sp) {
+    public void userSearchForMessages(BorderPane root, ScrollPane sp,
+                                      ComposeMessage cm) {
         // TODO: HANDLE THE CASE WHERE NO MESSAGES ARE RETURNED
         // only search for messages if the searchField is visible
         // and there is some text in it
@@ -201,7 +203,7 @@ public class Controller extends Application {
         // time is used to show how long search and ui update takes
         messages = inbox.listMessagesMatchingQuery(searchField.getText());
         // do search animation
-        createPaginator(root,sp);
+        createPaginator(root, sp, cm);
     }
     /*
     the speed at which the ui updates is heavily dependent on what itemsPerPage()
@@ -211,7 +213,7 @@ public class Controller extends Application {
         return 15.0;
     }
 
-    private ScrollPane createPage(int pageIndex, ScrollPane sp) throws IOException {
+    private ScrollPane createPage(int pageIndex, ScrollPane sp, ComposeMessage cm) throws IOException {
         if(center == null || center.getChildren() == null)
             throw new NullPointerException("center or the container containing its children is null");
         if(messages == null)
@@ -231,7 +233,8 @@ public class Controller extends Application {
 
                 fullMessages[arrayIndex] = new FullMessage
                         (inbox, messages.get(i));
-                center.getChildren().add(new MessageItem(fullMessages[arrayIndex],imgUrl));
+                center.getChildren().add(new MessageItem(fullMessages[arrayIndex], imgUrl
+                        , cm));
 
             }
             sp.setContent(center);
@@ -268,7 +271,7 @@ public class Controller extends Application {
         }
     }
 
-    private HBox makeBottomMenu(BorderPane root,ScrollPane sp) {
+    private HBox makeBottomMenu(BorderPane root, ScrollPane sp, ComposeMessage cm) {
         HBox lowerMenu = new HBox();
         Rectangle menuRec = new Rectangle(100, 60);
         Rectangle searchRect = new Rectangle(100, 60);
@@ -306,7 +309,7 @@ public class Controller extends Application {
         searchRect.setOnMouseClicked(e ->
         {
             if(searchField.isVisible()) {
-                userSearchForMessages(root,sp);
+                userSearchForMessages(root, sp, cm);
                 searchField.setVisible(false);
             } else
                 displaySearchField(searchField);

@@ -138,7 +138,15 @@ public class FullMessage {
         // if the message only contains html
         // that is m.getPayload.getParts will be null
         // TODO: Fix the above comments
-        return Inbox.decodeString(m.getPayload().getParts().get(0).getBody().getData());
+        Message message = null;
+        try {
+            message = auth.service.users().messages()
+                    .get(auth.userId, this.m.getId()).setFields("payload").execute();
+            return Inbox.decodeString(message.getPayload().getParts().get(0).getBody().getData());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
     private String getMessageBody(Message message) {
         // note that this will throw a null pointer exception

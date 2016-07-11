@@ -2,6 +2,7 @@ package sample;
 
 import com.danielevans.email.Authenticator;
 import com.danielevans.email.FullMessage;
+import com.danielevans.email.MessageParser;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -17,7 +18,6 @@ import javafx.scene.text.Text;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 
 /**
  * Created by iradu_000 on 6/3/2016.
@@ -33,15 +33,18 @@ public class MessageItem extends HBox {
     private Text snippetField;
     private Image imageField;
     private String messageId;
+    private static final String filePath = "/home/daniel/IdeaProjects/SewaneeMessengerTry2/src/main/resources/";
+    private FullMessage m;
 
     public MessageItem() {
         super();
     }
 
-    public MessageItem(FullMessage m, String imageUrl) throws FileNotFoundException {
+    public MessageItem(FullMessage m, String imageUrl, ComposeMessage composer) throws FileNotFoundException {
 
         this();
         Authenticator auth = m.getAuth();
+        this.m = m;
 
         messageId = m.getId();
         senderField = new Text(m.getFrom());
@@ -61,12 +64,12 @@ public class MessageItem extends HBox {
         HBox firstRowOptions = new HBox();
         HBox secondRowOptions = new HBox();
 
-        Image download = new Image(new FileInputStream(new File("C:\\Users\\iradu_000\\IdeaProjects\\SewaneeMessengerTry2\\src\\main\\resources\\download.png")),20,20,true,true);
-        Image forward = new Image( new FileInputStream(new File("C:\\Users\\iradu_000\\IdeaProjects\\SewaneeMessengerTry2\\src\\main\\resources\\forward.png")),20,20,true,true);
-        Image label = new Image(new FileInputStream(new File("C:\\Users\\iradu_000\\IdeaProjects\\SewaneeMessengerTry2\\src\\main\\resources\\label.png")),20,20,true,true);
-        Image mark = new Image(new FileInputStream(new File("C:\\Users\\iradu_000\\IdeaProjects\\SewaneeMessengerTry2\\src\\main\\resources\\mark.png")), 20,20,true,true);
-        Image reply = new Image(new FileInputStream(new File("C:\\Users\\iradu_000\\IdeaProjects\\SewaneeMessengerTry2\\src\\main\\resources\\reply.png")),20,20,true,true);
-        Image trash = new Image(new FileInputStream(new File("C:\\Users\\iradu_000\\IdeaProjects\\SewaneeMessengerTry2\\src\\main\\resources\\trash.png")), 20,20,true, true);
+        Image download = new Image(new FileInputStream(new File(filePath + "download.png")), 20, 20, true, true);
+        Image forward = new Image(new FileInputStream(new File(filePath + "forward.png")), 20, 20, true, true);
+        Image label = new Image(new FileInputStream(new File(filePath + "label.png")), 20, 20, true, true);
+        Image mark = new Image(new FileInputStream(new File(filePath + "mark.png")), 20, 20, true, true);
+        Image reply = new Image(new FileInputStream(new File(filePath + "reply.png")), 20, 20, true, true);
+        Image trash = new Image(new FileInputStream(new File(filePath + "trash.png")), 20, 20, true, true);
 
         ImageView downloadAttach = new ImageView(download);
         setMargin(downloadAttach, new Insets(1,5,1,1));
@@ -87,9 +90,26 @@ public class MessageItem extends HBox {
          */
 
 
+        replyEmail.setOnMouseClicked(e ->
+                {
+                    composer.getBodyText().setText(m.getMessageBody());
+                    System.out.println(m.getMessageBody());
+                    composer.getEmailAddress().setText
+                            (MessageParser.parseEmailAddress(m.getFrom()));
+                    composer.getSubject().setText("REPLY: " + m.getSubject());
+                }
+        );
+
+        forwardEmail.setOnMouseClicked(e ->
+                {
+
+                }
+        );
+
+
         imageField = new Image(imageUrl, 80, 0, true, true, false);
         ImagePattern imageView = new ImagePattern(imageField);
-//        ImageView imageView = new ImageView(imageField);
+//        ImageView imageView = new cd ImageView(imageField);
 
 
         Rectangle canvas = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);

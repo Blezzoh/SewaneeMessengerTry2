@@ -81,4 +81,36 @@ public class ComposeMessage {
     public VBox getRoot() {
         return root;
     }
+
+    public TextField getEmailAddress() {
+        return emailAddress;
+    }
+
+    public void setEmailAddress(TextField emailAddress) {
+        this.emailAddress = emailAddress;
+    }
+
+    public TextArea getBodyText() {
+        return bodyText;
+    }
+
+    public void setBodyText(TextArea bodyText) {
+        this.bodyText = bodyText;
+    }
+
+    public TextField getCc() {
+        return Cc;
+    }
+
+    public void setCc(TextField cc) {
+        Cc = cc;
+    }
+
+    public TextField getSubject() {
+        return subject;
+    }
+
+    public void setSubject(TextField subject) {
+        this.subject = subject;
+    }
 }
