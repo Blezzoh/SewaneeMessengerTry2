@@ -333,6 +333,7 @@ public class Inbox {
                             .setQ(query)
                             .setPageToken(pageToken)
                             .execute();
+                    break;
                 } else {
                     break;
                 }
@@ -379,10 +380,12 @@ public class Inbox {
                         .set("metadataHeaders","Subject")
                         .setPageToken(response.getNextPageToken())
                         .execute();
-                if (messages.size() > 3000) {
+                break;
+                /*if (messages.size() > 3000) {
                     System.out.println("done");
                     break;
                 }
+                */
             } else {
                 break;
             }

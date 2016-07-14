@@ -82,14 +82,15 @@ public class Controller extends Application {
         for (int i = 0; i < firstFullMessages.length; i++) {
             try {
                 firstFullMessages[i] = new FullMessage(inbox, messages.get(i));
-                System.out.println(firstFullMessages[i].getDate());
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         // earliest date stored in last element of firstFullMessages
         lastDate = MessageParser.parseDate
-                (firstFullMessages[firstFullMessages.length - 1]);
+                (firstFullMessages[firstFullMessages.length - 1].getDate());
+
+        System.out.println("last date = " + lastDate);
 
         System.out.println("init time: " +
                 (System.currentTimeMillis() - initTime) / 1000.0);
@@ -120,8 +121,6 @@ public class Controller extends Application {
 
         HBox bottomMenu = makeBottomMenu(root, sp, cm);
         root.setBottom(bottomMenu);
-
-
 
         /**
          *      creating title for application and scene
@@ -252,9 +251,15 @@ public class Controller extends Application {
                 }
             }
         }*/
+        /**
+         *  next step is to store emails on hard drive,
+         *  check the ids of the emails returned in the search against
+         *  the ones on the hardrive, show the emails of the ones matching
+         *  the ids
+         */
         messages = inbox.listMessagesMatchingQuery(searchField.getText()
-                // todo: last date must be in format mm/dd/yyyy
-                + "after:" + lastDate);
+                + " after:" + lastDate);
+        System.out.println(messages.size());
         // do search animation
         createPaginator(root, sp, cm);
     }
@@ -288,9 +293,6 @@ public class Controller extends Application {
                     + ((System.currentTimeMillis() - fmpageTime))
                     + " seconds");
             sp.setContent(center);
-/*            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-            sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-            sp.setFitToWidth(true);*/
             return sp;
         } else {
             // TODO: IMPORTANT -> MAKE THE SEARCH GO THROUGH ALL OF THE
@@ -306,8 +308,6 @@ public class Controller extends Application {
                         + ((System.currentTimeMillis() - time) / 1000.0)
                         + " seconds");
                 MessageItem mItem = (MessageItem) center.getChildren().get(arrayIndex);
-                // GET FROM DOES TWICE THE WORK
-                System.out.println(i);
                 mItem.setSenderField(firstFullMessages[i].getFrom());
                 mItem.setSubjectField(firstFullMessages[i].getSubject());
                 mItem.setSnippetField(firstFullMessages[i].getSnippet());
@@ -319,6 +319,12 @@ public class Controller extends Application {
             System.out.println("paging time took "
                     + ((System.currentTimeMillis() - pagingTime) / 1000.0)
                     + " seconds");
+            if (searchTime != 0) {
+                // ~ 5-7 seconds for searching
+                System.out.println("search time: "
+                        + (System.currentTimeMillis() - searchTime) / 1000.0);
+                searchTime = 0;
+            }
             return sp;
         }
     }
