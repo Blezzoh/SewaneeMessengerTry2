@@ -15,6 +15,7 @@ import java.io.IOException;
 
 /**
  * Created by daniel on 6/8/16.
+ * @author Daniel Evans
  */
 public class ComposeMessage {
 

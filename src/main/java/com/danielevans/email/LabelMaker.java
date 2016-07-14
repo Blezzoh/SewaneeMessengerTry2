@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * Created by daniel on 6/9/16.
+ * @author Daniel Evans
  */
 public class LabelMaker {
     /**

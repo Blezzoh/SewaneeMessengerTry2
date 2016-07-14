@@ -6,6 +6,7 @@ import java.io.IOException;
 
 /**
  * Created by daniel on 6/3/16.
+ * @author Daniel Evans
  */
 
 public class FullThread {

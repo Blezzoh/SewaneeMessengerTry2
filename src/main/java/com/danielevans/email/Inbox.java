@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 /**
  * Created by daniel on 6/2/16.
+ * @author Daniel Evans
  */
 public class Inbox {
 

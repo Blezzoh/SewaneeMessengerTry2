@@ -9,6 +9,7 @@ import java.util.List;
 
 /**
  * Created by daniel on 6/3/16.
+ * @author Daniel Evans
  */
 public class FullMessage {
 
