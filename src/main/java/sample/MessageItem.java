@@ -2,6 +2,7 @@ package sample;
 
 import com.danielevans.email.Authenticator;
 import com.danielevans.email.FullMessage;
+import com.danielevans.email.MessageParser;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
@@ -43,7 +44,7 @@ public class MessageItem extends HBox {
         Authenticator auth = m.getAuth();
 
         messageId = m.getId();
-        senderField = new Text(m.getFrom());
+        senderField = new Text(MessageParser.parseNameFromEmail(m.getFrom()));
         subjectField = new Text("S: " + m.getSubject() + "\n");
         snippetField = new Text(m.getSnippet());
         subjectField.setWrappingWidth(190);

@@ -333,6 +333,12 @@ public class Inbox {
                             .setQ(query)
                             .setPageToken(pageToken)
                             .execute();
+                    // make sure to modify the get inbox function
+                    // if you remove the break or if statement below
+                    /*if (messages.size() > 1000) {
+                        System.out.println("done");
+                        break;
+                    }*/
                     break;
                 } else {
                     break;
@@ -341,7 +347,7 @@ public class Inbox {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("messages size " + 100);
+        System.out.println("message search size = " + messages.size());
         return messages;
     }
 
@@ -380,16 +386,20 @@ public class Inbox {
                         .set("metadataHeaders","Subject")
                         .setPageToken(response.getNextPageToken())
                         .execute();
-                break;
-                /*if (messages.size() > 3000) {
+
+                // make sure to modify the get inbox function
+                // if you remove the break or if statement below
+                /*if (messages.size() > 1000) {
                     System.out.println("done");
                     break;
-                }
-                */
+                }*/
+                break;
+
             } else {
                 break;
             }
         }
+        System.out.println("message size " + messages.size());
         return messages;
     }
 

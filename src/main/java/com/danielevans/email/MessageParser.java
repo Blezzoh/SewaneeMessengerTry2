@@ -54,7 +54,6 @@ public class MessageParser {
         for (int i = 3; i + 5 < date.length(); i++) {
             // this will not be -1 if it is a valid number
             int charIntVal = Character.getNumericValue(date.charAt(i));
-//            System.out.println("charIntVal " + charIntVal);
             //  ---- day -----
             // checks for null are so that the vars aren't reset after they've
             // been set
@@ -63,16 +62,13 @@ public class MessageParser {
                 if (charIntVal != -1) {
                     // we want # we are at and the next one
                     dd = date.substring(i, i + 2);
-//                    System.out.println("day = " + dd);
                 }
             }
             //  ---- month -----
             if (mm == null) {
-//                System.out.println(date.substring(i, i+3));
                 if (months.get(date.substring(i, i + 3)) != null) {
                     // months are 3 characters long, hence the i + 3
                     mm = months.get(date.substring(i, i + 3));
-//                    System.out.println("month = " + mm);
                 }
             }
             // ----- year  -----
@@ -86,7 +82,6 @@ public class MessageParser {
                 } catch (NumberFormatException e) { /* do nothing here */ }
             }
         }
-        // 2004/04/16
         // yyyy/dd/mm
         return year + "/" + dd + "/" + mm;
     }
@@ -125,6 +120,23 @@ public class MessageParser {
         return new StringBuilder(backwardEmailAddress).reverse().toString();
     }
 
+    public static String parseNameFromEmail(FullMessage message) {
+        return parseNameFromEmail(message.getFrom());
+    }
+
+    /**
+     * Precondition: from must be in the form NameOfPerson <emailAddress@example.com>
+     *
+     * @param from an email in form NameOfPerson <emailAddress@example.com>
+     * @return returns NameOfPerson
+     */
+    public static String parseNameFromEmail(String from) {
+        String name = "";
+        int i;
+        for (i = 0; i < from.length() && from.charAt(i) != '<'; i++)
+            ;
+        return from.substring(0, i);
+    }
     /**
      *
      * @param message Ay gmail message

@@ -24,28 +24,18 @@ public class FullMessage {
     private Message m;
     private Authenticator auth;
 
-
     // TODO: surround long returns with try/catch(NPE e)
 
     public FullMessage(Authenticator auth, Message message) throws IOException {
         this.auth = auth;
         this.m = getFullMessageMetaData(message);
+        System.out.println(m.getPayload().toPrettyString());
     }
 
     public FullMessage(Inbox inbox, Message message) throws IOException {
         this(inbox.getAuth(), message);
     }
 
-    /*    // basically a copy constructor because m is already a full message retrieved with get
-     public FullMessage(Inbox inbox, Message m) throws IOException {
-         // if payload field is null, this message was not retrieved with messages.get
-         if(m.getPayload() == null) {
-             throw new IllegalArgumentException("m (" + m + ") must be a message retrieved with get");
-         }
-         this.auth = inbox.getAuth();
-         this.m = m;
-     }
-     */
     public Authenticator getAuth() {
         return auth;
     }
@@ -86,9 +76,24 @@ public class FullMessage {
             } catch (IOException e) {
                 System.out.println("CANNOT RETRIEVE THE MESSAGE");
                 e.printStackTrace();
-
                 return null;
             }
+    }
+
+    /**
+     * @return the message with all body text, headers, links, images, etc
+     */
+    public Message getFullBodyMessage() {
+        try {
+            // set fields
+            return auth.service.users().messages()
+                    .get(auth.userId, m.getId())
+                    .execute();
+        } catch (IOException e) {
+            System.out.println("CANNOT RETRIEVE THE MESSAGE");
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public String getSnippet() {
