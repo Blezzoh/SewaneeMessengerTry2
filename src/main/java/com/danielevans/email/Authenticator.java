@@ -35,23 +35,11 @@ public class Authenticator {
      */
     private static final java.io.File DATA_STORE_DIR = new java.io.File(
             System.getProperty("user.home"), ".credentials/gmail-java-quickstart.json");
-
-    /**
-     * Global instance of the {@link FileDataStoreFactory}.
-     */
-    private static FileDataStoreFactory DATA_STORE_FACTORY;
-
     /**
      * Global instance of the JSON factory.
      */
     private static final JsonFactory JSON_FACTORY =
             JacksonFactory.getDefaultInstance();
-
-    /**
-     * Global instance of the HTTP transport.
-     */
-    private static HttpTransport HTTP_TRANSPORT;
-
     /**
      * Global instance of the scopes required by this quickstart.
      * <p>
@@ -62,6 +50,14 @@ public class Authenticator {
             Arrays.asList(GmailScopes.GMAIL_LABELS
                     , GmailScopes.GMAIL_COMPOSE
                     ,GmailScopes.GMAIL_MODIFY);
+    /**
+     * Global instance of the {@link FileDataStoreFactory}.
+     */
+    private static FileDataStoreFactory DATA_STORE_FACTORY;
+    /**
+     * Global instance of the HTTP transport.
+     */
+    private static HttpTransport HTTP_TRANSPORT;
 
     static {
         try {

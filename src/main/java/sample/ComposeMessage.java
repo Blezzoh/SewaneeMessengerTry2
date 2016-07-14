@@ -25,7 +25,6 @@ public class ComposeMessage {
     private Button send;
     private Button attachments;
     private TextField subject;
-
     private VBox root;
 
     public ComposeMessage(Inbox inbox, Controller controller) {

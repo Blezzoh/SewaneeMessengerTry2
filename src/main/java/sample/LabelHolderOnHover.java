@@ -1,7 +1,6 @@
 package sample;
 
 import com.danielevans.email.Authenticator;
-import com.danielevans.email.Inbox;
 import com.danielevans.email.LabelMaker;
 import com.google.api.services.gmail.model.Label;
 import javafx.geometry.Insets;

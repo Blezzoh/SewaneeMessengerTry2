@@ -35,15 +35,17 @@ public class FullMessage {
     public FullMessage(Inbox inbox, Message message) throws IOException {
         this(inbox.getAuth(), message);
     }
-/*    // basically a copy constructor because m is already a full message retrieved with get
-    public FullMessage(Inbox inbox, Message m) throws IOException {
-        // if payload field is null, this message was not retrieved with messages.get
-        if(m.getPayload() == null) {
-            throw new IllegalArgumentException("m (" + m + ") must be a message retrieved with get");
-        }
-        this.auth = inbox.getAuth();
-        this.m = m;
-    }*/
+
+    /*    // basically a copy constructor because m is already a full message retrieved with get
+     public FullMessage(Inbox inbox, Message m) throws IOException {
+         // if payload field is null, this message was not retrieved with messages.get
+         if(m.getPayload() == null) {
+             throw new IllegalArgumentException("m (" + m + ") must be a message retrieved with get");
+         }
+         this.auth = inbox.getAuth();
+         this.m = m;
+     }
+     */
     public Authenticator getAuth() {
         return auth;
     }
@@ -76,10 +78,10 @@ public class FullMessage {
                 return auth.service.users().messages()
                         .get(auth.userId, message.getId())
                         .setFormat("metadata")
-                        .set("metadataIncludeHeaders","To")
-                        .set("metadataIncludeHeaders","From")
-                        .set("metadataIncludeHeaders","Date")
-                        .set("metadataIncludeHeaders","Subject")
+                        .set("metadataIncludeHeaders", TO)
+                        .set("metadataIncludeHeaders", FROM)
+                        .set("metadataIncludeHeaders", DATE)
+                        .set("metadataIncludeHeaders", SUBJECT)
                         .execute();
             } catch (IOException e) {
                 System.out.println("CANNOT RETRIEVE THE MESSAGE");
@@ -119,15 +121,19 @@ public class FullMessage {
     private String getHeaderPart(String part) {
 
         List<MessagePartHeader> headers = m.getPayload().getHeaders();
+        m.getPayload().get("this");
+        String retval = "";
         for (MessagePartHeader header : headers) {
+//            System.out.println(header);
             if (header.getName().equals(part)) {
 //                System.out.println(headers.get(i).getValue());
-                return header.getValue();
+                retval = header.getValue();
             }
         }
+//        System.out.println("\n------------------------------------------\n");
         // at this point, we know message is not found
         // so return empty string
-        return "";
+        return retval;
     }
     /**
      * @return the text in the body of message
@@ -209,7 +215,7 @@ public class FullMessage {
     }
 
     /**
-     * @return Subject of the messagen
+     * @return Subject of the message
      */
     public String getSubject()
     {

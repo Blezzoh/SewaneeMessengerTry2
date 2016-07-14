@@ -29,15 +29,6 @@ import java.util.regex.Pattern;
  */
 public class Inbox {
 
-    // Recipient's email ID needs to be mentioned.
-    private String to = "evansdb0@sewanee.edu";
-
-    private String me = "evansdb0@sewanee.edu";
-
-    // Assuming you are sending email from localhost
-    private String host = "localhost";
-
-
     private static final String DATE = "Date";
     private static final String DELIVERED_TO = "Delivered-To";
     private static final String FROM = "From";
@@ -46,35 +37,21 @@ public class Inbox {
     private static final String SUBJECT = "Subject";
     private static final String LIST_UNSUBSCRIBE = "List-Unsubscribe";
     private static final String MAILING_LIST = "Mailing-List";
-
     /**
      * Application name.
      */
     private static final String APPLICATION_NAME =
             "Gmail API Java Quickstart";
-
     /**
      * Directory to store user credentials for this application.
      */
     private static final java.io.File DATA_STORE_DIR = new java.io.File(
             System.getProperty("user.home"), ".credentials/gmail-java-quickstart.json");
-
-    /**
-     * Global instance of the {@link FileDataStoreFactory}.
-     */
-    private static FileDataStoreFactory DATA_STORE_FACTORY;
-
     /**
      * Global instance of the JSON factory.
      */
     private static final JsonFactory JSON_FACTORY =
             JacksonFactory.getDefaultInstance();
-
-    /**
-     * Global instance of the HTTP transport.
-     */
-    private static HttpTransport HTTP_TRANSPORT;
-
     /**
      * Global instance of the scopes required by this quickstart.
      * <p>
@@ -85,7 +62,19 @@ public class Inbox {
             Arrays.asList(GmailScopes.GMAIL_LABELS
                     , GmailScopes.GMAIL_COMPOSE
                     ,GmailScopes.GMAIL_MODIFY);
-
+    /**
+     * Global instance of the {@link FileDataStoreFactory}.
+     */
+    private static FileDataStoreFactory DATA_STORE_FACTORY;
+    /**
+     * Global instance of the HTTP transport.
+     */
+    private static HttpTransport HTTP_TRANSPORT;
+    // Recipient's email ID needs to be mentioned.
+    private String to = "evansdb0@sewanee.edu";
+    private String me = "evansdb0@sewanee.edu";
+    // Assuming you are sending email from localhost
+    private String host = "localhost";
     /* static {
          try {
              HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
@@ -115,9 +104,6 @@ public class Inbox {
             e.printStackTrace();
         }
     }
-    public Authenticator getAuth() {
-        return auth;
-    }
 
     /**
      * Helper method for decoding base64Encoded strings
@@ -126,6 +112,28 @@ public class Inbox {
      */
     public static String decodeString(String base64String) {
         return StringUtils.newStringUtf8(Base64.decodeBase64(base64String));
+    }
+
+    /**
+     * Create a Message from an email
+     *
+     * @param email Email to be set to raw of message
+     * @return Message containing base64 encoded email.
+     * @throws IOException
+     * @throws MessagingException
+     */
+    public static Message createMessageWithEmail(MimeMessage email)
+            throws MessagingException, IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        email.writeTo(baos);
+        String encodedEmail = Base64.encodeBase64URLSafeString(baos.toByteArray());
+        Message message = new Message();
+        message.setRaw(encodedEmail);
+        return message;
+    }
+
+    public Authenticator getAuth() {
+        return auth;
     }
 
     /**
@@ -223,6 +231,17 @@ public class Inbox {
     }
 
     /**
+     * gets the decode raw version of the email, formatted with format=RAW
+     * @param message any Gmail messaage
+     * @return decoded raw message
+     * @throws IOException
+     */
+/*    public static String getMessageRaw(Message message) throws IOException {
+        Message m = getRawVersion(message);
+        return decodeString(m.getRaw());
+    }*/
+
+    /**
      * get the unsubscribe link from the mailing list
      * @param message Any Gmail message
      * @return the link the user can go to to unsubscribe from this mailing list, if it exists
@@ -234,17 +253,6 @@ public class Inbox {
 
         return getHeaderPart(message,LIST_UNSUBSCRIBE);
     }
-
-    /**
-     * gets the decode raw version of the email, formatted with format=RAW
-     * @param message any Gmail messaage
-     * @return decoded raw message
-     * @throws IOException
-     */
-/*    public static String getMessageRaw(Message message) throws IOException {
-        Message m = getRawVersion(message);
-        return decodeString(m.getRaw());
-    }*/
 
     /**
      * helper method to get certain pieces of the message
@@ -335,6 +343,7 @@ public class Inbox {
         System.out.println("messages size " + 100);
         return messages;
     }
+
     public Gmail getService() {
         return auth.service;
     }
@@ -361,7 +370,6 @@ public class Inbox {
         while (response.getMessages() != null) {
             messages.addAll(response.getMessages());
             if (response.getNextPageToken() != null) {
-                String pageToken = response.getNextPageToken();
                 response = auth.service.users().messages()
                         .list(auth.userId)
                         .set("format","metadata")
@@ -369,8 +377,12 @@ public class Inbox {
                         .set("metadataHeaders","From")
                         .set("metadataHeaders","Date")
                         .set("metadataHeaders","Subject")
-                        .setPageToken(pageToken)
+                        .setPageToken(response.getNextPageToken())
                         .execute();
+                if (messages.size() > 3000) {
+                    System.out.println("done");
+                    break;
+                }
             } else {
                 break;
             }
@@ -386,6 +398,7 @@ public class Inbox {
     public List<Message> getDefaultInbox() {
         return inbox;
     }
+
     /**
      * Send an email from the user's mailbox to its recipient.
      *
@@ -401,24 +414,6 @@ public class Inbox {
 
         System.out.println("Message id: " + message.getId());
         System.out.println(message.toPrettyString());
-    }
-
-    /**
-     * Create a Message from an email
-     *
-     * @param email Email to be set to raw of message
-     * @return Message containing base64 encoded email.
-     * @throws IOException
-     * @throws MessagingException
-     */
-    public static Message createMessageWithEmail(MimeMessage email)
-            throws MessagingException, IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        email.writeTo(baos);
-        String encodedEmail = Base64.encodeBase64URLSafeString(baos.toByteArray());
-        Message message = new Message();
-        message.setRaw(encodedEmail);
-        return message;
     }
 
     /**
