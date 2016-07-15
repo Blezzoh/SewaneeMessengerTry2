@@ -17,8 +17,9 @@ import java.util.List;
 /**
  * Created by Blase & Danny on 6/8/2016.
  * Class that displays all the labels to allow the user to add a message to a label
+ * @author Blaise Iradukunda and Daniel Evans
  */
-public class LabelHolderOnHover extends VBox{
+public class LabelHolderOnHover extends VBox {
 
     private TextField newLabel;
 

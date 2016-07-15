@@ -8,8 +8,12 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.HashMap;
 
+import static com.danielevans.email.Inbox.MESSAGE_NULL_ERROR;
+import static com.danielevans.email.Inbox.decodeString;
+
 /**
  * Created by daniel on 6/2/16.
+ * @author Daniel Evans
  */
 // TODO: detect links so we can send the user to that page
 public class MessageParser {
@@ -21,7 +25,9 @@ public class MessageParser {
      */
     public static Elements getImgs(FullMessage message) throws IOException {
         Document doc = generateDocument(message);
-        return doc.select("img");
+        if (doc != null)
+            return doc.select("img");
+        return null;
     }
 
     /**
@@ -33,6 +39,7 @@ public class MessageParser {
      * @return returns a date in format yyyy/dd/mm
      */
     public static String parseDate(String date) {
+        Preconditions.objectNotNull(date, "date is null");
         // make a dictionary for the months
         HashMap<String, String> months = new HashMap<>(12);
         months.put("Jan", "01");
@@ -92,7 +99,7 @@ public class MessageParser {
      * @return the src attribute of the element or nothing if the element has no src attribute
      */
     public static String getImgSrc(Element imgElement) {
-
+        Preconditions.objectNotNull(imgElement, "imgElement is null");
         return imgElement.attr("src");
     }
 
@@ -103,24 +110,28 @@ public class MessageParser {
      * @throws IOException
      */
     public static String getFirstImgSrc(FullMessage message) throws IOException {
-
         Document doc = generateDocument(message);
-        return doc.select("img").first().attr("src");
+        if (doc != null)
+            return doc.select("img").first().attr("src");
+        return null;
     }
 
+    /**
+     * Precondition: from must be in the form NameOfPerson <emailAddress@example.com>
+     *
+     * @param emailAddress an email in form NameOfPerson <emailAddress@example.com>
+     * @return returns emailAddress@example.com (see param)
+     */
     public static String parseEmailAddress(String emailAddress) {
-        String backwardEmailAddress = "";
-        for (int i = emailAddress.length()-2; i >=0; i--) {
-            if(emailAddress.charAt(i) !=  '<') {
-                backwardEmailAddress += emailAddress.charAt(i);
-            }
-            else
-                break;
-        }
-        return new StringBuilder(backwardEmailAddress).reverse().toString();
+        Preconditions.objectNotNull(emailAddress, "emailAddress is null");
+        int start = emailAddress.indexOf('<');
+        int end = emailAddress.indexOf('>', start) + 1;
+        if (start == -1 || end == -1) return "";
+        return emailAddress.substring(start, end);
     }
 
     public static String parseNameFromEmail(FullMessage message) {
+        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
         return parseNameFromEmail(message.getFrom());
     }
 
@@ -130,11 +141,9 @@ public class MessageParser {
      * @param from an email in form NameOfPerson <emailAddress@example.com>
      * @return returns NameOfPerson
      */
-    public static String parseNameFromEmail(String from) {
-        String name = "";
-        int i;
-        for (i = 0; i < from.length() && from.charAt(i) != '<'; i++)
-            ;
+    static String parseNameFromEmail(String from) {
+        int i = from.indexOf('<');
+        if (i == -1) return parseEmailAddress(from);
         return from.substring(0, i);
     }
     /**
@@ -144,9 +153,10 @@ public class MessageParser {
      * @throws IOException
      */
     public static Elements getLinks(FullMessage message) throws IOException {
-
         Document doc = generateDocument(message);
-        return doc.select("a");
+        if (doc != null)
+            return doc.select("a");
+        return null;
     }
 
     /**
@@ -155,8 +165,20 @@ public class MessageParser {
      * @return the href attribute of the element or nothing if the element has no href attribute
      */
     public static String getHref(Element linkElement) {
-
+        Preconditions.objectNotNull(linkElement, "linkElement is null");
         return linkElement.attr("href");
+    }
+
+    /**
+     * @param message Any Gmail message
+     * @return the text in the body of message
+     * @throws IOException
+     */
+    public static String getMessageBody(FullMessage message)
+            throws IOException {
+        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
+        // print message body
+        return decodeString(m.getPayload().getParts().get(0).getBody().getData());
     }
 
     /**
@@ -168,6 +190,10 @@ public class MessageParser {
     private static Document generateDocument(FullMessage message)
             throws IOException {
         if(message == null) throw new NullPointerException("message can't be null");
-        return Jsoup.parse(message.getMessageAsHTML());
+        String messageAsHTML = message.getMessageAsHTML();
+        // we succeeded in retrieving raw data from google servers
+        if (messageAsHTML != null)
+            return Jsoup.parse(messageAsHTML);
+        return null;
     }
 }

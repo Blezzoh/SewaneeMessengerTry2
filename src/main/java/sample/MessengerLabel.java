@@ -13,6 +13,7 @@ import javafx.scene.text.TextFlow;
 /**
  * this class provides the layout and functionality of a label menu when the user hovers on a label icon inside a message item
  * Created by iradu_000 on 6/7/2016.
+ * @author Blaise Iradukunda
  */
 public class MessengerLabel extends TextFlow {
 

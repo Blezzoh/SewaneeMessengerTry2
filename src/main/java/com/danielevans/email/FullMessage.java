@@ -45,16 +45,16 @@ public class FullMessage {
      * @throws IOException
      */
     public String getMessageAsHTML() throws IOException {
+        // try to get the html from a the message parts in m's payload
         String html = Inbox.decodeString(m.getPayload().getParts().get(1)
                 .getBody().getData());
 
-        if (html == null)
-            try {
-                html = getRawVersion(m).getRaw();
-            } catch (NullPointerException e) {
-                e.printStackTrace();
-            }
-        return html;
+        // if above fails, try to get the raw version email from google's servers
+        if (html == null) {
+            Message rawVersion = getRawVersion(m);
+            if (rawVersion != null) return rawVersion.getRaw();
+        }
+        return null;
     }
 
 
@@ -67,6 +67,7 @@ public class FullMessage {
             try {
                 // set fields
                 return auth.service.users().messages()
+                        // NOTE THE GET
                         .get(auth.userId, message.getId())
                         .setFormat("metadata")
                         .set("metadataIncludeHeaders", TO)
@@ -102,9 +103,8 @@ public class FullMessage {
     }
 
     /**
-     * helper method that gets the message formatted with format=RAW
-     *
-     * @param message doesn't assume this is a full instance method
+     * gets the decoded raw version of the email, formatted with format=RAW
+     * @param message doesn't assume this is a full instance message
      * @return returns the entire raw version of the message
      */
     private Message getRawVersion(Message message) {
@@ -113,7 +113,6 @@ public class FullMessage {
         } catch (IOException e) {
             System.out.println("unable to retrieve raw version of the message");
             e.printStackTrace();
-
             return null;
         }
     }

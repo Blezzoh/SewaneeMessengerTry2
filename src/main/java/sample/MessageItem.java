@@ -21,17 +21,12 @@ import java.io.FileNotFoundException;
 
 /**
  * Created by iradu_000 on 6/3/2016.
+ * @author Blaise Iradukunda
  */
 public class MessageItem extends HBox {
-    private HBox msgItem;
-    private VBox picField;
-    private VBox msgSummary;
-    private VBox options;
-    private VBox container;
     private Text senderField;
     private Text subjectField;
     private Text snippetField;
-    private Image imageField;
     private String messageId;
 
     public MessageItem() {
@@ -87,7 +82,7 @@ public class MessageItem extends HBox {
          */
 
 
-        imageField = new Image(imageUrl, 80, 0, true, true, false);
+        Image imageField = new Image(imageUrl, 80, 0, true, true, false);
         ImagePattern imageView = new ImagePattern(imageField);
 //        ImageView imageView = new ImageView(imageField);
 
@@ -95,14 +90,14 @@ public class MessageItem extends HBox {
         Rectangle canvas = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
         canvas.setArcHeight(20);
         canvas.setArcWidth(20);
-        picField = new VBox(canvas, senderField);
-        msgSummary = new VBox(subjectField, snippetField);
-        options = new VBox();
+        VBox picField = new VBox(canvas, senderField);
+        VBox msgSummary = new VBox(subjectField, snippetField);
+        VBox options = new VBox();
         options.getChildren().addAll(firstRowOptions);
         setMargin(options, new Insets(10,10,10,10));
-        container = new VBox(msgSummary, options);
+        VBox container = new VBox(msgSummary, options);
 
-         msgItem = new HBox(picField, container);
+        HBox msgItem = new HBox(picField, container);
 
         getChildren().addAll(picField, container);
 

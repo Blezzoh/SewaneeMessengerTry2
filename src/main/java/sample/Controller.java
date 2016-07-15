@@ -28,6 +28,10 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * @author Daniel Evans and Blaise Iradukunda
+ */
+
 public class Controller extends Application {
 
     private final TextField searchField = new TextField();
