@@ -22,7 +22,9 @@ public class Test {
          */
         List<Message> messages = inbox.getDefaultInbox();
 
-        FullMessage[] emailData = new FullMessage[messages.size()];
+        FullMessage[] emailData = new FullMessage[messages.size() / 10];
+
+
         System.out.println("Getting email data from servers....");
         long initTime = System.currentTimeMillis();
         for (int i = 0; i < emailData.length; i++) {
@@ -32,8 +34,8 @@ public class Test {
                 e.printStackTrace();
             }
         }
+        ImageBot.parseLinks(emailData[0]);
         System.out.println("Retrieved email data");
-        System.out.println(MessageParser.parseNameFromEmail(emailData[30]));
 
 
         // -----------------     BENCHMARKING IF DESIRED -----------------------------------

@@ -1,7 +1,5 @@
 package com.danielevans.email;
 
-import com.google.api.services.gmail.model.Thread;
-
 import java.io.IOException;
 
 /**
@@ -17,7 +15,7 @@ public class ThreadParser {
      * of the last message if whichMessage greater than thread.getMessages().size()
      * @throws IOException
      */
-    public static String getBodyOfMessageInThread(Inbox inbox,
+    /*public static String getBodyOfMessageInThread(Inbox inbox,
                                                   Thread thread,
                                                   int whichMessage)
             throws IOException {
@@ -35,6 +33,6 @@ public class ThreadParser {
         }
         // return the message queried for
         return MessageParser.getMessageBody(t.getMessages().get(whichMessage));
-    }
+    }*/
 
 }

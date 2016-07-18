@@ -39,7 +39,7 @@ public class MessageItem extends HBox {
         Authenticator auth = m.getAuth();
 
         messageId = m.getId();
-        senderField = new Text(MessageParser.parseNameFromEmail(m.getFrom()));
+        senderField = new Text(MessageParser.parseNameFromEmail(m));
         subjectField = new Text("S: " + m.getSubject() + "\n");
         snippetField = new Text(m.getSnippet());
         subjectField.setWrappingWidth(190);

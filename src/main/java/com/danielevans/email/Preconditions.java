@@ -8,7 +8,7 @@ package com.danielevans.email;
 public class Preconditions {
 
     public static void objectNotNull(Object obj, String message) {
-        if (obj != null)
+        if (obj == null)
             throw new NullPointerException(message);
     }
 

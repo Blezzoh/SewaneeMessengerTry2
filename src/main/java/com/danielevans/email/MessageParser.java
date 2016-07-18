@@ -9,14 +9,22 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import static com.danielevans.email.Inbox.MESSAGE_NULL_ERROR;
-import static com.danielevans.email.Inbox.decodeString;
 
 /**
  * Created by daniel on 6/2/16.
+ *
  * @author Daniel Evans
  */
 // TODO: detect links so we can send the user to that page
 public class MessageParser {
+
+    public static String getBodyTextFromHTML(String html) {
+        return generateDocument(Inbox.decodeString(html)).text();
+    }
+
+    private static Document generateDocument(String html) {
+        return Jsoup.parse(html);
+    }
 
     /**
      * @param message Any gmail message
@@ -170,18 +178,6 @@ public class MessageParser {
     }
 
     /**
-     * @param message Any Gmail message
-     * @return the text in the body of message
-     * @throws IOException
-     */
-    public static String getMessageBody(FullMessage message)
-            throws IOException {
-        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
-        // print message body
-        return decodeString(m.getPayload().getParts().get(0).getBody().getData());
-    }
-
-    /**
      * helper method for getting a parsable version of the email message
      * @param message Ay gmail message
      * @return Document representing the jsoup parsed version of the email message
@@ -189,11 +185,38 @@ public class MessageParser {
      */
     private static Document generateDocument(FullMessage message)
             throws IOException {
-        if(message == null) throw new NullPointerException("message can't be null");
-        String messageAsHTML = message.getMessageAsHTML();
+        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
+        String messageAsHTML = message.getMessageBodyAsHTML();
         // we succeeded in retrieving raw data from google servers
         if (messageAsHTML != null)
             return Jsoup.parse(messageAsHTML);
         return null;
     }
+    /*public static String parseLinks(FullMessage m) {
+*//**
+     *  Document doc = null;
+     try {
+     doc = generateDocument(m);
+     } catch (IOException e) {
+     e.printStackTrace();
+     }
+     // message contained html
+     if(doc != null) {
+
+     }
+     *//*
+        String google = "http://www.google.com/search?q=";
+        String search = parseNameFromEmail(m);
+        String charset = "UTF-8";
+        String userAgent = "ImageBot 1.0 https://github.com/Blezzoh/My_Sewanee_Messenger";
+        Elements links = null;
+        try {
+            links = Jsoup.connect(google + URLEncoder.encode(search, charset)).userAgent(userAgent).get().select(".g>.r>a");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (links != null) {
+
+        }
+    }*/
 }

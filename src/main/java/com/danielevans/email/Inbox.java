@@ -305,10 +305,6 @@ public class Inbox {
                                       String to,
                                       String subject,
                                       String message) throws MessagingException {
-        Preconditions.objectNotNull(session, "session is null");
-        Preconditions.objectNotNull(to, "to is null");
-        Preconditions.objectNotNull(subject, "subject is null");
-        Preconditions.objectNotNull(message, "message is null");
 
         MimeMessage m = new MimeMessage(session);
         m.setFrom(new InternetAddress(me));
@@ -333,8 +329,6 @@ public class Inbox {
             }
             Collections.sort(emailAddresses);
         } catch (IOException e) {
-
-
         }
         return  emailAddresses;
     }

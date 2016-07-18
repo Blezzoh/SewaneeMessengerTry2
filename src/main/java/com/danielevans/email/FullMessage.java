@@ -7,6 +7,9 @@ import com.google.api.services.gmail.model.Thread;
 import java.io.IOException;
 import java.util.List;
 
+import static com.danielevans.email.Inbox.MESSAGE_NULL_ERROR;
+import static com.danielevans.email.Inbox.decodeString;
+
 /**
  * Created by daniel on 6/3/16.
  * @author Daniel Evans
@@ -30,7 +33,8 @@ public class FullMessage {
     public FullMessage(Authenticator auth, Message message) throws IOException {
         this.auth = auth;
         this.m = getFullMessageMetaData(message);
-        System.out.println(m.getPayload().toPrettyString());
+        // TESTING
+//        System.out.println(m.getPayload().toPrettyString());
     }
 
     public FullMessage(Inbox inbox, Message message) throws IOException {
@@ -44,17 +48,24 @@ public class FullMessage {
      * @return the message body in HTML
      * @throws IOException
      */
-    public String getMessageAsHTML() throws IOException {
+    private String getMessageBodyAsHTML(Message message) throws IOException {
+        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
         // try to get the html from a the message parts in m's payload
-        String html = Inbox.decodeString(m.getPayload().getParts().get(1)
-                .getBody().getData());
-
-        // if above fails, try to get the raw version email from google's servers
-        if (html == null) {
-            Message rawVersion = getRawVersion(m);
-            if (rawVersion != null) return rawVersion.getRaw();
+        try {
+            return message.getPayload().getParts().get(1)
+                    .getBody().getData();
+        } catch (Exception e) {
+            try {
+                return message.getPayload().getParts().get(0)
+                        .getParts().get(0).getBody().getData();
+            } catch (Exception e1) {
+            }
         }
         return null;
+    }
+
+    public String getMessageBodyAsHTML() throws IOException {
+        return getMessageBodyAsHTML(m);
     }
 
 
@@ -64,6 +75,7 @@ public class FullMessage {
      * @return a full instance version of the message passed
      */
     public Message getFullMessageMetaData(Message message) {
+        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
             try {
                 // set fields
                 return auth.service.users().messages()
@@ -83,13 +95,15 @@ public class FullMessage {
     }
 
     /**
+     * if you need the full message content from some email message,
+     * this is the method to use
      * @return the message with all body text, headers, links, images, etc
      */
-    public Message getFullBodyMessage() {
+    public Message getFullMessagePayload(Message message) {
+        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
         try {
-            // set fields
             return auth.service.users().messages()
-                    .get(auth.userId, m.getId())
+                    .get(auth.userId, message.getId())
                     .execute();
         } catch (IOException e) {
             System.out.println("CANNOT RETRIEVE THE MESSAGE");
@@ -98,18 +112,42 @@ public class FullMessage {
         }
     }
 
+    /**
+     * if you have a bunch of full messages only containing the metadata,
+     * but you need the full content, use this method
+     *
+     * @return the message with all body text, headers, links, images, etc
+     */
+    public Message getFullMessagePayload(FullMessage message) {
+        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
+        try {
+            // set fields
+            return auth.service.users().messages()
+                    .get(auth.userId, message.m.getId())
+                    .execute();
+        } catch (IOException e) {
+            System.out.println("CANNOT RETRIEVE THE MESSAGE");
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     *
+     * @return the first couple words (about 20 words) in the email
+     */
+
     public String getSnippet() {
         return m.getSnippet();
     }
 
     /**
      * gets the decoded raw version of the email, formatted with format=RAW
-     * @param message doesn't assume this is a full instance message
-     * @return returns the entire raw version of the message
+     * @return returns the entire raw version (contains HTML) of the message
      */
-    private Message getRawVersion(Message message) {
+    private Message getRawVersion() {
         try {
-            return auth.service.users().messages().get(auth.userId, message.getId()).set("format", "RAW").execute();
+            return auth.service.users().messages().get(auth.userId, m.getId()).set("format", "RAW").execute();
         } catch (IOException e) {
             System.out.println("unable to retrieve raw version of the message");
             e.printStackTrace();
@@ -124,53 +162,76 @@ public class FullMessage {
      * @return returns the value of the header designated by part
      */
     private String getHeaderPart(String part) {
-
+        /*
+         * we have to loop through the headers because they are
+         * different on every message, so linear search for the
+         * messge is the only option. Tried to use the json object
+         * as a hashmap (more or less) but it didn't work
+         * (returned null each time)
+         */
         List<MessagePartHeader> headers = m.getPayload().getHeaders();
-        m.getPayload().get("this");
-        String retval = "";
         for (MessagePartHeader header : headers) {
 //            System.out.println(header);
             if (header.getName().equals(part)) {
-//                System.out.println(headers.get(i).getValue());
-                retval = header.getValue();
+                // when we find the correct header (key),
+                // return its value
+                return header.getValue();
             }
         }
-//        System.out.println("\n------------------------------------------\n");
-        // at this point, we know message is not found
-        // so return empty string
-        return retval;
+        // no header found, return empty string
+        return "";
     }
+
     /**
-     * @return the text in the body of message
+     *
+     * @return returns the text of the email
      */
-    public String getMessageBody()
-    {
+    public String getMessageBody() {
         // note that this will throw a null pointer exception
         // if the message only contains html
         // that is m.getPayload.getParts will be null
         // TODO: Fix the above comments
-        Message message = null;
-        try {
-            message = auth.service.users().messages()
-                    .get(auth.userId, this.m.getId()).setFields("payload").execute();
-            return Inbox.decodeString(message.getPayload().getParts().get(0).getBody().getData());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        return getMessageBody(m);
     }
-    private String getMessageBody(Message message) {
+
+    /**
+     * @param message message to retrieve body text from
+     * @return returns the text of the email
+     */
+    public String getMessageBody(Message message) {
+        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
         // note that this will throw a null pointer exception
         // if the message only contains html
         // that is m.getPayload.getParts will be null
         // TODO: Fix the above comments
-        return Inbox.decodeString(message.getPayload().getParts().get(0).getBody().getData());
+        try {
+            return decodeString(message.getPayload().getParts()
+                    .get(0).getBody().getData());
+        } catch (NullPointerException e) {
+        }
+        String emailBody = null;
+        Message z = null;
+        try {
+            z = getFullMessagePayload(message);
+            emailBody = z.getPayload().getParts()
+                    .get(0).getBody().getData();
+        } catch (NullPointerException e) {
+        }
+        if (emailBody == null) {
+            try {
+                return Inbox.decodeString(getMessageBodyAsHTML(z));
+            } catch (IOException e1) {
+                return "";
+            }
+        } else {
+            return Inbox.decodeString(emailBody);
+        }
     }
     /**
      *
      * @param thread thread to take the message from
      * @param whichMessage number of the message in the thread, 0 = first message
-     *                     1 = second, etc
+     *                     1 = second message, etc
      * @return the body of the specified message in the thread, or the body
      * of the last message if whichMessage greater than thread.getMessages().size()
      * @throws IOException
@@ -250,6 +311,7 @@ public class FullMessage {
      * @throws IOException
      */
     private Thread getFullThreadInstance(Thread thread) throws IOException {
+        Preconditions.objectNotNull(thread, "thread is null");
         return auth.service.users().threads().get(auth.userId, thread.getId()).execute();
     }
 
