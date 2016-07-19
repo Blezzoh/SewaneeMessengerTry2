@@ -22,7 +22,7 @@ public class Test {
          */
         List<Message> messages = inbox.getDefaultInbox();
 
-        FullMessage[] emailData = new FullMessage[messages.size() / 5];
+        FullMessage[] emailData = new FullMessage[messages.size() / 2];
 
 
 

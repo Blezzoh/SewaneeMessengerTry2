@@ -56,6 +56,7 @@ public class FullMessage {
             String html = Inbox.decodeString(m.getPayload().getParts().get(1)
                     .getBody().getData());
             if (html != null) {
+                System.out.println("e");
                 return html;
             }
         } catch (Exception e) {
@@ -63,15 +64,17 @@ public class FullMessage {
                 String html = m.getPayload().getParts().get(0)
                         .getParts().get(0).getBody().getData();
                 if (html != null) {
-                    return html;
+                    System.out.println("e1");
+                    return Inbox.decodeString(html);
                 }
             } catch (Exception e1) {
             }
             try {
                 String text = m.getPayload().getBody().getData();
-                System.out.println("here");
-                if (text != null)
-                    return text;
+                if (text != null) {
+                    System.out.println("e2");
+                    return Inbox.decodeString(text);
+                }
             } catch (Exception e2) {
             }
         }
