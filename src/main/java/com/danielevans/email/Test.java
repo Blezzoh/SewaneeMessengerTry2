@@ -12,7 +12,7 @@ import java.util.List;
 public class Test {
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         /**
          *    inbox gives access to the user's gmail messages using an authenticator
          */
@@ -22,7 +22,8 @@ public class Test {
          */
         List<Message> messages = inbox.getDefaultInbox();
 
-        FullMessage[] emailData = new FullMessage[messages.size() / 10];
+        FullMessage[] emailData = new FullMessage[messages.size() / 5];
+
 
 
         System.out.println("Getting email data from servers....");
@@ -34,7 +35,14 @@ public class Test {
                 e.printStackTrace();
             }
         }
-        ImageBot.parseLinks(emailData[0]);
+        try {
+            for (int i1 = 0; i1 < emailData.length; i1++) {
+                System.out.println("ITH = " + i1);
+                System.out.println(emailData[i1].getMessageBodyAsHTML());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         System.out.println("Retrieved email data");
 
 

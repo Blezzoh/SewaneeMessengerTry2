@@ -24,17 +24,17 @@ public class FullMessage {
     private static final String SUBJECT = "Subject";
     private static final String LIST_UNSUBSCRIBE = "List-Unsubscribe";
     private static final String MAILING_LIST = "Mailing-List";
-
+    // provides a message to the user if the email whose body they are trying to read is
+    // not available (presumably for security reasons), gives a link to the email on Gmail site
+    private static final String SECURITY_EMAIL_MESSAGE =
+            "This message was marked as secure. To read it, sign into your Gmail account " +
+                    "and go to this url: https://mail.google.com/mail/u/0/#inbox/";
     private Message m;
     private Authenticator auth;
-
-    // TODO: surround long returns with try/catch(NPE e)
 
     public FullMessage(Authenticator auth, Message message) throws IOException {
         this.auth = auth;
         this.m = getFullMessageMetaData(message);
-        // TESTING
-//        System.out.println(m.getPayload().toPrettyString());
     }
 
     public FullMessage(Inbox inbox, Message message) throws IOException {
@@ -51,14 +51,28 @@ public class FullMessage {
     private String getMessageBodyAsHTML(Message message) throws IOException {
         Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
         // try to get the html from a the message parts in m's payload
+        Message m = getFullMessagePayload(message);
         try {
-            return message.getPayload().getParts().get(1)
-                    .getBody().getData();
+            String html = Inbox.decodeString(m.getPayload().getParts().get(1)
+                    .getBody().getData());
+            if (html != null) {
+                return html;
+            }
         } catch (Exception e) {
             try {
-                return message.getPayload().getParts().get(0)
+                String html = m.getPayload().getParts().get(0)
                         .getParts().get(0).getBody().getData();
+                if (html != null) {
+                    return html;
+                }
             } catch (Exception e1) {
+            }
+            try {
+                String text = m.getPayload().getBody().getData();
+                System.out.println("here");
+                if (text != null)
+                    return text;
+            } catch (Exception e2) {
             }
         }
         return null;
@@ -205,8 +219,11 @@ public class FullMessage {
         // that is m.getPayload.getParts will be null
         // TODO: Fix the above comments
         try {
-            return decodeString(message.getPayload().getParts()
+            String text = decodeString(message.getPayload().getParts()
                     .get(0).getBody().getData());
+            if (text != null) {
+                return text;
+            }
         } catch (NullPointerException e) {
         }
         String emailBody = null;
@@ -215,17 +232,28 @@ public class FullMessage {
             z = getFullMessagePayload(message);
             emailBody = z.getPayload().getParts()
                     .get(0).getBody().getData();
+            System.out.println("email body = " + Inbox.decodeString(emailBody));
         } catch (NullPointerException e) {
         }
         if (emailBody == null) {
             try {
-                return Inbox.decodeString(getMessageBodyAsHTML(z));
+                String text = Inbox.decodeString(getMessageBodyAsHTML(z));
+                System.out.println("text = " + text);
+                if (text != null) {
+                    return text;
+                }
             } catch (IOException e1) {
-                return "";
             }
-        } else {
+        } else { // email body not null
             return Inbox.decodeString(emailBody);
         }
+        // message does not have a body, so provide the link to the email on gmail site
+        try {
+            System.out.println(z.getPayload().toPrettyString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return SECURITY_EMAIL_MESSAGE + message.getId();
     }
     /**
      *

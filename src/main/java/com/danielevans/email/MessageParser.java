@@ -186,7 +186,12 @@ public class MessageParser {
     private static Document generateDocument(FullMessage message)
             throws IOException {
         Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
-        String messageAsHTML = message.getMessageBodyAsHTML();
+        String messageAsHTML = null;
+        try {
+            messageAsHTML = message.getMessageBodyAsHTML();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // we succeeded in retrieving raw data from google servers
         if (messageAsHTML != null)
             return Jsoup.parse(messageAsHTML);

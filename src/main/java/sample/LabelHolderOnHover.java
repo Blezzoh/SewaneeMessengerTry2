@@ -2,6 +2,7 @@ package sample;
 
 import com.danielevans.email.Authenticator;
 import com.danielevans.email.LabelMaker;
+import com.danielevans.email.Preconditions;
 import com.google.api.services.gmail.model.Label;
 import javafx.geometry.Insets;
 import javafx.scene.control.TextField;
@@ -22,16 +23,24 @@ import java.util.List;
 public class LabelHolderOnHover extends VBox {
 
     private TextField newLabel;
+    private Authenticator auth;
 
     public LabelHolderOnHover  (Authenticator auth){
 
         super();
 
-        String [] allLabels = getAllTheLabels(auth);
+        this.auth = auth;
+        Preconditions.objectNotNull(auth, "auth is null");
+
+        String[] allLabels = getAllLabels(auth);
+
+        for (int i = 0; i < allLabels.length; i++) {
+            System.out.println(allLabels[i]);
+        }
 
         Text title = new Text("Add To Label");
         this.getChildren().add(title);
-        if (allLabels!= null){
+        if (allLabels != null) {
             for (int i = 0; i < allLabels.length; i++) {
                 MessengerLabel label = new MessengerLabel(allLabels[i]);
                 this.getChildren().add(label);
@@ -59,7 +68,7 @@ public class LabelHolderOnHover extends VBox {
         int counter = 0;
 
         if (newLabel.getText().length() != 1){
-            for(String t :getAllTheLabels(auth)) {
+            for (String t : getAllLabels(auth)) {
 
                 if (newLabel.getText().equals(t)) {
                     counter++;
@@ -83,7 +92,7 @@ public class LabelHolderOnHover extends VBox {
     private void moveMessageToLabel(String text) {
     }
 
-    private String[] getAllTheLabels(Authenticator authenticator) {
+    private String[] getAllLabels(Authenticator authenticator) {
 
         List<Label> allLabel = LabelMaker.listLabels(authenticator);
         String[] labels = new String[allLabel.size()];
