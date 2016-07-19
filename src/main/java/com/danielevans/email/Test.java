@@ -22,7 +22,7 @@ public class Test {
          */
         List<Message> messages = inbox.getDefaultInbox();
 
-        FullMessage[] emailData = new FullMessage[messages.size() / 2];
+        FullMessage[] emailData = new FullMessage[messages.size()];
 
 
 
@@ -38,7 +38,7 @@ public class Test {
         try {
             for (int i1 = 0; i1 < emailData.length; i1++) {
                 System.out.println("ITH = " + i1);
-                System.out.println(emailData[i1].getMessageBodyAsHTML());
+                System.out.println(emailData[i1].getMessageBody());
             }
         } catch (Exception e) {
             e.printStackTrace();

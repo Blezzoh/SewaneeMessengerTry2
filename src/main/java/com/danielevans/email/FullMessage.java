@@ -29,6 +29,9 @@ public class FullMessage {
     private static final String SECURITY_EMAIL_MESSAGE =
             "This message was marked as secure. To read it, sign into your Gmail account " +
                     "and go to this url: https://mail.google.com/mail/u/0/#inbox/";
+    private static final String TROUBLE_VIEWING_MESSAGE =
+            "\n\nHaving trouble viewing this message? Sign in to your gmail account in a browser" +
+                    " and go to this url: https://mail.google.com/mail/u/0/#inbox/";
     private Message m;
     private Authenticator auth;
 
@@ -73,7 +76,7 @@ public class FullMessage {
                 String text = m.getPayload().getBody().getData();
                 if (text != null) {
                     System.out.println("e2");
-                    return Inbox.decodeString(text);
+                    return Inbox.decodeString(text + "\n");
                 }
             } catch (Exception e2) {
             }
@@ -216,6 +219,7 @@ public class FullMessage {
      * @return returns the text of the email
      */
     public String getMessageBody(Message message) {
+        String mId = message.getId();
         Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
         // note that this will throw a null pointer exception
         // if the message only contains html
@@ -225,7 +229,7 @@ public class FullMessage {
             String text = decodeString(message.getPayload().getParts()
                     .get(0).getBody().getData());
             if (text != null) {
-                return text;
+                return text + TROUBLE_VIEWING_MESSAGE;
             }
         } catch (NullPointerException e) {
         }
@@ -235,28 +239,30 @@ public class FullMessage {
             z = getFullMessagePayload(message);
             emailBody = z.getPayload().getParts()
                     .get(0).getBody().getData();
-            System.out.println("email body = " + Inbox.decodeString(emailBody));
-        } catch (NullPointerException e) {
+            if (emailBody != null)
+                return Inbox.decodeString(emailBody) + TROUBLE_VIEWING_MESSAGE + mId;
+            // TESTING
+//            System.out.println("email body = " + Inbox.decodeString(emailBody) + TROUBLE_VIEWING_MESSAGE + mId);
+        } catch (NullPointerException ignored) {
         }
-        if (emailBody == null) {
-            try {
-                String text = Inbox.decodeString(getMessageBodyAsHTML(z));
-                System.out.println("text = " + text);
-                if (text != null) {
-                    return text;
-                }
-            } catch (IOException e1) {
-            }
-        } else { // email body not null
-            return Inbox.decodeString(emailBody);
-        }
-        // message does not have a body, so provide the link to the email on gmail site
         try {
-            System.out.println(z.getPayload().toPrettyString());
-        } catch (IOException e) {
-            e.printStackTrace();
+            String text = getMessageBodyAsHTML(z);
+            // TESTING
+//            System.out.println("text = " + text + mId);
+            if (text != null) {
+                return text + TROUBLE_VIEWING_MESSAGE + mId;
+            }
+        } catch (IOException ignored) {
         }
-        return SECURITY_EMAIL_MESSAGE + message.getId();
+        try {
+            emailBody = Inbox.decodeString(z.getPayload()
+                    .getParts().get(0).getParts().get(0).getBody().getData());
+        } catch (NullPointerException ignored) {
+        }
+        if (emailBody != null)
+            return emailBody + TROUBLE_VIEWING_MESSAGE + mId;
+        // message does not have a body, so provide the link to the email on gmail site
+        return SECURITY_EMAIL_MESSAGE + mId;
     }
     /**
      *
