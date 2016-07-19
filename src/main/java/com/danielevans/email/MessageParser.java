@@ -143,6 +143,19 @@ public class MessageParser {
         return parseNameFromEmail(message.getFrom());
     }
 
+    private static String stripEnds(String str) {
+        int start = 0;
+        int end = str.length() - 1;
+        for (int i = 0; i < str.length() && !Character.isLetter(str.charAt(i)); i++)
+            /* is not an alphabetical character */
+            ++start;
+        for (int i = end; i >= 0 && !Character.isLetter(str.charAt(i)); --i)
+            /* is not an alphabetical character */
+            --end;
+
+        return str.substring(start, end + 1);
+    }
+
     /**
      * Precondition: from must be in the form NameOfPerson <emailAddress@example.com>
      *
@@ -151,8 +164,8 @@ public class MessageParser {
      */
     static String parseNameFromEmail(String from) {
         int i = from.indexOf('<');
-        if (i == -1) return parseEmailAddress(from);
-        return from.substring(0, i);
+        if (i == -1) return from;
+        return stripEnds(from.substring(0, i));
     }
     /**
      *

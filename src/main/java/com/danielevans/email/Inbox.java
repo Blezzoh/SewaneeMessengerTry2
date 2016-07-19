@@ -27,16 +27,12 @@ import java.util.*;
  */
 public class Inbox {
 
+    /**
+     * the number of messages to retrieve on both a search and on startup of the application
+     */
+    public static final int MESSAGE_SIZE = 50;
     static final String MESSAGE_NULL_ERROR = "message is null";
     static final String QUERY_NULL_ERROR = "query is null";
-    private static final String DATE = "Date";
-    private static final String DELIVERED_TO = "Delivered-To";
-    private static final String FROM = "From";
-    private static final String TO = "To";
-    private static final String REPLY_TO = "Reply-To";
-    private static final String SUBJECT = "Subject";
-    private static final String LIST_UNSUBSCRIBE = "List-Unsubscribe";
-    private static final String MAILING_LIST = "Mailing-List";
     /**
      * Directory to store user credentials for this application.
      */
@@ -177,11 +173,11 @@ public class Inbox {
                     response = getMetadataResponse(query, response.getNextPageToken());
                     // make sure to modify the get inbox function
                     // if you remove the break or if statement below
-                    /*if (messages.size() > 1000) {
+                    if (messages.size() > MESSAGE_SIZE) {
                         System.out.println("done");
                         break;
-                    }*/
-                    break;
+                    }
+
                 } else {
                     break;
                 }
@@ -249,11 +245,10 @@ public class Inbox {
 
                 // make sure to modify the get inbox function
                 // if you remove the break or if statement below
-                /*if (messages.size() > 1000) {
+                if (messages.size() > MESSAGE_SIZE) {
                     System.out.println("done");
                     break;
-                }*/
-                break;
+                }
             } else {
                 break;
             }

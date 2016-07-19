@@ -5,7 +5,6 @@ import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
 import com.danielevans.email.MessageParser;
 import com.google.api.services.gmail.model.Message;
-import com.google.api.services.gmail.model.MessagePart;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -26,7 +25,10 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Daniel Evans and Blaise Iradukunda
@@ -63,7 +65,7 @@ public class Controller extends Application {
     purposefully left uninitialized
      */
     private FullMessage[] fullMessages;
-    private FullMessage[] emailData;
+    private HashMap<String, FullMessage> emailData;
 
     public static void main(String[] args) {
         launch(args);
@@ -82,18 +84,29 @@ public class Controller extends Application {
          */
         messages = inbox.getDefaultInbox();
 
-        emailData = new FullMessage[messages.size()];
+        emailData = new HashMap<>(messages.size() * 2);
         long initTime = System.currentTimeMillis();
-        for (int i = 0; i < emailData.length; i++) {
+        for (int i = 0; i < messages.size(); i++) {
             try {
-                emailData[i] = new FullMessage(inbox, messages.get(i));
+                emailData.put(messages.get(i).getId(), new FullMessage(inbox, messages.get(i)));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
         // earliest date stored in last element of emailData
-        lastDate = MessageParser.parseDate
-                (emailData[emailData.length - 1].getDate());
+        /*lastDate = MessageParser.parseDate
+                (emailData[emailData.size() - 1].getDate());*/
+
+        System.out.println("potential email address suggestions\n----------------------");
+        Iterator<Map.Entry<String, FullMessage>> iterator = emailData.entrySet().iterator();
+        while (iterator.hasNext()) {
+            FullMessage fm = iterator.next().getValue();
+            System.out.println(MessageParser.parseNameFromEmail(fm));
+            if (startsWith("D", MessageParser.parseNameFromEmail(fm))) {
+                System.out.println("here " + MessageParser.parseNameFromEmail(fm));
+            }
+        }
+        System.out.println("\n\n");
 
         System.out.println("last date = " + lastDate);
 
@@ -154,11 +167,25 @@ public class Controller extends Application {
                 }
                 char key = event.getText().charAt(0);
                         // USER HIT AN ALPHA-NUMERIC KEY
-                if ((key >= 49 && key <= 57)
-                        || (key >= 65 && key <= 90)
-                        || (key >= 97 && key <= 122)) {
+                        if (Character.isLetter(key)) {
                     // checks if searchField is already visible, displays w/ animations if not
                     displaySearchField(searchField);
+                            System.out.println("potential email address suggestions\n----------------------");
+                            Iterator<Map.Entry<String, FullMessage>> i = emailData.entrySet().iterator();
+                            while (i.hasNext()) {
+                                FullMessage fm = i.next().getValue();
+                                System.out.println("search field text " + searchField.getText());
+                                System.out.println(
+                                        startsWith(searchField.getText(), MessageParser.parseNameFromEmail(fm))
+                                                + "this: " + searchField.getText() + " is == to " +
+                                                MessageParser.parseNameFromEmail(fm).substring
+                                                        (0, searchField.getText().length() + 1)
+                                );
+                                if (startsWith(searchField.getText(), MessageParser.parseNameFromEmail(fm))) {
+                                    System.out.println(MessageParser.parseNameFromEmail(fm));
+                                }
+                            }
+                            System.out.println("\n\n");
                 }
                     } catch (StringIndexOutOfBoundsException e) { /* user pressed a non-alphanumeric key */ }
         });
@@ -174,6 +201,20 @@ public class Controller extends Application {
         messageToUser.setVisible(false);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private boolean startsWith(String prefix, String str) {
+        if (prefix.length() > str.length()) return false;
+        for (int i = 0; i < prefix.length(); i++) {
+            if (prefix.charAt(i) != str.charAt(i))
+                return false;
+        }
+        return true;
+    }
+
+    private boolean sw(String prefix, String str) {
+        if (prefix.length() > str.length()) return false;
+        return prefix.equals(str.substring(0, prefix.length() + 1));
     }
 
     private String searchEmailAddressOnKeyPressed(List<String> emailAddresses,
@@ -250,26 +291,30 @@ public class Controller extends Application {
         /*List<Message> searchMessages =
                 inbox.listMessagesMatchingQuery(searchField.getText());*/
 
-        /*for (int i = 0; i < messages.size(); i++) {
-            String smId = searchMessages.get(i).getId();
-            for (int j = 0; j < emailData.length; j++) {
-                if(smId.equals(emailData[j].getId())) {
-                    messages. = searchMessages.get(i);
-                    break;
-                }
-            }
-        }*/
+        List<Message> tempMessages = inbox.listMessagesMatchingQuery(searchField.getText());
+        // this search does not provide any messages, so return from search
+        // TODO: display something to user saying the search returned no messages
+        if (!checkSearchReturnsMessages(tempMessages))
+            return;
+
         /**
          *  next step is to store emailData on hard drive,
          *  check the ids of the emailData returned in the search against
          *  the ones on the hardrive, show the emailData of the ones matching
          *  the ids
          */
-        messages = inbox.listMessagesMatchingQuery(searchField.getText()
-                + " after:" + lastDate);
-        System.out.println(messages.size());
+        messages = tempMessages;
+        System.out.println("\n" + searchField.getText() + "\n------------------------------");
         // do search animation
         createPaginator(root, sp, cm);
+    }
+
+    private boolean checkSearchReturnsMessages(List<Message> tempMessages) {
+        for (int i = 0; i < tempMessages.size(); i++) {
+            if (emailData.get(tempMessages.get(i).getId()) != null)
+                return true;
+        }
+        return false;
     }
 
     private ScrollPane createPage(int pageIndex, ScrollPane sp) throws IOException {
@@ -281,34 +326,59 @@ public class Controller extends Application {
         int page = pageIndex * itemsPerPage;
         // messageItemNum used to iterate through the messageItems
         int messageItemNum = 0;
+        System.out.println("message size = " + messages.size());
+        boolean isThereMessages = false;
         long fmpageTime = System.currentTimeMillis();
-        for (int i = page; i < page + itemsPerPage && i < messages.size(); i++) {
+        for (int i = page; i < page + itemsPerPage && i < emailData.size() && i < messages.size(); i++) {
             // need to initialize the message items if they haven't already been initialized
-            if (center.getChildren().size() == 0)
-                for (int j = page; j < page + itemsPerPage && j < messages.size(); j++)
-                    center.getChildren().add(new MessageItem(emailData[j], imgUrl));
-
-            long time = System.currentTimeMillis();
-
+            if (center.getChildren().size() == 0) {
+                Iterator<Map.Entry<String, FullMessage>> edi = emailData.entrySet().iterator();
+                int j = i;
+                while (j < messages.size()) {
+                    center.getChildren().add(new MessageItem(emailData.get(messages.get(j).getId()), imgUrl));
+                    ++j;
+                }
+                isThereMessages = true;
+                /*for (int j = page; j < page + itemsPerPage && j < emailData.size(); j++)
+                    center.getChildren().add(new MessageItem(emailData.entrySet().iterator()., imgUrl));
+                */
+            } else {
+                System.out.println("ITH = " + i);
+                long time = System.currentTimeMillis();
+                String mId = messages.get(i).getId();
+                if (emailData.get(mId) != null) {
+                    isThereMessages = true;
+                    System.out.println("message");
+                    MessageItem mItem = (MessageItem) center.getChildren().get(messageItemNum);
+                    // add info to the message items
+                    mItem.setSenderField(MessageParser.parseNameFromEmail(emailData.get(mId)));
+                    mItem.setSubjectField(emailData.get(mId).getSubject());
+                    mItem.setSnippetField(emailData.get(mId).getSnippet());
+                    ++messageItemNum;
+                }
+/*
             // get MesasgeItem from object pool in center.getChildren
             MessageItem mItem = (MessageItem) center.getChildren().get(messageItemNum);
             // add info to the message items
             mItem.setSenderField(MessageParser.parseNameFromEmail(emailData[i]));
             mItem.setSubjectField(emailData[i].getSubject());
             mItem.setSnippetField(emailData[i].getSnippet());
-            System.out.println("1 full message: "
-                    + ((System.currentTimeMillis() - time) / 1000.0)
-                    + " seconds");
-            ++messageItemNum;
-            Message m = new Message();
-            MessagePart mp = new MessagePart();
+*/
+                System.out.println("1 full message: "
+                        + ((System.currentTimeMillis() - time) / 1000.0)
+                        + " seconds");
+            }
 
         }
-        sp.setContent(center);
+        if (!isThereMessages) {
+            messageToUser.setText("Sorry the search query typed did not return any relevant messages");
+            System.out.println("Sorry the search query typed did not return any relevant messages");
+        } else
+            sp.setContent(center);
 
         // timing tests --------------------------------------------------
 
-        /*
+
         System.out.println("fmpagetime: searching for messages with only FullMessage creation took "
                 + ((System.currentTimeMillis() - fmpageTime) / 1000.0)
                 + " seconds");
@@ -321,7 +391,7 @@ public class Controller extends Application {
                     + (System.currentTimeMillis() - searchTime) / 1000.0);
             searchTime = 0;
         }
-        */
+
         // end timing tests ----------------------------------------------------
         return sp;
     }
