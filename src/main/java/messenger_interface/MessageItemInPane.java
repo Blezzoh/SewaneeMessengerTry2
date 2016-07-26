@@ -2,10 +2,8 @@ package messenger_interface;
 
 import com.danielevans.email.LabelMaker;
 import javafx.animation.FadeTransition;
-import javafx.animation.ScaleTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
-import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
@@ -24,8 +22,9 @@ import java.util.TimerTask;
  * The purpose of this is to implement all the functionality of the message item in a user friendly way
  * It extends a StackPane in order to facilitate overlaying more than one layout on the top of another
  */
-public class MessageItemInPane extends StackPane{
+public class MessageItemInPane extends StackPane {
 
+    private final Timer timer;
     private MessageItem msgItem;
     /**
      * repeatsPlusOne: int to control the repeat of the Timer "timer"
@@ -34,16 +33,27 @@ public class MessageItemInPane extends StackPane{
      * the ImageViews are the 6 icons that appear on the message item in order to provide options to apply on the MessageItem
      */
     private int repeatsPlusOne = 2;
-    private final Timer timer;
     private ListLabelsOnHover allLabels;
     private int count=0;
     private String messageId;
     private ListView<String> labelsList;
     private NotificationIcon hoveredIcon, notificationIcon;
     private ImageView reply, forward, mark, addToTrash, download, label;
+    /**
+     * a listener that controls the clicked label in the labels list's VBox
+     * it moves the corresponding email in the specific label
+     */
+    private InvalidationListener listener = new InvalidationListener() {
+        @Override
+        public void invalidated(Observable observable) {
+            System.out.println(labelsList.getSelectionModel().getSelectedItem() + "\n" + messageId);
+            LabelMaker.modifyMessage(msgItem.getAuth(), messageId, labelsList.getSelectionModel().getSelectedItem());
+            hideLabels();
 
-
+        }
+    };
     public MessageItemInPane(MessageItem messageItem) throws FileNotFoundException {
+
         super();
         msgItem = messageItem;
         messageId = msgItem.getMessageId();
@@ -74,6 +84,7 @@ public class MessageItemInPane extends StackPane{
         notificationIcon.setStyle("-fx-background-color: black;");
         notificationIcon.setTextFill(Color.WHITE);
     }
+
     /**
      * private method to add listeners on the MessageItem icons
      * the icons provides different set of options that can be applied to a message
@@ -104,7 +115,7 @@ public class MessageItemInPane extends StackPane{
      *move the email to a label s and display to the user that the task is done
      */
     private void trashEmail (){
-        Boolean b = LabelMaker.modifyMessage(msgItem.getInbox(), messageId, "TRASH");
+        boolean b = LabelMaker.modifyMessage(msgItem.getAuth(), messageId, "TRASH");
 
         if (b) {
             FadeTransition st = new FadeTransition(Duration.millis(375), this);
@@ -121,6 +132,7 @@ public class MessageItemInPane extends StackPane{
         }
 
     }
+
     /**
      * times the duration a notification
      */
@@ -131,7 +143,6 @@ public class MessageItemInPane extends StackPane{
                 notificationIcon.setText("FAILED");
                 notificationIcon.setVisible(true);
                 decRepeats();
-                System.out.println("inside" + repeatsPlusOne);
             }
         },0, 2000);
     }
@@ -143,7 +154,6 @@ public class MessageItemInPane extends StackPane{
     private void decRepeats() {
         repeatsPlusOne--;
         if(repeatsPlusOne == 0){
-            System.out.println("Done");
             notificationIcon.setVisible(false);
             timer.cancel();
         }
@@ -159,7 +169,6 @@ public class MessageItemInPane extends StackPane{
     private void showIcon(String s) {
         hoveredIcon.setLabelText(s);
         hoveredIcon.setVisible(true);
-        System.out.println(true);
     }
 
     /**
@@ -209,20 +218,6 @@ public class MessageItemInPane extends StackPane{
 
         return msgItem;
     }
-
-    /**
-     * a listener that controls the clicked label in the labels list's VBox
-     * it moves the corresponding email in the specific label
-     */
-    private InvalidationListener listener = new  InvalidationListener() {
-        @Override
-        public void invalidated(Observable observable) {
-            System.out.println(  labelsList.getSelectionModel().getSelectedItem() + "\n" + messageId);
-            LabelMaker.modifyMessage(msgItem.getInbox(), messageId, labelsList.getSelectionModel().getSelectedItem() );
-            hideLabels();
-
-        }
-    };
 
     public void setMsgItem(MessageItem msgItem) {
         this.msgItem = msgItem;

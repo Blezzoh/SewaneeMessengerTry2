@@ -47,7 +47,6 @@ public class LabelHolderOnHover extends VBox {
                 setMargin(label, new Insets(0,0,3,0));
             }
         }*/
-        System.out.println(scrollPane.isResizable());
         scrollPane.setFitToHeight(false);
         scrollPane.setFitToWidth(false);
         MessageItem.setSize(scrollPane, 62, 112);

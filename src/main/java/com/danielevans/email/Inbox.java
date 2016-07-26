@@ -246,14 +246,13 @@ public class Inbox {
                 // make sure to modify the get inbox function
                 // if you remove the break or if statement below
                 if (messages.size() > MESSAGE_SIZE) {
-                    System.out.println("done");
                     break;
                 }
             } else {
                 break;
             }
         }
-        System.out.println("message size " + messages.size());
+        System.out.println("getInbox: message size " + messages.size());
         return messages;
     }
 

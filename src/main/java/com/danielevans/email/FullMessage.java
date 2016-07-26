@@ -59,7 +59,6 @@ public class FullMessage {
             String html = Inbox.decodeString(m.getPayload().getParts().get(1)
                     .getBody().getData());
             if (html != null) {
-                System.out.println("e");
                 return html;
             }
         } catch (Exception e) {
@@ -67,7 +66,6 @@ public class FullMessage {
                 String html = m.getPayload().getParts().get(0)
                         .getParts().get(0).getBody().getData();
                 if (html != null) {
-                    System.out.println("e1");
                     return Inbox.decodeString(html);
                 }
             } catch (Exception e1) {
@@ -75,7 +73,6 @@ public class FullMessage {
             try {
                 String text = m.getPayload().getBody().getData();
                 if (text != null) {
-                    System.out.println("e2");
                     return Inbox.decodeString(text + "\n");
                 }
             } catch (Exception e2) {
@@ -191,6 +188,7 @@ public class FullMessage {
          */
         List<MessagePartHeader> headers = m.getPayload().getHeaders();
         for (MessagePartHeader header : headers) {
+            // TESTING
 //            System.out.println(header);
             if (header.getName().equals(part)) {
                 // when we find the correct header (key),

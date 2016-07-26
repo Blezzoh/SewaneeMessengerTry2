@@ -50,7 +50,6 @@ public class ComposeMessage {
 
         send.setOnMouseClicked(e ->
         {
-            System.out.println(bodyText.getText().equals(""));
             if (bodyText.getText().equals(""))
                 controller.setMessageToUser("The message body is empty");
             else if (emailAddress.getText().equals(""))

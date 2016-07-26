@@ -90,11 +90,8 @@ public class Controller extends Application {
                 e.printStackTrace();
             }
         }
-        // earliest date stored in last element of emailData
-        /*lastDate = MessageParser.parseDate
-                (emailData[emailData.size() - 1].getDate());*/
 
-        System.out.println("potential email address suggestions\n----------------------");
+        /*System.out.println("potential email address suggestions\n----------------------");
         Iterator<Map.Entry<String, FullMessage>> iterator = emailData.entrySet().iterator();
         while (iterator.hasNext()) {
             FullMessage fm = iterator.next().getValue();
@@ -102,10 +99,7 @@ public class Controller extends Application {
             if (startsWith("D", MessageParser.parseNameFromEmail(fm))) {
                 //System.out.println("here " + MessageParser.parseNameFromEmail(fm));
             }
-        }
-        System.out.println("\n\n");
-
-        System.out.println("last date = " + lastDate);
+        }*/
 
         System.out.println("init time: " +
                 (System.currentTimeMillis() - initTime) / 1000.0);
@@ -113,7 +107,6 @@ public class Controller extends Application {
         how many messages in the user's inbox == around 4100 for me
          */
         System.out.println("the messages size is " + messages.size());
-//        List<String> emailAddresses = inbox.loadEmailAddresses(messages);
         /**
          *   root container of the interface
          */
@@ -174,15 +167,11 @@ public class Controller extends Application {
                             Iterator<Map.Entry<String, FullMessage>> i = emailData.entrySet().iterator();
                             while (i.hasNext()) {
                                 FullMessage fm = i.next().getValue();
-                                System.out.println("search field text " + searchField.getText());
-                                System.out.println(
-                                        startsWith(searchField.getText(), MessageParser.parseNameFromEmail(fm))
-                                                + "this: " + searchField.getText() + " is == to " +
-                                                MessageParser.parseNameFromEmail(fm).substring
-                                                        (0, searchField.getText().length() + 1)
-                                );
-                                if (startsWith(searchField.getText(), MessageParser.parseNameFromEmail(fm))) {
-                                    System.out.println(MessageParser.parseNameFromEmail(fm));
+                                if (startsWith(searchField.getText(), MessageParser.parseNameFromEmail(fm))
+                                        && searchField.getText() != "") {
+                                    System.out.println("k" + searchField.getText() + "k");
+                                    System.out.println(
+                                            " this here " + MessageParser.parseNameFromEmail(fm));
                                 }
                             }
                             System.out.println("\n\n");*/
@@ -354,7 +343,6 @@ public class Controller extends Application {
                 Iterator<Map.Entry<String, FullMessage>> edi = emailData.entrySet().iterator();
                 int j = i;
                 while (j < messages.size() && j < itemsPerPage) {
-
                     center.getChildren().add(new MessageItemInPane(new MessageItem(emailData.get(messages.get(j).getId()), imgUrl)));
                     ++j;
                 }

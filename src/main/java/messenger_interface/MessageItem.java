@@ -2,11 +2,9 @@ package messenger_interface;
 
 import com.danielevans.email.Authenticator;
 import com.danielevans.email.FullMessage;
-import com.danielevans.email.Inbox;
 import com.danielevans.email.MessageParser;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.image.Image;
@@ -32,6 +30,8 @@ import java.io.IOException;
  * @author Blaise Iradukunda
  */
 public class MessageItem extends HBox {
+    private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;" + "-fx-background-radius: 10px;" + "-fx-padding: 10px; " + "-fx-border-radius: 10px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
+    private static final String STYLE_ON_EXIT = "-fx-background-color: white;" + "-fx-padding: 10px; " + "-fx-border-radius: 10px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
     private Text senderField;
     private Text subjectField;
     private Text snippetField;
@@ -41,27 +41,19 @@ public class MessageItem extends HBox {
     private Button b = new Button("BACK");
     private BorderPane p = new BorderPane();
     private Stage stage;
-    private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 10px;"+"-fx-padding: 10px; " + "-fx-border-radius: 10px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
-    private static final String STYLE_ON_EXIT = "-fx-background-color: white;"+"-fx-padding: 10px; " + "-fx-border-radius: 10px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
-
-
-    private Inbox inbox;
     private NotificationIcon hoveredIcon;
     private ImageView downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
     private Scene bodyScene, originalScene;
-    public WebView getMessageBody() {
-        return messageBody;
-    }
-
     private WebView messageBody = new WebView();
     private WebEngine engine = messageBody.getEngine();
-
+    private int originalInt = 0;
+    private Authenticator auth;
+    private ImageView labelEmail;
 
     public MessageItem(FullMessage m, String imageUrl) throws IOException {
 
         super();
         auth = m.getAuth();
-        inbox = new Inbox(auth);
         messageId = m.getId();
         senderField = new Text(MessageParser.parseNameFromEmail(m));
         subjectField = new Text("S: " + m.getSubject() + "\n");
@@ -122,6 +114,21 @@ public class MessageItem extends HBox {
 
     }
 
+    protected static void setSize(Node node, double w, double h) {
+
+        node.prefHeight(h);
+        node.maxHeight(h);
+        node.minHeight(h);
+
+        node.maxWidth(w);
+        node.minWidth(w);
+        node.prefWidth(w);
+    }
+
+    public WebView getMessageBody() {
+        return messageBody;
+    }
+
     private void goBack() {
         getStage().setScene(getOriginalScene());
     }
@@ -130,7 +137,6 @@ public class MessageItem extends HBox {
         getStage().setScene(bodyScene);
 
     }
-    private int originalInt =0;
 
     private Stage getStage(){
 
@@ -146,7 +152,6 @@ public class MessageItem extends HBox {
     public Scene getOriginalScene() {
         return originalScene;
     }
-
 
     private void removeUnderline(Text node) {
         node.setUnderline(false);
@@ -165,17 +170,6 @@ public class MessageItem extends HBox {
 
     }
 
-
-    protected static void setSize(Node node, double w, double h) {
-
-        node.prefHeight(h);
-        node.maxHeight(h);
-        node.minHeight(h);
-
-        node.maxWidth(w);
-        node.minWidth(w);
-        node.prefWidth(w);
-    }
     /**
      * GUIs that represents the set of options that can be applied to a MessageItem
      **/
@@ -211,18 +205,6 @@ public class MessageItem extends HBox {
         firstRowOptions.getChildren().addAll(replyEmail,forwardEmail, labelEmail, downloadAttach, markEmail,addToTrash );
     }
 
-    public void setSenderField(String text) {
-        senderField.setText(text);
-    }
-
-    public void setSubjectField(String text) {
-        subjectField.setText(text);
-    }
-
-    public void setSnippetField(String text) {
-        snippetField.setText(text);
-    }
-
     public String getMessageId() {
         return messageId;
     }
@@ -231,29 +213,34 @@ public class MessageItem extends HBox {
         return auth;
     }
 
-    private Authenticator auth;
-
     public ImageView getLabelEmail() {
         return labelEmail;
     }
 
-    private ImageView labelEmail;
-
     public Text getSenderField() {
         return senderField;
+    }
+
+    public void setSenderField(String text) {
+        senderField.setText(text);
     }
 
     public Text getSubjectField() {
         return subjectField;
     }
 
+    public void setSubjectField(String text) {
+        subjectField.setText(text);
+    }
+
     public Text getSnippetField() {
         return snippetField;
     }
 
-    public Inbox getInbox() {
-        return inbox;
+    public void setSnippetField(String text) {
+        snippetField.setText(text);
     }
+
     public ImageView getDownloadAttach() {
         return downloadAttach;
     }

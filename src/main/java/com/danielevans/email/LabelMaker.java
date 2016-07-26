@@ -92,7 +92,7 @@ public class LabelMaker {
      * @param labelsToAdd    List of label ids to add.
      * @param labelsToRemove List of label ids to remove.
      */
-    public static Message modifyMessage(Inbox inbox, String messageId
+    public static Message modifyMessage(Authenticator auth, String messageId
             , List<String> labelsToAdd, List<String> labelsToRemove) {
         if (labelsToAdd == null && labelsToRemove == null)
             throw new IllegalArgumentException
@@ -110,7 +110,7 @@ public class LabelMaker {
         }
         Message message = null;
         try {
-            message = inbox.getService().users().messages().modify(inbox.getUser(), messageId, mods).execute();
+            message = auth.service.users().messages().modify(auth.userId, messageId, mods).execute();
             return message;
         } catch (IOException e) {
             e.printStackTrace();
@@ -118,16 +118,18 @@ public class LabelMaker {
         return null;
     }
 
-    public static Boolean modifyMessage (Inbox inbox, String messageId , String labelToAdd){
+    public static boolean modifyMessage(Inbox inbox, String messageId, String labelToAdd) {
+        return modifyMessage(inbox.getAuth(), messageId, labelToAdd);
+    }
+
+    public static boolean modifyMessage(Authenticator auth, String messageId, String labelToAdd) {
         List<String> labelList = new ArrayList<>(1);
         labelList.add(labelToAdd);
-        Message m = modifyMessage(inbox, messageId,labelList, null);
-        System.out.println( messageId + " " +inbox.toString());
-        if(m == null)
+        Message m = modifyMessage(auth, messageId, labelList, null);
+        if (m == null)
             return false;
         else
             return true;
-
     }
 
 
@@ -154,7 +156,6 @@ public class LabelMaker {
             return inbox.getService().users().labels()
                     .get(inbox.getUser(), label.getId()).execute();
         } catch (IOException e) {
-            System.out.println("unable to getLabels(Inbox,List<Label>");
             e.printStackTrace();
         }
         return null;
