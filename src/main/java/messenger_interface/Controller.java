@@ -62,7 +62,7 @@ public class Controller extends Application {
     purposefully left uninitialized
      */
     private FullMessage[] fullMessages;
-    private HashMap<String, FullMessage> emailData;
+    private Hashtable<String, FullMessage> emailData;
 
     public static void main(String[] args) {
         launch(args);
@@ -81,15 +81,8 @@ public class Controller extends Application {
          */
         messages = inbox.getDefaultInbox();
 
-        emailData = new HashMap<>(messages.size() * 2);
         long initTime = System.currentTimeMillis();
-        for (int i = 0; i < messages.size(); i++) {
-            try {
-                emailData.put(messages.get(i).getId(), new FullMessage(inbox, messages.get(i)));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        initEmailData();
 
         /*System.out.println("potential email address suggestions\n----------------------");
         Iterator<Map.Entry<String, FullMessage>> iterator = emailData.entrySet().iterator();
@@ -103,42 +96,26 @@ public class Controller extends Application {
 
         System.out.println("init time: " +
                 (System.currentTimeMillis() - initTime) / 1000.0);
-        /*
-        how many messages in the user's inbox == around 4100 for me
-         */
+
+        // how many messages in the user's inbox == around 4100 for me
         System.out.println("the messages size is " + messages.size());
-        /**
-         *   root container of the interface
-         */
+
+        // root container of the interface
         BorderPane root = new BorderPane();
         ComposeMessage cm = new ComposeMessage(inbox, this);
         root.setRight(cm.getRoot());
 
-        /**
-         *   creates and loads the messages for the center of the root
-         */
-        center = new TilePane();
-        center.setHgap(5);
-        center.setVgap(5);
-        center.setPadding(new Insets(8, 0, 8, 8));
-
-        sp = new ScrollPane(center);
-        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        sp.setFitToWidth(true);
+        initSpAndCenter();
 
         HBox bottomMenu = makeBottomMenu(root, sp, cm);
         root.setBottom(bottomMenu);
 
-        /**
-         *      creating title for application and scene
-         */
+        // creating title for application and scene
         primaryStage.setTitle("Sewanee Messenger");
         Scene scene = new Scene(root, 900, 700);
-        /**
-         *       on key pressed gives functionality for what user types automatically
-         *       showing up in the search box
-         */
+
+        // on key pressed gives functionality for what user types automatically
+        //showing up in the search box
         scene.setOnKeyPressed
                 (event ->
                 {
@@ -178,18 +155,41 @@ public class Controller extends Application {
                         }
                     } catch (StringIndexOutOfBoundsException e) { /* user pressed a non-alphanumeric key */ }
                 });
-        /**
-         * creates the paginator based on the messages in the @field{messages} field
-         */
+        // creates the paginator based on the messages in the @field{messages} field
         createPaginator(root, sp, cm);
-        /**
-         *     if the user clicks on the scroll pane,
-         */
+        // if the user clicks on the scroll pane,
         // message to user provides feedback on what they are doing and debugging purposes
         messageToUser = new Text();
         messageToUser.setVisible(false);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    private void initSpAndCenter() {
+        /**
+         *   creates and loads the messages for the center of the root
+         */
+        center = new TilePane();
+        center.setHgap(5);
+        center.setVgap(5);
+        center.setPadding(new Insets(8, 0, 8, 8));
+
+        sp = new ScrollPane(center);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        sp.setFitToWidth(true);
+    }
+
+    private void initEmailData() {
+        System.out.println("Initializing email data...");
+        emailData = new Hashtable<>(messages.size() * 2);
+        for (int i = 0; i < messages.size(); i++) {
+            try {
+                emailData.put(messages.get(i).getId(), new FullMessage(inbox, messages.get(i)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private boolean startsWith(String prefix, String str) {
@@ -225,12 +225,18 @@ public class Controller extends Application {
         messageToUser.setVisible(true);
     }
 
+    private int getPageCount(List<Message> messages) {
+        int pageCount = (int) Math.ceil(messages.size() / itemsPerPage);
+        return pageCount == 0 ? 1 : pageCount;
+    }
+
     /**
      * this method requires that the messages field and center field not be null
      * @param root the root interface of the application
      */
     public void createPaginator(BorderPane root, ScrollPane sp, ComposeMessage cm) {
-        pagination = new Pagination((int) Math.ceil(messages.size() / itemsPerPage));
+        System.out.println(getPageCount(messages));
+        pagination = new Pagination(getPageCount(messages));
         pagination.setStyle("-fx-border-color:red;");
 
         // set page factory is passed a new 'callable'
@@ -284,7 +290,8 @@ public class Controller extends Application {
         List<Message> tempMessages = inbox.listMessagesMatchingQuery(searchField.getText());
         // this search does not provide any messages, so return from search
         // TODO: display something to user saying the search returned no messages
-        if (!searchReturnsMessages(tempMessages)) {
+        tempMessages = searchReturnsMessages(tempMessages);
+        if (tempMessages.size() == 0) {
             return;
         }
         System.out.println("temp msgs size " + tempMessages.size());
@@ -301,18 +308,15 @@ public class Controller extends Application {
         createPaginator(root, sp, cm);
     }
 
-    private boolean searchReturnsMessages(List<Message> tempMessages) {
+    private List<Message> searchReturnsMessages(List<Message> tempMessages) {
         // if tempMessages.size() < 0 return false, if not at least one message
         // returned by search which are stored in tempMessages are not in emailData hashMap return false
         List<Message> filteredMessages = new ArrayList<>();
-        boolean returnsMessages = false;
         for (int i = 0; i < tempMessages.size(); i++) {
             if (emailData.get(tempMessages.get(i).getId()) != null)
                 filteredMessages.add(tempMessages.get(i));
-            returnsMessages = true;
         }
-//        return filteredMessages;
-        return true;
+        return filteredMessages;
     }
 
     /**
@@ -336,14 +340,17 @@ public class Controller extends Application {
         System.out.println("method: createPage -> message size = " + messages.size());
         boolean isThereMessages = false; // flag that is changed to true if there is new messages returned in the search
         long fmpageTime = System.currentTimeMillis();
+        System.out.println("email size = " + emailData.size());
+        System.out.println("page = " + page + itemsPerPage);
+        System.out.println("msize = " + messages.size());
         for (int i = page; i < page + itemsPerPage && i < emailData.size() && i < messages.size(); i++) {
-            System.out.println("ITH " + i);
             // need to initialize the message items if they haven't already been initialized
             if (center.getChildren().size() == 0) {
                 Iterator<Map.Entry<String, FullMessage>> edi = emailData.entrySet().iterator();
                 int j = i;
                 while (j < messages.size() && j < itemsPerPage) {
-                    center.getChildren().add(new MessageItemInPane(new MessageItem(emailData.get(messages.get(j).getId()), imgUrl)));
+                    center.getChildren().add(new MessageItemInPane(new MessageItem
+                            (emailData.get(messages.get(j).getId()), imgUrl)));
                     ++j;
                 }
                 isThereMessages = true;

@@ -30,7 +30,7 @@ public class Inbox {
     /**
      * the number of messages to retrieve on both a search and on startup of the application
      */
-    public static final int MESSAGE_SIZE = 50;
+    public static final int MESSAGE_SIZE = 300;
     static final String MESSAGE_NULL_ERROR = "message is null";
     static final String QUERY_NULL_ERROR = "query is null";
     /**
@@ -174,7 +174,6 @@ public class Inbox {
                     // make sure to modify the get inbox function
                     // if you remove the break or if statement below
                     if (messages.size() > MESSAGE_SIZE) {
-                        System.out.println("done");
                         break;
                     }
 
@@ -189,36 +188,59 @@ public class Inbox {
         return messages;
     }
 
+
+    /**
+     * @return list of messages that contain their respective messageId and threadId
+     * @throws IOException
+     */
+    public List<Message> getInbox() throws IOException {
+        ListMessagesResponse response = getMetadataResponse(null, null);
+
+        List<Message> messages = new ArrayList<>(MESSAGE_SIZE);
+        while (response.getMessages() != null) {
+            messages.addAll(response.getMessages());
+            if (response.getNextPageToken() != null) {
+                response = getMetadataResponse(null, response.getNextPageToken());
+                // make sure to modify the get inbox function
+                // if you remove the break or if statement below
+                if (messages.size() >= MESSAGE_SIZE) {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        System.out.println("getInbox: message size " + messages.size());
+        return messages;
+    }
+
     private ListMessagesResponse getMetadataResponse(String query, String pageToken)
             throws IOException {
-        // CALLS LIST METHOD, WHICH DIFFERENT FROM GET IN FULLMESSAGE
+        // CALLS LIST METHOD, WHICH IS DIFFERENT FROM GET IN FULLMESSAGE
+        Gmail.Users.Messages.List listMessages = auth.service.users().messages()
+                .list(auth.userId)
+                .set("format", "metadata")
+                .set("metadataHeaders", "To")
+                .set("metadataHeaders", "From")
+                .set("metadataHeaders", "Date")
+                .set("metadataHeaders", "Subject");
+
         if (pageToken != null && query != null)
-            return auth.service.users().messages()
-                    .list(auth.userId)
-                    .set("format", "metadata")
-                    .set("metadataHeaders", "To")
-                    .set("metadataHeaders", "From")
-                    .set("metadataHeaders", "Date")
-                    .set("metadataHeaders", "Subject")
+            return listMessages
                     .setQ(query)
                     .setPageToken(pageToken)
                     .execute();
         else if (query != null)
-            return auth.service.users().messages().list(auth.userId)
-                    .set("format", "metadata")
-                    .set("metadataHeaders", "To")
-                    .set("metadataHeaders", "From")
-                    .set("metadataHeaders", "Date")
-                    .set("metadataHeaders", "Subject")
+            return listMessages
                     .setQ(query)
                     .execute();
+
+        else if (pageToken != null)
+            return listMessages
+                    .setPageToken(pageToken)
+                    .execute();
         else
-            return auth.service.users().messages().list(auth.userId)
-                    .set("format", "metadata")
-                    .set("metadataHeaders", "To")
-                    .set("metadataHeaders", "From")
-                    .set("metadataHeaders", "Date")
-                    .set("metadataHeaders", "Subject")
+            return listMessages
                     .execute();
     }
 
@@ -228,32 +250,6 @@ public class Inbox {
 
     public String getUser() {
         return auth.userId;
-    }
-
-    /**
-     * @return list of messages that contain their respective messageId and threadId
-     * @throws IOException
-     */
-    public List<Message> getInbox() throws IOException {
-        ListMessagesResponse response = getMetadataResponse(null, null);
-
-        List<Message> messages = new ArrayList<Message>();
-        while (response.getMessages() != null) {
-            messages.addAll(response.getMessages());
-            if (response.getNextPageToken() != null) {
-                response = getMetadataResponse(null, null);
-
-                // make sure to modify the get inbox function
-                // if you remove the break or if statement below
-                if (messages.size() > MESSAGE_SIZE) {
-                    break;
-                }
-            } else {
-                break;
-            }
-        }
-        System.out.println("getInbox: message size " + messages.size());
-        return messages;
     }
 
     /**
