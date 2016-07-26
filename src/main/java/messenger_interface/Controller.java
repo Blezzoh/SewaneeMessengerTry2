@@ -3,83 +3,118 @@ package messenger_interface;
 import com.danielevans.email.Authenticator;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
+import com.danielevans.email.MessageParser;
 import com.google.api.services.gmail.model.Message;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.TilePane;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
+
+/**
+ * @author Daniel Evans and Blaise Iradukunda
+ */
 
 public class Controller extends Application {
 
     private final TextField searchField = new TextField();
-    private FlowPane center;
-    private Inbox inbox;
-    private String imgUrl =
-"http://4.bp.blogspot.com/-SjsG6gvCasI/Ve6PJxhPEiI/AAAAAAAAFYU/dYvGfnIxPzk/s1600/Kundwa%2BDoriane%2Brwanda.jpg";
-    private List<Message> messages;
-    private int endMessageIndex = 10;
     Pagination pagination;
     long searchTime;
+    private TilePane center;
+    private Inbox inbox;
+    private String imgUrl =
+            "http://4.bp.blogspot.com/-SjsG6gvCasI/Ve6PJxhPEiI/AAAAAAAAFYU/dYvGfnIxPzk/s1600/Kundwa%2BDoriane%2Brwanda.jpg";
+    private List<Message> messages;
+    private int endMessageIndex = 10;
     private Text messageToUser;
     private ScrollPane sp;
     private long pagingTime;
+    private int itemsPerPage = 15;
+    /**
+     * last date represents the date of the last message in
+     * emailData array. It is used in the search queries
+     * provided to google's search. That is, if a message we are
+     * searching for based on some query from user is dated before
+     * lastDate, it won't be returned in the search because that
+     * implies that this message is not in the emailData array
+     * <p>
+     * This will need to be updated so that we aren't loading everything
+     * into ram cause that takes forever
+     */
+    private String lastDate;
     /*
     purposefully left uninitialized
      */
     private FullMessage[] fullMessages;
-    private Pane pane = new Pane();
-    private Stage stage;
-    private Scene contentScence;
-    private Scene scene;
-    private WebView messageBody = new WebView();
-    private WebEngine engine = messageBody.getEngine();
+    private HashMap<String, FullMessage> emailData;
 
-
-
+    public static void main(String[] args) {
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) {
 
-        stage = primaryStage;
-        pane.getChildren().add(messageBody);
-        Button b = new Button("back ");
-        pane.getChildren().add(b);
-        b.setOnMouseClicked(event -> goBack());
-        contentScence = new Scene(pane, stage.getX(),stage.getY());
-        engine.loadContent(" ");
 
         /**
          *    inbox gives access to the user's gmail messages using an authenticator
          */
-        inbox = new Inbox(new Authenticator("me"));
+        inbox = new Inbox(new Authenticator("evansdb0@sewanee.edu"));
         /**
-         * loads the user's inbox
+         *  loads the user's inbox
          */
         messages = inbox.getDefaultInbox();
+
+        emailData = new HashMap<>(messages.size() * 2);
+        long initTime = System.currentTimeMillis();
+        for (int i = 0; i < messages.size(); i++) {
+            try {
+                emailData.put(messages.get(i).getId(), new FullMessage(inbox, messages.get(i)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        // earliest date stored in last element of emailData
+        /*lastDate = MessageParser.parseDate
+                (emailData[emailData.size() - 1].getDate());*/
+
+        System.out.println("potential email address suggestions\n----------------------");
+        Iterator<Map.Entry<String, FullMessage>> iterator = emailData.entrySet().iterator();
+        while (iterator.hasNext()) {
+            FullMessage fm = iterator.next().getValue();
+            System.out.println(MessageParser.parseNameFromEmail(fm));
+            if (startsWith("D", MessageParser.parseNameFromEmail(fm))) {
+                //System.out.println("here " + MessageParser.parseNameFromEmail(fm));
+            }
+        }
+        System.out.println("\n\n");
+
+        System.out.println("last date = " + lastDate);
+
+        System.out.println("init time: " +
+                (System.currentTimeMillis() - initTime) / 1000.0);
         /*
         how many messages in the user's inbox == around 4100 for me
          */
         System.out.println("the messages size is " + messages.size());
 //        List<String> emailAddresses = inbox.loadEmailAddresses(messages);
         /**
-         *
          *   root container of the interface
          */
         BorderPane root = new BorderPane();
@@ -87,9 +122,9 @@ public class Controller extends Application {
         root.setRight(cm.getRoot());
 
         /**
-         *        creates and loads the messages for the center of the root
+         *   creates and loads the messages for the center of the root
          */
-        center = new FlowPane();
+        center = new TilePane();
         center.setHgap(5);
         center.setVgap(5);
         center.setPadding(new Insets(8, 0, 8, 8));
@@ -102,37 +137,58 @@ public class Controller extends Application {
         HBox bottomMenu = makeBottomMenu(root, sp, cm);
         root.setBottom(bottomMenu);
 
-
-
         /**
          *      creating title for application and scene
          */
-        stage.setTitle("Hello World");
-        scene = new Scene(root, 900, 700);
+        primaryStage.setTitle("Sewanee Messenger");
+        Scene scene = new Scene(root, 900, 700);
         /**
          *       on key pressed gives functionality for what user types automatically
          *       showing up in the search box
          */
-        scene.setOnKeyPressed(event -> {
-            try {
- /*               setMessageToUser(searchEmailAddressOnKeyPressed
-                        (emailAddresses, searchField.getText()));*/
-                if(event.getCode() == KeyCode.ENTER) {
-                    searchTime = System.currentTimeMillis();
-                    userSearchForMessages(root, sp, cm);
-                }
-                char key = event.getText().charAt(0);
-                // if the key is either an upper/lowercase alpha-numeric key
-                if ((key >= 49 && key <= 57)
-                        || (key >= 65 && key <= 90)
-                        || (key >= 97 && key <= 122)) {
-                    // checks if searchField is already visible, displays w/ animations if not
-                    displaySearchField(searchField);
-                }
-            } catch (StringIndexOutOfBoundsException e) {
-                // user pressed a non-alphanumeric key
-            }
-        });
+        scene.setOnKeyPressed
+                (event ->
+                {
+                    try {
+                /*
+                // attempt to search email addresses while user types
+                setMessageToUser(searchEmailAddressOnKeyPressed
+                        (emailAddresses, searchField.getText()));
+                */
+
+                        // USER HIT ENTER
+                        if (event.getCode() == KeyCode.ENTER) {
+                            searchTime = System.currentTimeMillis();
+                            userSearchForMessages(root, sp, cm);
+
+                        }
+                        char key = event.getText().charAt(0);
+                        // USER HIT AN ALPHA-NUMERIC KEY
+                        if (Character.isLetter(key)) {
+                            // checks if searchField is already visible, displays w/ animations if not
+                            displaySearchField(searchField);
+                            /**
+                             * search suggestions
+                             */
+                     /*       System.out.println("potential email address suggestions\n----------------------");
+                            Iterator<Map.Entry<String, FullMessage>> i = emailData.entrySet().iterator();
+                            while (i.hasNext()) {
+                                FullMessage fm = i.next().getValue();
+                                System.out.println("search field text " + searchField.getText());
+                                System.out.println(
+                                        startsWith(searchField.getText(), MessageParser.parseNameFromEmail(fm))
+                                                + "this: " + searchField.getText() + " is == to " +
+                                                MessageParser.parseNameFromEmail(fm).substring
+                                                        (0, searchField.getText().length() + 1)
+                                );
+                                if (startsWith(searchField.getText(), MessageParser.parseNameFromEmail(fm))) {
+                                    System.out.println(MessageParser.parseNameFromEmail(fm));
+                                }
+                            }
+                            System.out.println("\n\n");*/
+                        }
+                    } catch (StringIndexOutOfBoundsException e) { /* user pressed a non-alphanumeric key */ }
+                });
         /**
          * creates the paginator based on the messages in the @field{messages} field
          */
@@ -140,17 +196,29 @@ public class Controller extends Application {
         /**
          *     if the user clicks on the scroll pane,
          */
-        stage.setScene(scene);
-        stage.show();
+        // message to user provides feedback on what they are doing and debugging purposes
+        messageToUser = new Text();
+        messageToUser.setVisible(false);
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
-    private void goBack() {
-        stage.setScene(scene);
-        stage.show();
+    private boolean startsWith(String prefix, String str) {
+        if (prefix.length() > str.length()) return false;
+        for (int i = 0; i < prefix.length(); i++) {
+            if (prefix.charAt(i) != str.charAt(i))
+                return false;
+        }
+        return true;
+    }
+
+    private boolean sw(String prefix, String str) {
+        if (prefix.length() > str.length()) return false;
+        return prefix.equals(str.substring(0, prefix.length() + 1));
     }
 
     private String searchEmailAddressOnKeyPressed(List<String> emailAddresses,
-                                                 String searchText) {
+                                                  String searchText) {
 
         int foundIndex = 0;
         for (int i = 0; i < emailAddresses.size(); i++) {
@@ -164,7 +232,7 @@ public class Controller extends Application {
     public void setMessageToUser(String text) {
         // TODO: add parameters to make this look nice
         messageToUser.setText(text);
-        // might be bad to set this visible to true
+        // might be bad to set visibility to true
         messageToUser.setVisible(true);
     }
 
@@ -173,18 +241,18 @@ public class Controller extends Application {
      * @param root the root interface of the application
      */
     public void createPaginator(BorderPane root, ScrollPane sp, ComposeMessage cm) {
-        pagination = new Pagination((int)Math.ceil(messages.size()/itemsPerPage()));
+        pagination = new Pagination((int) Math.ceil(messages.size() / itemsPerPage));
         pagination.setStyle("-fx-border-color:red;");
 
         // set page factory is passed a new 'callable'
-        // every time the user picks a new page this callable is called
+        // every time the user clicks to a new page this callable is called
         pagination.setPageFactory
                 (
                         (Integer pageIndex) ->
                         {
                             try {
                                 pagingTime = System.currentTimeMillis();
-                                return createPage(pageIndex, sp, cm);
+                                return createPage(pageIndex, sp);
 
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -192,6 +260,7 @@ public class Controller extends Application {
                             return null;
                         }
                 );
+        System.out.println("rebuilt paginator");
         pagination.setOnMousePressed(e ->
         {
             if (e.getClickCount() == 1)
@@ -200,18 +269,17 @@ public class Controller extends Application {
                 messageToUser.setVisible(false);
             }
         });
-        messageToUser = new Text();
-        messageToUser.setVisible(false);
         /**
          *    paginaation represents a scrollPane,
          *    which obviously allows user to scroll through messages
          */
-        /*
-        Todo: need to move messageToUser business to the start method
-         */
         root.setTop(messageToUser);
         root.setCenter(pagination);
     }
+    /*
+    the speed at which the ui updates is heavily dependent on what itemsPerPage()
+    returns. items per page is  = to the number of message items displayed per page
+     */
 
     public void userSearchForMessages(BorderPane root, ScrollPane sp,
                                       ComposeMessage cm) {
@@ -221,83 +289,123 @@ public class Controller extends Application {
         if(!searchField.isVisible() || searchField.getText().equals(""))
             return;
         // time is used to show how long search and ui update takes
-        messages = inbox.listMessagesMatchingQuery(searchField.getText());
+        /*List<Message> searchMessages =
+                inbox.listMessagesMatchingQuery(searchField.getText());*/
+
+        List<Message> tempMessages = inbox.listMessagesMatchingQuery(searchField.getText());
+        // this search does not provide any messages, so return from search
+        // TODO: display something to user saying the search returned no messages
+        if (!searchReturnsMessages(tempMessages)) {
+            return;
+        }
+        System.out.println("temp msgs size " + tempMessages.size());
+
+        /**
+         *  next step is to store emailData on hard drive,
+         *  check the ids of the emailData returned in the search against
+         *  the ones on the hardrive, show the emailData of the ones matching
+         *  the ids
+         */
+        messages = tempMessages;
+        System.out.println("userSearchMessages(): " + searchField.getText() + "\n------------------------------");
         // do search animation
         createPaginator(root, sp, cm);
     }
-    /*
-    the speed at which the ui updates is heavily dependent on what itemsPerPage()
-    returns. items per page is  = to the number of message items displayed per page
-     */
-    private double itemsPerPage() {
-        return 15.0;
+
+    private boolean searchReturnsMessages(List<Message> tempMessages) {
+        // if tempMessages.size() < 0 return false, if not at least one message
+        // returned by search which are stored in tempMessages are not in emailData hashMap return false
+        List<Message> filteredMessages = new ArrayList<>();
+        boolean returnsMessages = false;
+        for (int i = 0; i < tempMessages.size(); i++) {
+            if (emailData.get(tempMessages.get(i).getId()) != null)
+                filteredMessages.add(tempMessages.get(i));
+            returnsMessages = true;
+        }
+//        return filteredMessages;
+        return true;
     }
 
-    private ScrollPane createPage(int pageIndex, ScrollPane sp, ComposeMessage cm) throws IOException {
+    /**
+     * handles the restructuring of the message items and fills them with the relevant info
+     * when application begins and on search
+     *
+     * @param pageIndex
+     * @param sp
+     * @return a restructured scroll pane of message items with correct emails
+     * @throws IOException
+     */
+    private ScrollPane createPage(int pageIndex, ScrollPane sp) throws IOException {
         if(center == null || center.getChildren() == null)
             throw new NullPointerException("center or the container containing its children is null");
         if(messages == null)
             throw new NullPointerException("messages is null");
 
-        int page = (int) (pageIndex * itemsPerPage());
-        int arrayIndex = 0;
-        if(fullMessages == null) {
-            fullMessages = new FullMessage[25];
-/*            // remove all previous children
-            center.getChildren().remove(0, center.getChildren().size());*/
+        int page = pageIndex * itemsPerPage;
+        // messageItemNum used to iterate through the messageItems
+        int messageItemNum = 0;
+        System.out.println("method: createPage -> message size = " + messages.size());
+        boolean isThereMessages = false; // flag that is changed to true if there is new messages returned in the search
+        long fmpageTime = System.currentTimeMillis();
+        for (int i = page; i < page + itemsPerPage && i < emailData.size() && i < messages.size(); i++) {
+            System.out.println("ITH " + i);
+            // need to initialize the message items if they haven't already been initialized
+            if (center.getChildren().size() == 0) {
+                Iterator<Map.Entry<String, FullMessage>> edi = emailData.entrySet().iterator();
+                int j = i;
+                while (j < messages.size() && j < itemsPerPage) {
 
-            // get messages until we hit the max items per page or until we run out of messages
-            for (int i = page; i < page + itemsPerPage() && i < fullMessages.length; i++) {
+                    center.getChildren().add(new MessageItemInPane(new MessageItem(emailData.get(messages.get(j).getId()), imgUrl)));
+                    ++j;
+                }
+                isThereMessages = true;
+            } else { // message items have been init'd so just change the information in the objects
+                long time = System.currentTimeMillis();
+                String mId = messages.get(i).getId();
+                // if the search returned messages, that's the only case when we want to reset info in the mItem fields
+                if (emailData.get(mId) != null) {
+                    isThereMessages = true;
+                    MessageItemInPane mItem = (MessageItemInPane) center.getChildren().get(messageItemNum);
+                    // add info to the message items
+                    mItem.getMsgItem().setSenderField(MessageParser.parseNameFromEmail(emailData.get(mId)));
+                    mItem.getMsgItem().setSubjectField(emailData.get(mId).getSubject());
+                    mItem.getMsgItem().setSnippetField(emailData.get(mId).getSnippet());
+                    ++messageItemNum;
+                }
 
-                // TODO: each message Item must store their respective id = message.get(i).getId()
-
-                fullMessages[arrayIndex] = new FullMessage
-                        (inbox, messages.get(i));
-                MessageItem msgItem = new MessageItem(fullMessages[arrayIndex], imgUrl);
-                String str = fullMessages[arrayIndex].getMessageBody();
-                System.out.println(str);
-                MessageItemInPane msgInPane= new MessageItemInPane(msgItem);
-                center.getChildren().add(msgInPane);
+                /*System.out.println("1 full message: "
+                        + ((System.currentTimeMillis() - time) / 1000.0)
+                        + " seconds");*/
 
             }
-            sp.setContent(center);
-/*            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-            sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-            sp.setFitToWidth(true);*/
-            System.out.println("searching for messages with only FullMessage creation took "
-                    + ((System.currentTimeMillis() - searchTime) / 1000.0)
-                    + " seconds");
-            return sp;
-        } else {
-            for (int i = page; i < page + itemsPerPage() && i < messages.size(); i++) {
-                // TODO: each message Item must store their respective id = message.get(i).getId()
-                fullMessages[arrayIndex] = new FullMessage
-                        (inbox, messages.get(i));
-                MessageItemInPane msgInPane = (MessageItemInPane) center.getChildren().get(arrayIndex);
-                MessageItem mItem = msgInPane.getMsgItem();
-                String str = fullMessages[arrayIndex].getMessageBodyAsHTML();
-                if(i == 1)
-                    System.out.println(str);
-                mItem.setSenderField(fullMessages[arrayIndex].getFrom());
-                mItem.setSubjectField(fullMessages[arrayIndex].getSubject());
-                mItem.setSnippetField(fullMessages[arrayIndex].getSnippet());
-            }
-            sp.setContent(center);
-/*
-            sp.s
-            sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-            sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-            sp.setFitToWidth(true);*/
-            System.out.println("searching for messages with only FullMessage creation took "
-                    + ((System.currentTimeMillis() - searchTime) / 1000.0)
-                    + " seconds");
-            System.out.println("paging time took "
-                    + ((System.currentTimeMillis() - pagingTime) / 1000.0)
-                    + " seconds");
-            return sp;
         }
-    }
+        if (!isThereMessages) {
+            messageToUser.setText("Sorry the search query typed did not return any relevant messages");
+            System.out.println("Sorry the search query typed did not return any relevant messages");
+        } else
+            sp.setContent(center);
 
+        // timing tests --------------------------------------------------
+
+/*
+
+        System.out.println("fmpagetime: searching for messages with only FullMessage creation took "
+                + ((System.currentTimeMillis() - fmpageTime) / 1000.0)
+                + " seconds");
+        System.out.println("paging time took "
+                + ((System.currentTimeMillis() - pagingTime) / 1000.0)
+                + " seconds");
+        if (searchTime != 0) {
+            // about 0 seconds
+            System.out.println("search time: "
+                    + (System.currentTimeMillis() - searchTime) / 1000.0);
+            searchTime = 0;
+        }
+*/
+
+        // end timing tests ----------------------------------------------------
+        return sp;
+    }
 
     private HBox makeBottomMenu(BorderPane root, ScrollPane sp, ComposeMessage cm) {
         HBox lowerMenu = new HBox();
@@ -333,7 +441,6 @@ public class Controller extends Application {
 
         searchField.setVisible(false);
 
-
         searchRect.setOnMouseClicked(e ->
         {
             if(searchField.isVisible()) {
@@ -360,10 +467,6 @@ public class Controller extends Application {
 
             st.play();
         }
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 
 }

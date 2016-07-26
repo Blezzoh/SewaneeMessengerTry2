@@ -185,7 +185,7 @@ public class Inbox {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("message search size = " + messages.size());
+        System.out.println("Inbox: message search size = " + messages.size());
         return messages;
     }
 
