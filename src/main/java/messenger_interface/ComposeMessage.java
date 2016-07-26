@@ -1,4 +1,4 @@
-package sample;
+package messenger_interface;
 
 import com.danielevans.email.Inbox;
 import javafx.geometry.Insets;

@@ -6,6 +6,7 @@ import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyMessageRequest;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -116,6 +117,19 @@ public class LabelMaker {
         }
         return null;
     }
+
+    public static Boolean modifyMessage (Inbox inbox, String messageId , String labelToAdd){
+        List<String> labelList = new ArrayList<>(1);
+        labelList.add(labelToAdd);
+        Message m = modifyMessage(inbox, messageId,labelList, null);
+        System.out.println( messageId + " " +inbox.toString());
+        if(m == null)
+            return false;
+        else
+            return true;
+
+    }
+
 
     /**
      * @param inbox
