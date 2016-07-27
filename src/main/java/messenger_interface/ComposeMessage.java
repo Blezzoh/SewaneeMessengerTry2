@@ -28,7 +28,7 @@ public class ComposeMessage {
     private TextField subject;
     private VBox root;
 
-    public ComposeMessage(Inbox inbox, Controller controller) {
+    public ComposeMessage(Inbox inbox) {
 
         subject = new TextField();
         subject.setPromptText("Subject");
@@ -50,10 +50,12 @@ public class ComposeMessage {
 
         send.setOnMouseClicked(e ->
         {
+            // TODO: display a message to user as well as return so that user knows what
+            // she needs to do to send the message
             if (bodyText.getText().equals(""))
-                controller.setMessageToUser("The message body is empty");
+                return;
             else if (emailAddress.getText().equals(""))
-                controller.setMessageToUser("The To: field is empty");
+                return;
                 // else if check if it is a valid email address
             else {
                 // upload attachment if any

@@ -20,12 +20,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.TilePane;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
 
 /**
  * @author Daniel Evans and Blaise Iradukunda
@@ -41,27 +42,9 @@ public class Controller extends Application {
     private String imgUrl =
             "http://4.bp.blogspot.com/-SjsG6gvCasI/Ve6PJxhPEiI/AAAAAAAAFYU/dYvGfnIxPzk/s1600/Kundwa%2BDoriane%2Brwanda.jpg";
     private List<Message> messages;
-    private int endMessageIndex = 10;
-    private Text messageToUser;
     private ScrollPane sp;
     private long pagingTime;
     private int itemsPerPage = 15;
-    /**
-     * last date represents the date of the last message in
-     * emailData array. It is used in the search queries
-     * provided to google's search. That is, if a message we are
-     * searching for based on some query from user is dated before
-     * lastDate, it won't be returned in the search because that
-     * implies that this message is not in the emailData array
-     * <p>
-     * This will need to be updated so that we aren't loading everything
-     * into ram cause that takes forever
-     */
-    private String lastDate;
-    /*
-    purposefully left uninitialized
-     */
-    private FullMessage[] fullMessages;
     private Hashtable<String, FullMessage> emailData;
 
     public static void main(String[] args) {
@@ -97,12 +80,9 @@ public class Controller extends Application {
         System.out.println("init time: " +
                 (System.currentTimeMillis() - initTime) / 1000.0);
 
-        // how many messages in the user's inbox == around 4100 for me
-        System.out.println("the messages size is " + messages.size());
-
         // root container of the interface
         BorderPane root = new BorderPane();
-        ComposeMessage cm = new ComposeMessage(inbox, this);
+        ComposeMessage cm = new ComposeMessage(inbox);
         root.setRight(cm.getRoot());
 
         initSpAndCenter();
@@ -129,8 +109,8 @@ public class Controller extends Application {
                         // USER HIT ENTER
                         if (event.getCode() == KeyCode.ENTER) {
                             searchTime = System.currentTimeMillis();
-                            userSearchForMessages(root, sp, cm);
-
+                            searchField.setVisible(false);
+                            userSearchForMessages(root, sp);
                         }
                         char key = event.getText().charAt(0);
                         // USER HIT AN ALPHA-NUMERIC KEY
@@ -156,11 +136,7 @@ public class Controller extends Application {
                     } catch (StringIndexOutOfBoundsException e) { /* user pressed a non-alphanumeric key */ }
                 });
         // creates the paginator based on the messages in the @field{messages} field
-        createPaginator(root, sp, cm);
-        // if the user clicks on the scroll pane,
-        // message to user provides feedback on what they are doing and debugging purposes
-        messageToUser = new Text();
-        messageToUser.setVisible(false);
+        createPaginator(root, sp);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -218,13 +194,6 @@ public class Controller extends Application {
         return emailAddresses.get(foundIndex);
     }
 
-    public void setMessageToUser(String text) {
-        // TODO: add parameters to make this look nice
-        messageToUser.setText(text);
-        // might be bad to set visibility to true
-        messageToUser.setVisible(true);
-    }
-
     private int getPageCount(List<Message> messages) {
         int pageCount = (int) Math.ceil(messages.size() / itemsPerPage);
         return pageCount == 0 ? 1 : pageCount;
@@ -234,8 +203,7 @@ public class Controller extends Application {
      * this method requires that the messages field and center field not be null
      * @param root the root interface of the application
      */
-    public void createPaginator(BorderPane root, ScrollPane sp, ComposeMessage cm) {
-        System.out.println(getPageCount(messages));
+    public void createPaginator(BorderPane root, ScrollPane sp) {
         pagination = new Pagination(getPageCount(messages));
         pagination.setStyle("-fx-border-color:red;");
 
@@ -255,29 +223,20 @@ public class Controller extends Application {
                             return null;
                         }
                 );
-        System.out.println("rebuilt paginator");
         pagination.setOnMousePressed(e ->
         {
             if (e.getClickCount() == 1)
             {
                 searchField.setVisible(false);
-                messageToUser.setVisible(false);
             }
         });
-        /**
-         *    paginaation represents a scrollPane,
-         *    which obviously allows user to scroll through messages
-         */
-        root.setTop(messageToUser);
+
+        // pagination represents a scrollPane
+        // which obviously allows user to scroll through messages
         root.setCenter(pagination);
     }
-    /*
-    the speed at which the ui updates is heavily dependent on what itemsPerPage()
-    returns. items per page is  = to the number of message items displayed per page
-     */
 
-    public void userSearchForMessages(BorderPane root, ScrollPane sp,
-                                      ComposeMessage cm) {
+    public void userSearchForMessages(BorderPane root, ScrollPane sp) {
         // TODO: HANDLE THE CASE WHERE NO MESSAGES ARE RETURNED
         // only search for messages if the searchField is visible
         // and there is some text in it
@@ -294,7 +253,6 @@ public class Controller extends Application {
         if (tempMessages.size() == 0) {
             return;
         }
-        System.out.println("temp msgs size " + tempMessages.size());
 
         /**
          *  next step is to store emailData on hard drive,
@@ -303,9 +261,8 @@ public class Controller extends Application {
          *  the ids
          */
         messages = tempMessages;
-        System.out.println("userSearchMessages(): " + searchField.getText() + "\n------------------------------");
         // do search animation
-        createPaginator(root, sp, cm);
+        createPaginator(root, sp);
     }
 
     private List<Message> searchReturnsMessages(List<Message> tempMessages) {
@@ -337,53 +294,37 @@ public class Controller extends Application {
         int page = pageIndex * itemsPerPage;
         // messageItemNum used to iterate through the messageItems
         int messageItemNum = 0;
-        System.out.println("method: createPage -> message size = " + messages.size());
-        boolean isThereMessages = false; // flag that is changed to true if there is new messages returned in the search
-        long fmpageTime = System.currentTimeMillis();
-        System.out.println("email size = " + emailData.size());
-        System.out.println("page = " + page + itemsPerPage);
-        System.out.println("msize = " + messages.size());
-        for (int i = page; i < page + itemsPerPage && i < emailData.size() && i < messages.size(); i++) {
+//        long fmpageTime = System.currentTimeMillis();
+        for (int i = page; i < page + itemsPerPage && i < messages.size(); i++) {
             // need to initialize the message items if they haven't already been initialized
             if (center.getChildren().size() == 0) {
-                Iterator<Map.Entry<String, FullMessage>> edi = emailData.entrySet().iterator();
                 int j = i;
                 while (j < messages.size() && j < itemsPerPage) {
                     center.getChildren().add(new MessageItemInPane(new MessageItem
                             (emailData.get(messages.get(j).getId()), imgUrl)));
-                    ++j;
+
+                    System.out.println(++j);
                 }
-                isThereMessages = true;
+                // needed because otherwise the next iteration of the
+                // for loop would overwrite the data in the messageItems
+                // because the else clause (below) would run
+                break;
             } else { // message items have been init'd so just change the information in the objects
+                
                 long time = System.currentTimeMillis();
                 String mId = messages.get(i).getId();
                 // if the search returned messages, that's the only case when we want to reset info in the mItem fields
-                if (emailData.get(mId) != null) {
-                    isThereMessages = true;
-                    MessageItemInPane mItem = (MessageItemInPane) center.getChildren().get(messageItemNum);
-                    // add info to the message items
-                    mItem.getMsgItem().setSenderField(MessageParser.parseNameFromEmail(emailData.get(mId)));
-                    mItem.getMsgItem().setSubjectField(emailData.get(mId).getSubject());
-                    mItem.getMsgItem().setSnippetField(emailData.get(mId).getSnippet());
-                    ++messageItemNum;
-                }
-
-                /*System.out.println("1 full message: "
-                        + ((System.currentTimeMillis() - time) / 1000.0)
-                        + " seconds");*/
-
+                MessageItemInPane item = (MessageItemInPane) center.getChildren().get(messageItemNum);
+                MessageItem mItem = item.getMsgItem();
+                // add info to the message items
+                mItem.setSenderField(MessageParser.parseNameFromEmail(emailData.get(mId)));
+                mItem.setSubjectField(emailData.get(mId).getSubject());
+                mItem.setSnippetField(emailData.get(mId).getSnippet());
+                ++messageItemNum;
             }
         }
-        if (!isThereMessages) {
-            messageToUser.setText("Sorry the search query typed did not return any relevant messages");
-            System.out.println("Sorry the search query typed did not return any relevant messages");
-        } else
-            sp.setContent(center);
-
-        // timing tests --------------------------------------------------
-
-/*
-
+        sp.setContent(center);
+/*    // timing tests --------------------------------------------------
         System.out.println("fmpagetime: searching for messages with only FullMessage creation took "
                 + ((System.currentTimeMillis() - fmpageTime) / 1000.0)
                 + " seconds");
@@ -396,9 +337,7 @@ public class Controller extends Application {
                     + (System.currentTimeMillis() - searchTime) / 1000.0);
             searchTime = 0;
         }
-*/
-
-        // end timing tests ----------------------------------------------------
+*/   // end timing tests ----------------------------------------------------
         return sp;
     }
 
@@ -439,7 +378,7 @@ public class Controller extends Application {
         searchRect.setOnMouseClicked(e ->
         {
             if(searchField.isVisible()) {
-                userSearchForMessages(root, sp, cm);
+                userSearchForMessages(root, sp);
                 searchField.setVisible(false);
             } else
                 displaySearchField(searchField);

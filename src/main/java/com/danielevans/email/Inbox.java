@@ -30,7 +30,7 @@ public class Inbox {
     /**
      * the number of messages to retrieve on both a search and on startup of the application
      */
-    public static final int MESSAGE_SIZE = 300;
+    public static final int MESSAGE_SIZE = 100;
     static final String MESSAGE_NULL_ERROR = "message is null";
     static final String QUERY_NULL_ERROR = "query is null";
     /**
@@ -210,7 +210,6 @@ public class Inbox {
                 break;
             }
         }
-        System.out.println("getInbox: message size " + messages.size());
         return messages;
     }
 

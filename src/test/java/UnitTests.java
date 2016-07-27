@@ -13,10 +13,11 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Created by evansdb0 on 7/26/16.
+ * @author Daniel Evans
  */
 public class UnitTests {
 
-    private Inbox inbox = new Inbox(new Authenticator("evansdb0@sewanee.edu"));
+    Inbox inbox = new Inbox(new Authenticator("evansdb0@sewanee.edu"));
 
     List<Message> messages = inbox.getDefaultInbox();
 
