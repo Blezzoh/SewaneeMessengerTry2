@@ -6,7 +6,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -35,6 +37,16 @@ public class UnitTests {
             }
         }
         return emailData;
+    }
+
+    @Test
+    public void sameIds() {
+        Iterator<Map.Entry<String, FullMessage>> iterator = emailData.entrySet().iterator();
+        int i = 0;
+        while (iterator.hasNext()) {
+            Map.Entry<String, FullMessage> next = iterator.next();
+            assertEquals(next.getKey(), next.getValue().getId());
+        }
     }
 
     @Test

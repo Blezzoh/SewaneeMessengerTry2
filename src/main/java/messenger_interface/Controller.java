@@ -109,7 +109,6 @@ public class Controller extends Application {
                         // USER HIT ENTER
                         if (event.getCode() == KeyCode.ENTER) {
                             searchTime = System.currentTimeMillis();
-                            searchField.setVisible(false);
                             userSearchForMessages(root, sp);
                         }
                         char key = event.getText().charAt(0);
@@ -249,6 +248,7 @@ public class Controller extends Application {
         List<Message> tempMessages = inbox.listMessagesMatchingQuery(searchField.getText());
         // this search does not provide any messages, so return from search
         // TODO: display something to user saying the search returned no messages
+        searchField.setVisible(false);
         tempMessages = searchReturnsMessages(tempMessages);
         if (tempMessages.size() == 0) {
             return;
@@ -297,20 +297,11 @@ public class Controller extends Application {
 //        long fmpageTime = System.currentTimeMillis();
         for (int i = page; i < page + itemsPerPage && i < messages.size(); i++) {
             // need to initialize the message items if they haven't already been initialized
-            if (center.getChildren().size() == 0) {
-                int j = i;
-                while (j < messages.size() && j < itemsPerPage) {
-                    center.getChildren().add(new MessageItemInPane(new MessageItem
-                            (emailData.get(messages.get(j).getId()), imgUrl)));
-
-                    System.out.println(++j);
-                }
-                // needed because otherwise the next iteration of the
-                // for loop would overwrite the data in the messageItems
-                // because the else clause (below) would run
-                break;
-            } else { // message items have been init'd so just change the information in the objects
-                
+            if (center.getChildren().size() < itemsPerPage) {
+                center.getChildren().add(new MessageItemInPane(new MessageItem
+                        (emailData.get(messages.get(i).getId()), imgUrl)));
+                // message items have been init'd so just change the information in the objects
+            } else { 
                 long time = System.currentTimeMillis();
                 String mId = messages.get(i).getId();
                 // if the search returned messages, that's the only case when we want to reset info in the mItem fields

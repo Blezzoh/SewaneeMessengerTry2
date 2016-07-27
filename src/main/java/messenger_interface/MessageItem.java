@@ -102,7 +102,7 @@ public class MessageItem extends HBox {
         subjectField.setOnMouseEntered(event -> underline(subjectField));
         subjectField.setOnMouseExited(event -> removeUnderline(subjectField));
         snippetField.setOnMouseExited(event -> removeUnderline(snippetField));
-        engine.loadContent(m.getMessageBody());
+        engine.loadContent(m.getMessageBodyAsHTML());
 
         subjectField.setOnMouseClicked(event -> showContent());
         snippetField.setOnMouseClicked(event -> showContent());
@@ -135,7 +135,6 @@ public class MessageItem extends HBox {
 
     private void showContent() {
         getStage().setScene(bodyScene);
-
     }
 
     private Stage getStage(){
