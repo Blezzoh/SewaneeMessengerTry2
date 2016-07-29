@@ -49,6 +49,7 @@ public class MessageItem extends HBox {
     private int originalInt = 0;
     private Authenticator auth;
     private ImageView labelEmail;
+    private String bodyText;
 
     public MessageItem(FullMessage m, String imageUrl) throws IOException {
 
@@ -102,16 +103,42 @@ public class MessageItem extends HBox {
         subjectField.setOnMouseEntered(event -> underline(subjectField));
         subjectField.setOnMouseExited(event -> removeUnderline(subjectField));
         snippetField.setOnMouseExited(event -> removeUnderline(snippetField));
-        engine.loadContent(m.getMessageBodyAsHTML());
+        this.bodyText = m.getBestMessageBody();
+        engine.loadContent(m.getBestMessageBody());
 
-        subjectField.setOnMouseClicked(event -> showContent());
-        snippetField.setOnMouseClicked(event -> showContent());
+        subjectField.setOnMouseClicked(event -> {
+            showContent();
+//            System.out.println(messageId);
+//            System.out.println(bodyText);
+        });
+        snippetField.setOnMouseClicked(event -> {
+            showContent();
+//            System.out.println(messageId);
+//            System.out.println(this.bodyText);
+            System.out.println(FullMessage.testForHTML(bodyText));
+
+        });
         b.setOnMouseClicked(event -> goBack());
 
         p.setCenter(messageBody);
         p.setTop(b);
 
 
+    }
+
+    public void setBodyText(String bodyText) {
+        if (bodyText == null)
+            System.out.println("body text null");
+
+        this.bodyText = bodyText;
+        // loadContent(String) will return and do nothing if bodyText is null
+        // therefore the old bodyText from previous message Item will be loaded when the
+        // user clicks on the snippet or the subject
+        engine.loadContent(bodyText);
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
     }
 
     protected static void setSize(Node node, double w, double h) {
@@ -123,10 +150,6 @@ public class MessageItem extends HBox {
         node.maxWidth(w);
         node.minWidth(w);
         node.prefWidth(w);
-    }
-
-    public WebView getMessageBody() {
-        return messageBody;
     }
 
     private void goBack() {
@@ -142,7 +165,7 @@ public class MessageItem extends HBox {
         if (originalInt == 0){
             stage = (Stage) this.getScene().getWindow();
             originalScene = this.getScene();
-            bodyScene = new Scene(p, stage.getX(), stage.getY());
+            bodyScene = new Scene(p, stage.getX() + 500, stage.getY() + 500);
             originalInt++;
         }
        return stage;
@@ -162,11 +185,6 @@ public class MessageItem extends HBox {
 
     private void removeLabels(LabelHolderOnHover allLabels) {
         this.getParent();
-    }
-
-    private void showLabels(LabelHolderOnHover allLabels) {
-
-
     }
 
     /**

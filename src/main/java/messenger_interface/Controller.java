@@ -46,6 +46,8 @@ public class Controller extends Application {
     private long pagingTime;
     private int itemsPerPage = 15;
     private Hashtable<String, FullMessage> emailData;
+    private int temp = 0;
+    String[] bodyText = new String[1000];
 
     public static void main(String[] args) {
         launch(args);
@@ -292,6 +294,7 @@ public class Controller extends Application {
             throw new NullPointerException("messages is null");
 
         int page = pageIndex * itemsPerPage;
+        String[] msgIds = new String[1000];
         // messageItemNum used to iterate through the messageItems
         int messageItemNum = 0;
 //        long fmpageTime = System.currentTimeMillis();
@@ -301,21 +304,23 @@ public class Controller extends Application {
                 center.getChildren().add(new MessageItemInPane(new MessageItem
                         (emailData.get(messages.get(i).getId()), imgUrl)));
                 // message items have been init'd so just change the information in the objects
-            } else { 
+            } else {
                 long time = System.currentTimeMillis();
                 String mId = messages.get(i).getId();
                 // if the search returned messages, that's the only case when we want to reset info in the mItem fields
                 MessageItemInPane item = (MessageItemInPane) center.getChildren().get(messageItemNum);
                 MessageItem mItem = item.getMsgItem();
                 // add info to the message items
+                mItem.setMessageId(mId);
                 mItem.setSenderField(MessageParser.parseNameFromEmail(emailData.get(mId)));
+                mItem.setBodyText(emailData.get(mId).getBestMessageBody());
                 mItem.setSubjectField(emailData.get(mId).getSubject());
                 mItem.setSnippetField(emailData.get(mId).getSnippet());
                 ++messageItemNum;
             }
         }
         sp.setContent(center);
-/*    // timing tests --------------------------------------------------
+/*    // timing tests ------------------------------\--------------------
         System.out.println("fmpagetime: searching for messages with only FullMessage creation took "
                 + ((System.currentTimeMillis() - fmpageTime) / 1000.0)
                 + " seconds");

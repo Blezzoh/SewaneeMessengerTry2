@@ -6,6 +6,7 @@ import com.google.api.services.gmail.model.Thread;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static com.danielevans.email.Inbox.MESSAGE_NULL_ERROR;
 import static com.danielevans.email.Inbox.decodeString;
@@ -37,11 +38,16 @@ public class FullMessage {
 
     public FullMessage(Authenticator auth, Message message) throws IOException {
         this.auth = auth;
-        this.m = getFullMessageMetaData(message);
+        this.m = getFullMessagePayload(message);
     }
 
     public FullMessage(Inbox inbox, Message message) throws IOException {
         this(inbox.getAuth(), message);
+    }
+
+    // REMOVE THIS LATER AFTER DONE TESTING GETMESSAGEHTML()
+    public Message getM() {
+        return m;
     }
 
     public Authenticator getAuth() {
@@ -49,8 +55,109 @@ public class FullMessage {
     }
     /**
      * @return the message body in HTML
-     * @throws IOException
      */
+    public String getMessageHTML() {
+        Preconditions.objectNotNull(m, MESSAGE_NULL_ERROR);
+        // try to get the html from a the message parts in m's payload
+        try {
+            String html = Inbox.decodeString(m.getPayload().getParts().get(1)
+                    .getBody().getData());
+            if (html != null) {
+                System.out.println(1);
+                return html;
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            String html = Inbox.decodeString(m.getPayload().getParts().get(0)
+                    .getParts().get(0).getParts().get(0).getBody().getData());
+            if (html != null) {
+                System.out.println(2);
+                return html;
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            String html = m.getPayload().getParts().get(0)
+                    .getParts().get(0).getBody().getData();
+            if (html != null) {
+                System.out.println(3);
+                return Inbox.decodeString(html);
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            String text = m.getPayload().getBody().getData();
+            if (text != null) {
+                System.out.println(4);
+                return Inbox.decodeString(text + "\n");
+            }
+        } catch (Exception ignored) {
+        }
+        try {
+            String text = m.getPayload().getParts().get(0).getBody().getData();
+            if (text != null) {
+                System.out.println(5);
+                return Inbox.decodeString(text + "\n");
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    public String getBestMessageBody() {
+        return getBestMessageBody(m, "\"body\":{\"data\":\"", m.getPayload().toString());
+    }
+
+    public String getBestMessageBody(Message m) {
+        return getBestMessageBody(m, "\"body\":{\"data\":\"", m.getPayload().toString());
+    }
+
+    private String getBestMessageBody(Message m, String textToFind, String searchText) {
+        int len = textToFind.length();
+        int k = 0;
+        int[] indexes = new int[10];
+        for (int i = 0; i < searchText.length(); i++) {
+            int j = searchText.indexOf(textToFind, i);
+            if (j == -1)
+                break;
+            else {
+                indexes[k++] = j;
+                i = j + len;
+            }
+        }
+        int[] quoteIndices = new int[k + 1];
+        for (int i = 0; i < indexes.length && indexes[i] != 0; i++) {
+            quoteIndices[i] = searchText.indexOf("\"", indexes[i] + len);
+        }
+        String largest = "";
+        for (int i = 0; i < quoteIndices.length && quoteIndices[i] != 0; i++) {
+            String curr = m.getPayload().toString().substring(indexes[i] + len, quoteIndices[i]);
+            if (curr.length() > largest.length())
+                largest = curr;
+        }
+        largest = Inbox.decodeString(largest);
+        return testForHTML(largest) ? largest : getMessageHTML();
+    }
+
+    // </?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[\^'">\s]+))?)+\s*|\s*)/?>
+    public static boolean testForHTML(String largest) {
+        String r1 = "</?\\w+((\\s+\\w+(\\s*=\\s*(?:\".*?\"|'.*?'|[\\^'\">\\s]+))?)+\\s*|\\s*)/?>";
+        Pattern p1 = Pattern.compile(r1);
+        for (int i = 0; i + 1 < largest.length(); ) {
+            int i1 = largest.indexOf("<", i);
+            int i2 = largest.indexOf(">", i1);
+            if (i1 == -1 || i2 == -1 || i2 == largest.length() - 1)
+                return false;
+
+            if (p1.matcher(largest.substring(i1, i2 + 1)).matches()) {
+                return true;
+            }
+            i = i2 + 1;
+        }
+        return false;
+    }
+
     private String getMessageBodyAsHTML(Message message) throws IOException {
         Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
         // try to get the html from a the message parts in m's payload
@@ -61,22 +168,22 @@ public class FullMessage {
             if (html != null) {
                 return html;
             }
-        } catch (Exception e) {
-            try {
-                String html = m.getPayload().getParts().get(0)
-                        .getParts().get(0).getBody().getData();
-                if (html != null) {
-                    return Inbox.decodeString(html);
-                }
-            } catch (Exception e1) {
+        } catch (Exception ignored) {
+        }
+        try {
+            String html = m.getPayload().getParts().get(0)
+                    .getParts().get(0).getBody().getData();
+            if (html != null) {
+                return Inbox.decodeString(html);
             }
-            try {
-                String text = m.getPayload().getBody().getData();
-                if (text != null) {
-                    return Inbox.decodeString(text + "\n");
-                }
-            } catch (Exception e2) {
+        } catch (Exception ignored) {
+        }
+        try {
+            String text = m.getPayload().getBody().getData();
+            if (text != null) {
+                return Inbox.decodeString(text + "\n");
             }
+        } catch (Exception ignored) {
         }
         return null;
     }
@@ -162,7 +269,7 @@ public class FullMessage {
      * gets the decoded raw version of the email, formatted with format=RAW
      * @return returns the entire raw version (contains HTML) of the message
      */
-    private Message getRawVersion() {
+    public Message getRawVersion() {
         try {
             return auth.service.users().messages().get(auth.userId, m.getId()).set("format", "RAW").execute();
         } catch (IOException e) {
@@ -239,14 +346,10 @@ public class FullMessage {
                     .get(0).getBody().getData();
             if (emailBody != null)
                 return Inbox.decodeString(emailBody) + TROUBLE_VIEWING_MESSAGE + mId;
-            // TESTING
-//            System.out.println("email body = " + Inbox.decodeString(emailBody) + TROUBLE_VIEWING_MESSAGE + mId);
         } catch (NullPointerException ignored) {
         }
         try {
             String text = getMessageBodyAsHTML(z);
-            // TESTING
-//            System.out.println("text = " + text + mId);
             if (text != null) {
                 return text + TROUBLE_VIEWING_MESSAGE + mId;
             }

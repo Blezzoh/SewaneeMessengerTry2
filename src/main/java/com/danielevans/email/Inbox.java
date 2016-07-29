@@ -30,7 +30,7 @@ public class Inbox {
     /**
      * the number of messages to retrieve on both a search and on startup of the application
      */
-    public static final int MESSAGE_SIZE = 100;
+    public static final int MESSAGE_SIZE = 50;
     static final String MESSAGE_NULL_ERROR = "message is null";
     static final String QUERY_NULL_ERROR = "query is null";
     /**
@@ -173,7 +173,7 @@ public class Inbox {
                     response = getMetadataResponse(query, response.getNextPageToken());
                     // make sure to modify the get inbox function
                     // if you remove the break or if statement below
-                    if (messages.size() > MESSAGE_SIZE) {
+                    if (messages.size() >= MESSAGE_SIZE) {
                         break;
                     }
 

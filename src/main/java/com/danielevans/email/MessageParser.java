@@ -38,6 +38,15 @@ public class MessageParser {
         return null;
     }
 
+    public static <T> void checkDuplicatesInArray(T[] arr) {
+        for (int j = 0; j < arr.length; j++) {
+            for (int k = j + 1; k < arr.length; k++) {
+                if (arr[j] != null && arr[j].equals(arr[k]))
+                    System.out.println("j = " + j + "  " + "k = " + k + "  " + arr[j]);
+            }
+        }
+    }
+
     /**
      * COULD MAKE THIS MORE USEFUL BY ADDING PARAMETERS FOR LENGTH OF A
      * YEAR, THE FORMAT OF THE MONTH (January vs. Jan vs jan vs january), etc
