@@ -108,12 +108,12 @@ public class MessageItem extends HBox {
 
         subjectField.setOnMouseClicked(event -> {
             showContent();
-//            System.out.println(messageId);
+            System.out.println(messageId);
 //            System.out.println(bodyText);
         });
         snippetField.setOnMouseClicked(event -> {
             showContent();
-//            System.out.println(messageId);
+            System.out.println(messageId);
 //            System.out.println(this.bodyText);
             System.out.println(FullMessage.testForHTML(bodyText));
 

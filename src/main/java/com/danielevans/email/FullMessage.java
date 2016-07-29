@@ -45,11 +45,6 @@ public class FullMessage {
         this(inbox.getAuth(), message);
     }
 
-    // REMOVE THIS LATER AFTER DONE TESTING GETMESSAGEHTML()
-    public Message getM() {
-        return m;
-    }
-
     public Authenticator getAuth() {
         return auth;
     }
@@ -455,5 +450,9 @@ public class FullMessage {
 
     public String getId() {
         return m.getId();
+    }
+
+    public Message getM() {
+        return m;
     }
 }
