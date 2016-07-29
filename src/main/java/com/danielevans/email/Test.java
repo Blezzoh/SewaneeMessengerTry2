@@ -12,6 +12,8 @@ import java.util.List;
 public class Test {
 
 
+    private static final String MESSAGE_ID = "1562ca4c4997819d";
+
     public static void main(String[] args) throws IOException {
         /**
          *    inbox gives access to the user's gmail messages using an authenticator
@@ -24,8 +26,6 @@ public class Test {
 
         FullMessage[] emailData = new FullMessage[messages.size()];
 
-
-
         System.out.println("Getting email data from servers....");
         for (int i = 0; i < emailData.length; i++) {
             try {
@@ -35,16 +35,11 @@ public class Test {
             }
         }
         System.out.println("Retrieved email data");
-        int index = 0;
-        for (int i = 0; i < emailData.length; i++) {
-            if (emailData[i].getId().equals("1562ca4c4997819d")) {
-                index = i;
-                break;
-            }
-        }
-        Message m = emailData[index].getM();
+        FullMessage fm = new FullMessage(inbox, MESSAGE_ID);
+        Message m = fm.getM();
         System.out.println(m.getId());
         System.out.println(m.getPayload().toPrettyString());
+
     }
 
 

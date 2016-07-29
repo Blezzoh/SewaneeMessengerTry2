@@ -33,6 +33,7 @@ public class FullMessage {
     private static final String TROUBLE_VIEWING_MESSAGE =
             "\n\nHaving trouble viewing this message? Sign in to your gmail account in a browser" +
                     " and go to this url: https://mail.google.com/mail/u/0/#inbox/";
+    private static final String PAYLOAD_BODY_PARSER_STRING = "\"body\":{\"data\":\"";
     private Message m;
     private Authenticator auth;
 
@@ -43,6 +44,10 @@ public class FullMessage {
 
     public FullMessage(Inbox inbox, Message message) throws IOException {
         this(inbox.getAuth(), message);
+    }
+    public FullMessage(Inbox inbox, String mId) throws IOException {
+        this.auth = inbox.getAuth();
+        this.m = getFullMessagePayload(mId);
     }
 
     public Authenticator getAuth() {
@@ -101,11 +106,11 @@ public class FullMessage {
     }
 
     public String getBestMessageBody() {
-        return getBestMessageBody(m, "\"body\":{\"data\":\"", m.getPayload().toString());
+        return getBestMessageBody(m, PAYLOAD_BODY_PARSER_STRING, m.getPayload().toString());
     }
 
     public String getBestMessageBody(Message m) {
-        return getBestMessageBody(m, "\"body\":{\"data\":\"", m.getPayload().toString());
+        return getBestMessageBody(m, PAYLOAD_BODY_PARSER_STRING, m.getPayload().toString());
     }
 
     private String getBestMessageBody(Message m, String textToFind, String searchText) {
@@ -121,18 +126,19 @@ public class FullMessage {
                 i = j + len;
             }
         }
-        int[] quoteIndices = new int[k + 1];
+        int[] quoteIndices = new int[k];
         for (int i = 0; i < indexes.length && indexes[i] != 0; i++) {
             quoteIndices[i] = searchText.indexOf("\"", indexes[i] + len);
         }
+        // the largest string is the most likely string to contain HTML when decoded
         String largest = "";
         for (int i = 0; i < quoteIndices.length && quoteIndices[i] != 0; i++) {
             String curr = m.getPayload().toString().substring(indexes[i] + len, quoteIndices[i]);
             if (curr.length() > largest.length())
                 largest = curr;
         }
-        largest = Inbox.decodeString(largest);
-        return testForHTML(largest) ? largest : getMessageHTML();
+        // decode the largest string
+        return Inbox.decodeString(largest);
     }
 
     // </?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[\^'">\s]+))?)+\s*|\s*)/?>
@@ -223,6 +229,17 @@ public class FullMessage {
         try {
             return auth.service.users().messages()
                     .get(auth.userId, message.getId())
+                    .execute();
+        } catch (IOException e) {
+            System.out.println("CANNOT RETRIEVE THE MESSAGE");
+            e.printStackTrace();
+            return null;
+        }
+    }
+    public Message getFullMessagePayload(String mId) {
+        try {
+            return auth.service.users().messages()
+                    .get(auth.userId, mId)
                     .execute();
         } catch (IOException e) {
             System.out.println("CANNOT RETRIEVE THE MESSAGE");

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -52,5 +53,13 @@ public class UnitTests {
     @Test
     public void messagesAndEmailDataCount() {
         assertEquals(messages.size(), emailData.size());
+    }
+
+    @Test
+    public void testHTML() {
+        assertTrue(FullMessage.testForHTML("<a kdlsjfdlkfjdfds>"));
+//        assertTrue(FullMessage.testForHTML("<a href=\"sdfd>\">"));
+//        assertTrue(FullMessage.testForHTML("<a kdlsjfdlkfjdfds>"));
+//        assertTrue(FullMessage.testForHTML("<a kdlsjfdlkfjdfds>"));
     }
 }

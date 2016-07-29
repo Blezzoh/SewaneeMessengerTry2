@@ -288,6 +288,7 @@ public class Controller extends Application {
      * @throws IOException
      */
     private ScrollPane createPage(int pageIndex, ScrollPane sp) throws IOException {
+        // TESTING
         if(center == null || center.getChildren() == null)
             throw new NullPointerException("center or the container containing its children is null");
         if(messages == null)
@@ -313,6 +314,7 @@ public class Controller extends Application {
                 // add info to the message items
                 mItem.setMessageId(mId);
                 mItem.setSenderField(MessageParser.parseNameFromEmail(emailData.get(mId)));
+                String body = emailData.get(mId).getBestMessageBody();
                 mItem.setBodyText(emailData.get(mId).getBestMessageBody());
                 mItem.setSubjectField(emailData.get(mId).getSubject());
                 mItem.setSnippetField(emailData.get(mId).getSnippet());

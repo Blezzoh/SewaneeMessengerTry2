@@ -134,7 +134,12 @@ public class MessageItem extends HBox {
         // loadContent(String) will return and do nothing if bodyText is null
         // therefore the old bodyText from previous message Item will be loaded when the
         // user clicks on the snippet or the subject
-        engine.loadContent(bodyText);
+        if(!FullMessage.testForHTML(bodyText))
+            // load plain text version
+            engine.loadContent(bodyText, "text/plain");
+        else
+            // load html version
+            engine.loadContent(bodyText);
     }
 
     public void setMessageId(String messageId) {
