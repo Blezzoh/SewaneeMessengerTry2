@@ -2,11 +2,13 @@ package messenger_interface;
 
 import com.danielevans.email.Authenticator;
 import com.danielevans.email.FullMessage;
+import com.danielevans.email.Inbox;
 import com.danielevans.email.MessageParser;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -30,8 +32,6 @@ import java.io.IOException;
  * @author Blaise Iradukunda
  */
 public class MessageItem extends HBox {
-    private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;" + "-fx-background-radius: 10px;" + "-fx-padding: 10px; " + "-fx-border-radius: 10px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
-    private static final String STYLE_ON_EXIT = "-fx-background-color: white;" + "-fx-padding: 10px; " + "-fx-border-radius: 10px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
     private Text senderField;
     private Text subjectField;
     private Text snippetField;
@@ -41,6 +41,11 @@ public class MessageItem extends HBox {
     private Button b = new Button("BACK");
     private BorderPane p = new BorderPane();
     private Stage stage;
+    private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
+    private static final String STYLE_ON_EXIT = "-fx-background-color: white;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;" ;
+
+
+    private Inbox inbox;
     private NotificationIcon hoveredIcon;
     private ImageView downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
     private Scene bodyScene, originalScene;
@@ -91,12 +96,21 @@ public class MessageItem extends HBox {
         setSize(picField, 100.0, 200.0);
         setSize(msgSummary, 200.0, 160.0);
         setSize(container, 200.0, 200.0);
-        setStyle("-fx-padding: 10px; " + "-fx-border-radius: 10px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;");
+        setStyle("-fx-padding: 10px; "+"-fx-background-color:white;" + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #66007a;");
         container.setBackground(new Background(new BackgroundFill(Color.rgb(208, 0, 255, 0.4), new CornerRadii(5), new Insets(0))));
         container.setPadding(new Insets(4));
 
         setOnMouseEntered(event -> this.setStyle(STYLE_ON_ENTER));
         setOnMouseExited(event -> this.setStyle(STYLE_ON_EXIT));
+
+
+
+        DropShadow dropShadow = new DropShadow();
+        dropShadow.setRadius(5.0);
+        dropShadow.setOffsetX(3.0);
+        dropShadow.setOffsetY(3.0);
+        dropShadow.setColor(Color.color(0.4, 0.5, 0.5));
+        setEffect(dropShadow);
 
 
         snippetField.setOnMouseEntered(event -> underline(snippetField));

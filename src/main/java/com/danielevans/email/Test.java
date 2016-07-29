@@ -39,6 +39,7 @@ public class Test {
         Message m = fm.getM();
         System.out.println(m.getId());
         System.out.println(m.getPayload().toPrettyString());
+        System.out.println("i love college");
 
         System.out.println("helllo blaise let's try rebase git option");
 
