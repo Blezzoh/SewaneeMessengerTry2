@@ -322,20 +322,6 @@ public class Controller extends Application {
             }
         }
         sp.setContent(center);
-/*    // timing tests ------------------------------\--------------------
-        System.out.println("fmpagetime: searching for messages with only FullMessage creation took "
-                + ((System.currentTimeMillis() - fmpageTime) / 1000.0)
-                + " seconds");
-        System.out.println("paging time took "
-                + ((System.currentTimeMillis() - pagingTime) / 1000.0)
-                + " seconds");
-        if (searchTime != 0) {
-            // about 0 seconds
-            System.out.println("search time: "
-                    + (System.currentTimeMillis() - searchTime) / 1000.0);
-            searchTime = 0;
-        }
-*/   // end timing tests ----------------------------------------------------
         return sp;
     }
 

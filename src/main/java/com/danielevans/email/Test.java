@@ -1,5 +1,6 @@
 package com.danielevans.email;
 
+import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.Message;
 
 import java.io.IOException;
@@ -27,22 +28,28 @@ public class Test {
         FullMessage[] emailData = new FullMessage[messages.size()];
 
         System.out.println("Getting email data from servers....");
-        for (int i = 0; i < emailData.length; i++) {
+/*        for (int i = 0; i < emailData.length; i++) {
             try {
                 emailData[i] = new FullMessage(inbox, messages.get(i));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
         System.out.println("Retrieved email data");
         FullMessage fm = new FullMessage(inbox, MESSAGE_ID);
         Message m = fm.getM();
         System.out.println(m.getId());
         System.out.println(m.getPayload().toPrettyString());
-        System.out.println("i love college");
 
-        System.out.println("helllo blaise let's try rebase git option");
+        List<Label> labels = LabelMaker.listLabels(inbox);
 
+
+
+        Label l = LabelMaker.createLabel(inbox,"sewanee", true, true);
+        System.out.println(LabelMaker.deleteLabel(inbox, "sewanee"));
+        for (int i = 0; i < labels.size(); i++) {
+            System.out.println(labels.get(i).getName());
+        }
     }
 
 

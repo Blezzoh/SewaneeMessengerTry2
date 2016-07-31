@@ -1,13 +1,8 @@
 package com.danielevans.email;
 
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.StringUtils;
 import com.google.api.client.util.Base64;
-import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
@@ -19,7 +14,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Created by daniel on 6/2/16.
@@ -30,37 +28,9 @@ public class Inbox {
     /**
      * the number of messages to retrieve on both a search and on startup of the application
      */
-    public static final int MESSAGE_SIZE = 50;
+     public static final int MESSAGE_SIZE = 50;
     static final String MESSAGE_NULL_ERROR = "message is null";
     static final String QUERY_NULL_ERROR = "query is null";
-    /**
-     * Directory to store user credentials for this application.
-     */
-    private static final java.io.File DATA_STORE_DIR = new java.io.File(
-            System.getProperty("user.home"), ".credentials/gmail-java-quickstart.json");
-    /**
-     * Global instance of the JSON factory.
-     */
-    private static final JsonFactory JSON_FACTORY =
-            JacksonFactory.getDefaultInstance();
-    /**
-     * Global instance of the scopes required by this quickstart.
-     * <p>
-     * If modifying these scopes, delete your previously saved credentials
-     * at ~/.credentials/gmail-java-quickstart.json
-     */
-    private static final List<String> SCOPES =
-            Arrays.asList(GmailScopes.GMAIL_LABELS
-                    , GmailScopes.GMAIL_COMPOSE
-                    ,GmailScopes.GMAIL_MODIFY);
-    /**
-     * Global instance of the {@link FileDataStoreFactory}.
-     */
-    private static FileDataStoreFactory DATA_STORE_FACTORY;
-    /**
-     * Global instance of the HTTP transport.
-     */
-    private static HttpTransport HTTP_TRANSPORT;
     // Recipient's email ID needs to be mentioned.
     private String me = "evansdb0@sewanee.edu";
     // Assuming you are sending email from localhost
@@ -76,6 +46,7 @@ public class Inbox {
      * @param auth Authenticator that performs the oauth authentication
      */
     public Inbox(Authenticator auth) {
+        // TODO make sure this is correct -> shouldn't it be auth.userId = userId passed to auth
         auth.userId = "me";
         this.auth = auth;
         try {
@@ -350,14 +321,62 @@ public class Inbox {
         return threads;
     }
 
-    /*/**
+    /**
      *
-     * @param thread any thread
-     * @return a thread with full payload
+     * @return list of threads matching query
      * @throws IOException
-     *
-    public Thread getFullThreadInstance(Thread thread) throws IOException {
-        return auth.service.users().threads().get(auth.userId, thread.getId()).execute();
+     */
+    public List<Thread> listThreadsInInbox() throws IOException {
+        ListThreadsResponse response =
+                auth.service.users().threads().list(auth.userId).execute();
+        List<Thread> threads = new ArrayList<>();
+        threads.addAll(response.getThreads());
+        return threads;
     }
-    */
+
+    /**
+     * List all Threads of the user's mailbox matching the query.
+     * @throws IOException
+     */
+    public List<Thread> listThreads() throws IOException {
+        ListThreadsResponse response =
+                auth.service.users().threads().list(auth.userId).execute();
+        List<Thread> threads = new ArrayList<>();
+        while(response.getThreads() != null) {
+            threads.addAll(response.getThreads());
+            if(response.getNextPageToken() != null) {
+                String pageToken = response.getNextPageToken();
+                response = auth.service.users().threads()
+                        .list(auth.userId).setPageToken(pageToken).execute();
+            } else {
+                break;
+            }
+        }
+        for(Thread thread : threads)
+            System.out.println(thread.toPrettyString());
+
+        return threads;
+    }
+    /**
+     * List all Threads of the user's mailbox with labelIds applied.
+     * @param labelIds String used to filter the Threads listed.
+     * @throws IOException
+     */
+    public List<Thread> listThreadsWithLabels (List<String> labelIds) throws IOException {
+        ListThreadsResponse response = auth.service.users()
+                .threads().list(auth.userId).setLabelIds(labelIds).execute();
+        List<Thread> threads = new ArrayList<>();
+        while(response.getThreads() != null) {
+            threads.addAll(response.getThreads());
+            if(response.getNextPageToken() != null) {
+                String pageToken = response.getNextPageToken();
+                response = auth.service.users()
+                        .threads().list(auth.userId).setLabelIds(labelIds)
+                        .setPageToken(pageToken).execute();
+            } else {
+                break;
+            }
+        }
+        return threads;
+    }
 }

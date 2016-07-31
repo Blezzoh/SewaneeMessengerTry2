@@ -1,7 +1,9 @@
 package com.danielevans.email;
 
+import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePartHeader;
+import com.google.api.services.gmail.model.ModifyMessageRequest;
 import com.google.api.services.gmail.model.Thread;
 
 import java.io.IOException;
@@ -66,8 +68,7 @@ public class FullMessage {
                 System.out.println(1);
                 return html;
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
         try {
             String html = Inbox.decodeString(m.getPayload().getParts().get(0)
                     .getParts().get(0).getParts().get(0).getBody().getData());
@@ -84,24 +85,21 @@ public class FullMessage {
                 System.out.println(3);
                 return Inbox.decodeString(html);
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
         try {
             String text = m.getPayload().getBody().getData();
             if (text != null) {
                 System.out.println(4);
                 return Inbox.decodeString(text + "\n");
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
         try {
             String text = m.getPayload().getParts().get(0).getBody().getData();
             if (text != null) {
                 System.out.println(5);
                 return Inbox.decodeString(text + "\n");
             }
-        } catch (Exception ignored) {
-        }
+        } catch (Exception ignored) { }
         return null;
     }
 
@@ -236,7 +234,7 @@ public class FullMessage {
             return null;
         }
     }
-    public Message getFullMessagePayload(String mId) {
+    private Message getFullMessagePayload(String mId) {
         try {
             return auth.service.users().messages()
                     .get(auth.userId, mId)
@@ -254,18 +252,9 @@ public class FullMessage {
      *
      * @return the message with all body text, headers, links, images, etc
      */
-    public Message getFullMessagePayload(FullMessage message) {
+    private Message getFullMessagePayload(FullMessage message) {
         Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
-        try {
-            // set fields
-            return auth.service.users().messages()
-                    .get(auth.userId, message.m.getId())
-                    .execute();
-        } catch (IOException e) {
-            System.out.println("CANNOT RETRIEVE THE MESSAGE");
-            e.printStackTrace();
-            return null;
-        }
+        return getFullMessagePayload(message.getId());
     }
 
     /**
@@ -386,21 +375,20 @@ public class FullMessage {
      * of the last message if whichMessage greater than thread.getMessages().size()
      * @throws IOException
      */
-    public String getBodyOfMessageInThread(Thread thread, int whichMessage)
+    public String getBodyOfMessageInThread(Inbox inbox, Thread thread, int whichMessage)
             throws IOException {
 
         if(thread == null) throw new NullPointerException("message is null");
 
-        Thread t = getFullThreadInstance(thread);
-
+        FullThread t = new FullThread(inbox, thread);
         // if user requests a message that doesn't exist in thread (ex: only 2 messages
         // in the thread, user requests the third), then return the last message
         if(t.getMessages().size() <= whichMessage) {
             // return the last message in the thread
-            return getMessageBody(t.getMessages().get(t.getMessages().size()-1));
+            return getBestMessageBody(t.getMessages().get(t.getMessages().size()-1));
         }
         // return the message queried for
-        return getMessageBody(t.getMessages().get(whichMessage));
+        return getBestMessageBody(t.getMessages().get(whichMessage));
     }
 
     /**
@@ -454,16 +442,6 @@ public class FullMessage {
     {
         return getHeaderPart(LIST_UNSUBSCRIBE);
     }
-    /**
-     *
-     * @param thread any thread
-     * @return a thread with full payload
-     * @throws IOException
-     */
-    private Thread getFullThreadInstance(Thread thread) throws IOException {
-        Preconditions.objectNotNull(thread, "thread is null");
-        return auth.service.users().threads().get(auth.userId, thread.getId()).execute();
-    }
 
     public String getId() {
         return m.getId();
@@ -471,5 +449,26 @@ public class FullMessage {
 
     public Message getM() {
         return m;
+    }
+
+    /**
+     * Modify the labels a message is associated with.
+     *
+     * @param service        Authorized Gmail API instance.
+     * @param userId         User's email address. The special value "me"
+     *                       can be used to indicate the authenticated user.
+     * @param messageId      ID of Message to Modify.
+     * @param labelsToAdd    List of label ids to add.
+     * @param labelsToRemove List of label ids to remove.
+     * @throws IOException
+     */
+    public static void modifyMessage(Gmail service, String userId, String messageId,
+                                     List<String> labelsToAdd, List<String> labelsToRemove) throws IOException {
+        ModifyMessageRequest mods = new ModifyMessageRequest().setAddLabelIds(labelsToAdd)
+                .setRemoveLabelIds(labelsToRemove);
+        Message message = service.users().messages().modify(userId, messageId, mods).execute();
+
+        System.out.println("Message id: " + message.getId());
+        System.out.println(message.toPrettyString());
     }
 }

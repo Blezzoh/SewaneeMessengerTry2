@@ -17,16 +17,15 @@ public class LabelMaker {
     /**
      * Updates the specified label.
      *
-     * @param labelId    ID of Label to patch.
+     * @param labelId    ID of Label to patch. For example, CATEGORY_PERSONAL
      * @param labelPatch Label with properties to patch.
      */
 
-    public static Label patchLabel(Inbox inbox, String labelName,
-                                   String labelId, Label labelPatch) {
+    public static Label patchLabel(Inbox inbox, String labelId, Label labelPatch) {
         Label patchedLabel = null;
         try {
-            patchedLabel = inbox.getService().users().labels()
-                    .patch(inbox.getUser(), labelId, labelPatch).execute();
+            patchedLabel = inbox.getAuth().service.users().labels()
+                    .patch(inbox.getAuth().userId, labelId, labelPatch).execute();
             return patchedLabel;
         } catch (IOException e) {
             e.printStackTrace();
@@ -36,22 +35,21 @@ public class LabelMaker {
 
     /**
      * Add a new Label to user's inbox.
-     * <p>
-     * can be used to indicate the authenticated user.
-     *
-     * @param labelName Name of the new label.
      */
+    public static Label createLabel(Inbox inbox,String newLabelName,
+    boolean showInMessageList, boolean showInLabelList) throws IOException {
+        String messageListVisibility = showInMessageList ? "show" : "hide";
+        String labelListVisibility = showInLabelList ? "labelShow" : "labelHide";
+        Label label = new Label().setName(newLabelName)
+                .setMessageListVisibility(messageListVisibility)
+                .setLabelListVisibility(labelListVisibility);
+        label = inbox.getAuth().service.users()
+                .labels().create(inbox.getUser(), label).execute();
 
-    public static Label createLabel(Inbox inbox, String labelName) {
-        Label label = new Label().setName(labelName);
-        try {
-            label = inbox.getService().users().labels()
-                    .create(inbox.getUser(), label).execute();
-            return label;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        System.out.println("Label id: " + label.getId());
+        System.out.println(label.toPrettyString());
+
+        return label;
     }
 
     /**
@@ -74,8 +72,8 @@ public class LabelMaker {
                 .setMessageListVisibility(messageListVisibility)
                 .setLabelListVisibility(labelListVisibility);
         try {
-            newLabel = inbox.getService().users().labels()
-                    .update(inbox.getUser(), labelToUpdate.getId(), newLabel).execute();
+            newLabel = inbox.getAuth().service.users().labels()
+                    .update(inbox.getAuth().userId, labelToUpdate.getId(), newLabel).execute();
             return newLabel;
         } catch (IOException e) {
             e.printStackTrace();
@@ -85,9 +83,6 @@ public class LabelMaker {
 
     /**
      * Modify the labels a message is associated with.
-     * <p>
-     * can be used to indicate the authenticated user.
-     *
      * @param messageId      ID of Message to Modify.
      * @param labelsToAdd    List of label ids to add.
      * @param labelsToRemove List of label ids to remove.
@@ -110,7 +105,8 @@ public class LabelMaker {
         }
         Message message = null;
         try {
-            message = auth.service.users().messages().modify(auth.userId, messageId, mods).execute();
+            message = auth.service.users().messages()
+                    .modify(auth.userId, messageId, mods).execute();
             return message;
         } catch (IOException e) {
             e.printStackTrace();
@@ -118,18 +114,17 @@ public class LabelMaker {
         return null;
     }
 
-    public static boolean modifyMessage(Inbox inbox, String messageId, String labelToAdd) {
+    public static boolean modifyMessage(Inbox inbox,
+                                        String messageId, String labelToAdd) {
         return modifyMessage(inbox.getAuth(), messageId, labelToAdd);
     }
 
-    public static boolean modifyMessage(Authenticator auth, String messageId, String labelToAdd) {
+    public static boolean modifyMessage(Authenticator auth,
+                                        String messageId, String labelToAdd) {
         List<String> labelList = new ArrayList<>(1);
         labelList.add(labelToAdd);
         Message m = modifyMessage(auth, messageId, labelList, null);
-        if (m == null)
-            return false;
-        else
-            return true;
+        return m != null;
     }
 
 
@@ -141,20 +136,30 @@ public class LabelMaker {
      */
     public static String deleteLabel(Inbox inbox, Label label) {
         try {
-            inbox.getService().users().labels()
-                    .delete(inbox.getUser(), label.getId()).execute();
+            inbox.getAuth().service.users().labels()
+                    .delete(inbox.getAuth().userId, label.getId()).execute();
             // TODO: notify user that the it was deleted successfully
-            return "The label was deleted successfully";
+            return "The label \"" + label.getName() + "\" was deleted successfully";
         } catch (IOException e) {
             e.printStackTrace();
         }
         return "There was a problem deleting the message. Try again";
     }
 
+    public static String deleteLabel(Inbox inbox, String labelName) {
+        List<Label> labels = LabelMaker.listLabels(inbox);
+        for (int i = 0; i < labels.size(); i++) {
+            if (labels.get(i).getName().equals(labelName)) {
+                return LabelMaker.deleteLabel(inbox, labels.get(i));
+            }
+        }
+        return "The label specified \"" + labelName + "\" was not found in your inbox";
+    }
+
     public static Label getLabelPayload(Inbox inbox, Label label) {
         try {
-            return inbox.getService().users().labels()
-                    .get(inbox.getUser(), label.getId()).execute();
+            return inbox.getAuth().service.users().labels()
+                    .get(inbox.getAuth().userId, label.getId()).execute();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -164,17 +169,8 @@ public class LabelMaker {
     /**
      * List the Labels in the user's mailbox.
      */
-    public static List<Label> listLabels(Inbox i) {
-
-        ListLabelsResponse response = null;
-        try {
-            response = i.getService().users().labels()
-                    .list(i.getUser()).execute();
-            return response.getLabels();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public static List<Label> listLabels(Inbox inbox) {
+        return listLabels(inbox.getAuth());
     }
 
     public static List<Label> listLabels(Authenticator auth) {
