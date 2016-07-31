@@ -44,6 +44,7 @@ public class Controller extends Application {
     private long pagingTime;
     private int itemsPerPage = 15;
     private Hashtable<String, FullMessage> emailData;
+    BorderPane root;
     private int temp = 0;
     String[] bodyText = new String[1000];
 
@@ -58,7 +59,7 @@ public class Controller extends Application {
         /**
          *    inbox gives access to the user's gmail messages using an authenticator
          */
-        inbox = new Inbox("evansdb0@sewanee.edu");
+        inbox = new Inbox("iradub0@sewanee.edu");
         /**
          *  loads the user's inbox
          */
@@ -81,13 +82,11 @@ public class Controller extends Application {
                 (System.currentTimeMillis() - initTime) / 1000.0);
 
         // root container of the interface
-        BorderPane root = new BorderPane();
-        ComposeMessage cm = new ComposeMessage(inbox);
-        root.setRight(cm.getRoot());
+        root = new BorderPane();
 
         initSpAndCenter();
 
-        HBox bottomMenu = makeBottomMenu(root, sp, cm);
+        HBox bottomMenu = makeBottomMenu(root, sp);
         root.setBottom(bottomMenu);
 
         // creating title for application and scene
@@ -301,7 +300,7 @@ public class Controller extends Application {
             // need to initialize the message items if they haven't already been initialized
             if (center.getChildren().size() < itemsPerPage) {
                 center.getChildren().add(new MessageItemInPane(new MessageItem
-                        (emailData.get(messages.get(i).getId()), imgUrl)));
+                        (root, emailData.get(messages.get(i).getId()), imgUrl)));
                 // message items have been init'd so just change the information in the objects
             } else {
                 long time = System.currentTimeMillis();
@@ -324,7 +323,7 @@ public class Controller extends Application {
         return sp;
     }
 
-    private HBox makeBottomMenu(BorderPane root, ScrollPane sp, ComposeMessage cm) {
+    private HBox makeBottomMenu(BorderPane root, ScrollPane sp) {
         HBox lowerMenu = new HBox();
         Rectangle menuRec = new Rectangle(100, 60);
         Rectangle searchRect = new Rectangle(100, 60);

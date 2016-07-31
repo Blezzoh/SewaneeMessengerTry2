@@ -1,5 +1,6 @@
 package messenger_interface;
 
+import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
@@ -29,19 +30,7 @@ public class ComposeMessage {
     private VBox root;
 
     public ComposeMessage(Inbox inbox) {
-
-        subject = new TextField();
-        subject.setPromptText("Subject");
-        bodyText = new TextArea();
-        bodyText.setPromptText("Body Text");
-        bodyText.setWrapText(true);
-        bodyText.setMaxWidth(200);
-        emailAddress = new TextField();
-        emailAddress.setPromptText("To: ");
-        Cc = new TextField();
-        Cc.setPromptText("Cc: ");
-        send = new Button("Send");
-        attachments = new Button("Attachment");
+        initFields();
 
         attachments.setOnMouseClicked(e ->
         {
@@ -78,6 +67,29 @@ public class ComposeMessage {
         root = new VBox(8);
         root.setPadding(new Insets(4));
         root.getChildren().addAll(emailAddress,Cc,subject,bodyText,sendAndExtrasContainer);
+    }
+
+    public ComposeMessage(FullMessage fm) {
+
+    }
+
+    public void initFields() {
+        subject = new TextField();
+        subject.setPromptText("Subject");
+        bodyText = new TextArea();
+        bodyText.setPromptText("Body Text");
+        bodyText.setWrapText(true);
+        bodyText.setMaxWidth(200);
+        emailAddress = new TextField();
+        emailAddress.setPromptText("To: ");
+        Cc = new TextField();
+        Cc.setPromptText("Cc: ");
+        send = new Button("Send");
+        attachments = new Button("Attachment");
+    }
+
+    public void setVisible(boolean visible) {
+        root.setVisible(visible);
     }
     public VBox getRoot() {
         return root;

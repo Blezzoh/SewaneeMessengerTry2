@@ -17,25 +17,6 @@ public class LabelMaker {
     private static final String NULL_AUTH = "param auth is null";
 
     /**
-     * Updates the specified label.
-     *
-     * @param labelId    ID of Label to patch. For example, CATEGORY_PERSONAL
-     * @param labelPatch Label with properties to patch.
-     */
-
-    public static Label patchLabel(Auth auth, String labelId, Label labelPatch) {
-        Label patchedLabel = null;
-        try {
-            patchedLabel = auth.getAuth().service.users().labels()
-                    .patch(auth.getAuth().userId, labelId, labelPatch).execute();
-            return patchedLabel;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
      * Add a new Label to user's inbox.
      */
     public static Label createLabel(Auth auth, String newLabelName,
@@ -55,6 +36,25 @@ public class LabelMaker {
         return label;
     }
 
+    /**
+     * Updates the specified label.
+     *
+     * @param labelId    ID of Label to patch. For example, CATEGORY_PERSONAL
+     * @param labelPatch Label with properties to patch.
+     */
+
+    public static Label patchLabel(Auth auth, String labelId, Label labelPatch) {
+        Label patchedLabel = null;
+        try {
+            patchedLabel = auth.getAuth().service.users().labels()
+                    .patch(auth.getAuth().userId, labelId, labelPatch).execute();
+            return patchedLabel;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+
+    }
     public static Label updateLabel(Auth auth,
                                     String oldLabelName,
                                     String newLabelName, boolean showInMessageList,

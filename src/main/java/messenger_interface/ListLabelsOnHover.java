@@ -48,7 +48,7 @@ public class ListLabelsOnHover extends VBox{
     }
 
     /**
-     * @param auth any class that implements getAuth(), provides account access
+     * @param auth any class that implements getAuth(), provides account access/modification
      * @return an array of all the Strings
      */
 

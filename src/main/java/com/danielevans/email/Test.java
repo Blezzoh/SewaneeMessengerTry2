@@ -19,7 +19,7 @@ public class Test {
         /**
          *    inbox gives access to the user's gmail messages using an authenticator
          */
-        Inbox inbox = new Inbox("evansdb0@sewanee.edu");
+        Inbox inbox = new Inbox("iradub0@sewanee.edu");
         /**
          *  loads the user's inbox
          */

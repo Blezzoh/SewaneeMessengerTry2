@@ -14,7 +14,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,11 +31,8 @@ public class Inbox implements Auth {
     public static final int MESSAGE_SIZE = 50;
     static final String MESSAGE_NULL_ERROR = "param message is null";
     private static final String QUERY_NULL_ERROR = "param query is null";
-    // Recipient's email ID needs to be mentioned.
-    private String me = "evansdb0@sewanee.edu";
     // Assuming you are sending email from localhost
     private String host = "localhost";
-
     private List<Message> inbox;
     private Authenticator auth;
     private int retries = 0;
@@ -54,14 +50,14 @@ public class Inbox implements Auth {
         boolean retry = true;
         // if connection fails during getInbox() call, retry the connection
         // up to 5 times with exponential backoff
-        while (retry && retries != 20) {
+        while (retry) {
             try {
                 inbox = getInbox();
                 retry = false; // kill the while loop because getInbox() never threw
-            } catch (UnknownHostException e) {
+            } catch (IOException e) {
                 ++retries;
-                System.out.println("Failed to connect on try " + retries + " " +
-                        "Retrying now...");
+                System.out.println("Failed to connect on try " + retries +
+                        ". Retrying now...");
                 try {
                     // server is possibly receiving a lot of traffic
                     // so wait a little while before trying again
@@ -70,14 +66,12 @@ public class Inbox implements Auth {
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
-                if (retries == 20) {
+                if (retries == 5) {
                     System.out.println("Problem getting email messages. " +
                             "Aborting connection. Are you connected to the internet?");
                     System.exit(NO_INTERNET_CONNECTION);
                 }
-            } catch (IOException e) {
-                System.out.println
-                        ("We got 1 problem but an internet connection ain't one");
+                e.printStackTrace();
             }
         }
         System.out.println("Connection established");
@@ -296,7 +290,7 @@ public class Inbox implements Auth {
                                       String message) throws MessagingException {
 
         MimeMessage m = new MimeMessage(session);
-        m.setFrom(new InternetAddress(me));
+        m.setFrom(new InternetAddress(this.auth.userId));
 
         // TODO: if CC/BCC contains an email address, iterate through the
         // TODO: email addresses using this method

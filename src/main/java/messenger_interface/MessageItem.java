@@ -48,7 +48,7 @@ public class MessageItem extends HBox {
     private ImageView labelEmail;
 
 
-    public MessageItem(FullMessage m, String imageUrl) throws IOException {
+    public MessageItem(BorderPane root, FullMessage m, String imageUrl) throws IOException {
 
         super();
         this.fm = m;
@@ -215,6 +215,11 @@ public class MessageItem extends HBox {
         markEmail = new ImageView( mark);
         setMargin(markEmail, new Insets(1,5,1,1));
         replyEmail= new ImageView(reply);
+        replyEmail.setOnMouseClicked(event -> {
+            ComposeMessage cm = new ComposeMessage(fm);
+            // TODO need to implement manager for multiple ComposeMessage objects
+            // TODO so that way the user can have several interfaces to send emails.
+        });
         setMargin(replyEmail, new Insets(1,5,1,1));
         addToTrash = new ImageView(trash);
         setMargin(addToTrash, new Insets(1,5,1,1));

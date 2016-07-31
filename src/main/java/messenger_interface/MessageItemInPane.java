@@ -4,6 +4,7 @@ import com.danielevans.email.FullMessage;
 import com.danielevans.email.LabelMaker;
 import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
@@ -59,7 +60,7 @@ public class MessageItemInPane extends StackPane {
          * it moves the corresponding email in the specific label
          */
         FullMessage fm = messageItem.getFm();
-        InvalidationListener listener = observable -> {
+        InvalidationListener listener = (Observable observable) -> {
             System.out.println(labelsList.getSelectionModel()
                     .getSelectedItem() + "\n" + messageItem);
 
@@ -68,7 +69,6 @@ public class MessageItemInPane extends StackPane {
                     , labelsList.getSelectionModel().getSelectedItem(),
                     true);
             hideLabels();
-
         };
 
         setIconsProperties();
@@ -116,8 +116,8 @@ public class MessageItemInPane extends StackPane {
     /**
      *move the email to a label s and display to the user that the task is done
      */
-    private void trashEmail (){
-        // put email clicked on in the trash
+    private void trashEmail() {
+
         boolean b = msgItem.getFm().trashMessage();
 
         if (b) {
