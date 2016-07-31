@@ -1,4 +1,3 @@
-import com.danielevans.email.Authenticator;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
 import com.google.api.services.gmail.model.Message;
@@ -20,7 +19,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class UnitTests {
 
-    Inbox inbox = new Inbox(new Authenticator("evansdb0@sewanee.edu"));
+    Inbox inbox = new Inbox("evansdb0@sewanee.edu");
 
     List<Message> messages = inbox.getDefaultInbox();
 

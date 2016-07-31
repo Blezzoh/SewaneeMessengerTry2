@@ -1,9 +1,7 @@
 package messenger_interface;
 
-import com.danielevans.email.Authenticator;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
-import com.danielevans.email.MessageParser;
 import com.google.api.services.gmail.model.Message;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
@@ -60,7 +58,7 @@ public class Controller extends Application {
         /**
          *    inbox gives access to the user's gmail messages using an authenticator
          */
-        inbox = new Inbox(new Authenticator("evansdb0@sewanee.edu"));
+        inbox = new Inbox("evansdb0@sewanee.edu");
         /**
          *  loads the user's inbox
          */
@@ -94,7 +92,7 @@ public class Controller extends Application {
 
         // creating title for application and scene
         primaryStage.setTitle("Sewanee Messenger");
-        Scene scene = new Scene(root, 900, 700);
+        Scene scene = new Scene(root, 1100, 800);
 
         // on key pressed gives functionality for what user types automatically
         //showing up in the search box
@@ -311,13 +309,14 @@ public class Controller extends Application {
                 // if the search returned messages, that's the only case when we want to reset info in the mItem fields
                 MessageItemInPane item = (MessageItemInPane) center.getChildren().get(messageItemNum);
                 MessageItem mItem = item.getMsgItem();
+                mItem.setFm(emailData.get(mId));
                 // add info to the message items
-                mItem.setMessageId(mId);
+                /*mItem.setMessageId(mId);
                 mItem.setSenderField(MessageParser.parseNameFromEmail(emailData.get(mId)));
                 String body = emailData.get(mId).getBestMessageBody();
                 mItem.setBodyText(emailData.get(mId).getBestMessageBody());
                 mItem.setSubjectField(emailData.get(mId).getSubject());
-                mItem.setSnippetField(emailData.get(mId).getSnippet());
+                mItem.setSnippetField(emailData.get(mId).getSnippet());*/
                 ++messageItemNum;
             }
         }

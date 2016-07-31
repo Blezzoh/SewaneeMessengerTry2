@@ -99,7 +99,7 @@ public class MessageParser {
             if (year == null) {
                 try {
                     // checking to see if we throw exception; if not, we found the year
-                    System.out.println(Integer.parseInt(date.substring(i, i + 4)));
+                    Integer.parseInt(date.substring(i, i + 4));
                     // only get here if we don't throw, years are (assumed) 4 chars long
                     year = date.substring(i, i + 4);
                     break;
@@ -107,7 +107,7 @@ public class MessageParser {
             }
         }
         // yyyy/dd/mm
-        return year + "/" + dd + "/" + mm;
+        return mm + "/" + dd + "/" + year;
     }
 
     /**
@@ -147,7 +147,7 @@ public class MessageParser {
         return emailAddress.substring(start, end);
     }
 
-    public static String parseNameFromEmail(FullMessage message) {
+    public static String parseSenderFromEmail(FullMessage message) {
         Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
         return parseNameFromEmail(message.getFrom());
     }

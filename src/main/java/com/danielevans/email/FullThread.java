@@ -12,7 +12,7 @@ import java.util.List;
  * @author Daniel Evans
  */
 
-public class FullThread {
+public class FullThread implements Auth {
 
     private Authenticator auth;
 
@@ -43,6 +43,35 @@ public class FullThread {
         return fms;
     }
 
+    /**
+     * @param thread       thread to take the message from
+     * @param whichMessage number of the message in the thread, 0 = first message
+     *                     1 = second message, etc
+     * @return the body of the specified message in the thread, or the body
+     * of the last message if whichMessage greater than thread.getMessages().size()
+     * @throws IOException
+     */
+    public String getBodyOfMessageInThread(Inbox inbox, Thread thread, int whichMessage)
+            throws IOException {
+
+        if (thread == null) throw new NullPointerException("message is null");
+
+        FullThread t = new FullThread(inbox, thread);
+        // if user requests a message that doesn't exist in thread (ex: only 2 messages
+        // in the thread, user requests the third), then return the last message
+        FullMessage fm;
+        Message m;
+        if (t.getMessages().size() <= whichMessage) {
+            m = t.getMessages().get(t.getMessages().size() - 1);
+            // return the last message in the thread
+            fm = new FullMessage(inbox, m);
+            return fm.getBestMessageBody();
+        }
+        m = t.getMessages().get(whichMessage);
+        fm = new FullMessage(inbox, m);
+        // return the message queried for
+        return fm.getBestMessageBody();
+    }
     public List<Message> getMessages() {
         return thread.getMessages();
     }
@@ -129,5 +158,10 @@ public class FullThread {
         Thread t = auth.service.users().threads().get(auth.userId, thread.getId()).execute();
         System.out.println("No. of messages in this thread: " + t.getMessages().size());
         System.out.println(t.toPrettyString());
+    }
+
+    @Override
+    public Authenticator getAuth() {
+        return auth;
     }
 }

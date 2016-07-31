@@ -1,8 +1,6 @@
 package messenger_interface;
 
-import com.danielevans.email.Authenticator;
 import com.danielevans.email.FullMessage;
-import com.danielevans.email.Inbox;
 import com.danielevans.email.MessageParser;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -32,10 +30,7 @@ import java.io.IOException;
  * @author Blaise Iradukunda
  */
 public class MessageItem extends HBox {
-    private Text senderField;
-    private Text subjectField;
-    private Text snippetField;
-    private String messageId;
+    private Text senderField, subjectField, snippetField, dateField;
     private HBox secondRowOptions;
     private HBox firstRowOptions;
     private Button b = new Button("BACK");
@@ -44,33 +39,30 @@ public class MessageItem extends HBox {
     private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
     private static final String STYLE_ON_EXIT = "-fx-background-color: white;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;" ;
 
-
-    private Inbox inbox;
-    private NotificationIcon hoveredIcon;
+    private FullMessage fm;
     private ImageView downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
     private Scene bodyScene, originalScene;
     private WebView messageBody = new WebView();
     private WebEngine engine = messageBody.getEngine();
     private int originalInt = 0;
-    private Authenticator auth;
     private ImageView labelEmail;
-    private String bodyText;
+
 
     public MessageItem(FullMessage m, String imageUrl) throws IOException {
 
         super();
-        auth = m.getAuth();
-        messageId = m.getId();
-        senderField = new Text(MessageParser.parseNameFromEmail(m));
+        this.fm = m;
+        senderField = new Text(MessageParser.parseSenderFromEmail(m));
         subjectField = new Text("S: " + m.getSubject() + "\n");
         snippetField = new Text(m.getSnippet());
+        dateField = new Text("Sent: " + MessageParser.parseDate(fm.getDate()));
         subjectField.setWrappingWidth(190);
-        //font families
         subjectField.setFont(Font.font("Constantia", FontWeight.BLACK, 13));
-        ///subjectField.setStyle("" + "-fx-font: bold;" +" -fx-font-family: ");
         snippetField.setWrappingWidth(190);
+        dateField.setWrappingWidth(190);
         senderField.setWrappingWidth(100);
         addOptionsOnMessage();
+        // add the image to the message item
         Image imageField = new Image(imageUrl, 80, 0, true, true, false);
         ImagePattern imageView = new ImagePattern(imageField);
 //        ImageView imageView = new ImageView(imageField);
@@ -79,15 +71,13 @@ public class MessageItem extends HBox {
         Rectangle canvas = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
         canvas.setArcHeight(20);
         canvas.setArcWidth(20);
-        VBox picField = new VBox(canvas, senderField);
+        VBox picField = new VBox(canvas, senderField, dateField);
         VBox msgSummary = new VBox(subjectField, snippetField);
 
         VBox options = new VBox();
         options.getChildren().addAll(firstRowOptions);
         setMargin(options, new Insets(10,10,10,10));
         VBox container = new VBox(msgSummary, options);
-
-        HBox msgItem = new HBox(picField, container);
 
         getChildren().addAll(picField, container);
 
@@ -106,7 +96,7 @@ public class MessageItem extends HBox {
 
 
         DropShadow dropShadow = new DropShadow();
-        dropShadow.setRadius(5.0);
+        dropShadow.setRadius(5. * 0);
         dropShadow.setOffsetX(3.0);
         dropShadow.setOffsetY(3.0);
         dropShadow.setColor(Color.color(0.4, 0.5, 0.5));
@@ -117,34 +107,29 @@ public class MessageItem extends HBox {
         subjectField.setOnMouseEntered(event -> underline(subjectField));
         subjectField.setOnMouseExited(event -> removeUnderline(subjectField));
         snippetField.setOnMouseExited(event -> removeUnderline(snippetField));
-        this.bodyText = m.getBestMessageBody();
-        engine.loadContent(m.getBestMessageBody());
+        engine.loadContent(fm.getBestMessageBody());
 
-        subjectField.setOnMouseClicked(event -> {
-            showContent();
-            System.out.println(messageId);
-//            System.out.println(bodyText);
-        });
-        snippetField.setOnMouseClicked(event -> {
-            showContent();
-            System.out.println(messageId);
-//            System.out.println(this.bodyText);
-            System.out.println(FullMessage.testForHTML(bodyText));
-
-        });
+        subjectField.setOnMouseClicked(event -> showContent());
+        snippetField.setOnMouseClicked(event -> showContent());
         b.setOnMouseClicked(event -> goBack());
 
         p.setCenter(messageBody);
         p.setTop(b);
-
-
     }
 
-    public void setBodyText(String bodyText) {
-        if (bodyText == null)
-            System.out.println("body text null");
+    public FullMessage getFm() {
+        return fm;
+    }
 
-        this.bodyText = bodyText;
+    public void setFm(FullMessage fm) {
+        this.fm = fm;
+        snippetField.setText(fm.getSnippet());
+        subjectField.setText(fm.getSubject());
+        senderField.setText(MessageParser.parseSenderFromEmail(fm));
+        dateField.setText("Sent: " + MessageParser.parseDate(fm.getDate()));
+
+        String bodyText = fm.getBestMessageBody();
+
         // loadContent(String) will return and do nothing if bodyText is null
         // therefore the old bodyText from previous message Item will be loaded when the
         // user clicks on the snippet or the subject
@@ -154,10 +139,6 @@ public class MessageItem extends HBox {
         else
             // load html version
             engine.loadContent(bodyText);
-    }
-
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
     }
 
     protected static void setSize(Node node, double w, double h) {
@@ -239,14 +220,6 @@ public class MessageItem extends HBox {
         setMargin(addToTrash, new Insets(1,5,1,1));
 
         firstRowOptions.getChildren().addAll(replyEmail,forwardEmail, labelEmail, downloadAttach, markEmail,addToTrash );
-    }
-
-    public String getMessageId() {
-        return messageId;
-    }
-
-    public Authenticator getAuth() {
-        return auth;
     }
 
     public ImageView getLabelEmail() {

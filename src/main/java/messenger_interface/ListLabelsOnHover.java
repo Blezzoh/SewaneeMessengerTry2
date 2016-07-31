@@ -1,6 +1,6 @@
 package messenger_interface;
 
-import com.danielevans.email.Authenticator;
+import com.danielevans.email.Auth;
 import com.danielevans.email.LabelMaker;
 import com.google.api.services.gmail.model.Label;
 import javafx.collections.FXCollections;
@@ -26,12 +26,12 @@ public class ListLabelsOnHover extends VBox{
 
     private ListView<String> allLabels;
 
-    public ListLabelsOnHover(Authenticator authenticator){
+    public ListLabelsOnHover(Auth auth) {
         super();
         Text title = new Text("Add To Label");
         this.getChildren().add(title);
 
-        String [] labels= getAllTheLabels(authenticator);
+        String[] labels = getAllTheLabels(auth);
         allLabels = new ListView<>();
         ObservableList<String> itemLabels = FXCollections.observableArrayList(labels);
         allLabels.setItems(itemLabels);
@@ -48,13 +48,13 @@ public class ListLabelsOnHover extends VBox{
     }
 
     /**
-     * @param authenticator is the GMail Authenticator
+     * @param auth any class that implements getAuth(), provides account access
      * @return an array of all the Strings
      */
 
-    private String[] getAllTheLabels(Authenticator authenticator) {
+    private String[] getAllTheLabels(Auth auth) {
 
-        List<Label> allLabel = LabelMaker.listLabels(authenticator);
+        List<Label> allLabel = LabelMaker.listLabels(auth);
         String[] labels = new String[allLabel.size() + 1];
         for (int i = 0; i < allLabel.size(); i++) {
             labels[i] = allLabel.get(i).getName();

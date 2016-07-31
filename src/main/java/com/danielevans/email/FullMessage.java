@@ -1,10 +1,7 @@
 package com.danielevans.email;
 
-import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePartHeader;
-import com.google.api.services.gmail.model.ModifyMessageRequest;
-import com.google.api.services.gmail.model.Thread;
 
 import java.io.IOException;
 import java.util.List;
@@ -15,9 +12,10 @@ import static com.danielevans.email.Inbox.decodeString;
 
 /**
  * Created by daniel on 6/3/16.
+ *
  * @author Daniel Evans
  */
-public class FullMessage {
+public class FullMessage implements Auth {
 
     private static final String DATE = "Date";
     private static final String DELIVERED_TO = "Delivered-To";
@@ -27,15 +25,11 @@ public class FullMessage {
     private static final String SUBJECT = "Subject";
     private static final String LIST_UNSUBSCRIBE = "List-Unsubscribe";
     private static final String MAILING_LIST = "Mailing-List";
-    // provides a message to the user if the email whose body they are trying to read is
-    // not available (presumably for security reasons), gives a link to the email on Gmail site
-    private static final String SECURITY_EMAIL_MESSAGE =
-            "This message was marked as secure. To read it, sign into your Gmail account " +
-                    "and go to this url: https://mail.google.com/mail/u/0/#inbox/";
     private static final String TROUBLE_VIEWING_MESSAGE =
             "\n\nHaving trouble viewing this message? Sign in to your gmail account in a browser" +
                     " and go to this url: https://mail.google.com/mail/u/0/#inbox/";
     private static final String PAYLOAD_BODY_PARSER_STRING = "\"body\":{\"data\":\"";
+    private static final String PROBLEM_TRASHING_MESSAGE = "There were problems trashing message with id ";
     private Message m;
     private Authenticator auth;
 
@@ -47,6 +41,7 @@ public class FullMessage {
     public FullMessage(Inbox inbox, Message message) throws IOException {
         this(inbox.getAuth(), message);
     }
+
     public FullMessage(Inbox inbox, String mId) throws IOException {
         this.auth = inbox.getAuth();
         this.m = getFullMessagePayload(mId);
@@ -55,6 +50,7 @@ public class FullMessage {
     public Authenticator getAuth() {
         return auth;
     }
+
     /**
      * @return the message body in HTML
      */
@@ -68,7 +64,8 @@ public class FullMessage {
                 System.out.println(1);
                 return html;
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
         try {
             String html = Inbox.decodeString(m.getPayload().getParts().get(0)
                     .getParts().get(0).getParts().get(0).getBody().getData());
@@ -85,29 +82,63 @@ public class FullMessage {
                 System.out.println(3);
                 return Inbox.decodeString(html);
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
         try {
             String text = m.getPayload().getBody().getData();
             if (text != null) {
                 System.out.println(4);
                 return Inbox.decodeString(text + "\n");
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
         try {
             String text = m.getPayload().getParts().get(0).getBody().getData();
             if (text != null) {
                 System.out.println(5);
                 return Inbox.decodeString(text + "\n");
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
         return null;
     }
 
-    public String getBestMessageBody() {
-        return getBestMessageBody(m, PAYLOAD_BODY_PARSER_STRING, m.getPayload().toString());
+    /**
+     * @param msgId id of message to delete
+     * @return returns true if the message was delete; false otherwise
+     * @throws IOException
+     */
+    public static boolean trashMessage(Inbox inbox, String msgId) {
+        Message execute = null;
+        try {
+            execute = inbox.getAuth().service.users()
+                    .messages().trash(inbox.getAuth().userId, msgId).execute();
+            System.out.println("Message with id: " + msgId + " has been trashed.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(PROBLEM_TRASHING_MESSAGE + msgId);
+        }
+        return execute != null;
     }
 
-    public String getBestMessageBody(Message m) {
+    /**
+     * @return returns true if the message was delete; false otherwise
+     */
+    public boolean trashMessage() {
+        Message execute = null;
+        try {
+            execute = auth.service.users()
+                    .messages().trash(auth.userId, m.getId()).execute();
+            System.out.println("Message with id: " + m.getId() + " has been trashed.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println(PROBLEM_TRASHING_MESSAGE + m.getId());
+        }
+        return execute != null;
+    }
+
+
+    public String getBestMessageBody() {
         return getBestMessageBody(m, PAYLOAD_BODY_PARSER_STRING, m.getPayload().toString());
     }
 
@@ -199,27 +230,28 @@ public class FullMessage {
      */
     public Message getFullMessageMetaData(Message message) {
         Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
-            try {
-                // set fields
-                return auth.service.users().messages()
-                        // NOTE THE GET
-                        .get(auth.userId, message.getId())
-                        .setFormat("metadata")
-                        .set("metadataIncludeHeaders", TO)
-                        .set("metadataIncludeHeaders", FROM)
-                        .set("metadataIncludeHeaders", DATE)
-                        .set("metadataIncludeHeaders", SUBJECT)
-                        .execute();
-            } catch (IOException e) {
-                System.out.println("CANNOT RETRIEVE THE MESSAGE");
-                e.printStackTrace();
-                return null;
-            }
+        try {
+            // set fields
+            return auth.service.users().messages()
+                    // NOTE THE GET
+                    .get(auth.userId, message.getId())
+                    .setFormat("metadata")
+                    .set("metadataIncludeHeaders", TO)
+                    .set("metadataIncludeHeaders", FROM)
+                    .set("metadataIncludeHeaders", DATE)
+                    .set("metadataIncludeHeaders", SUBJECT)
+                    .execute();
+        } catch (IOException e) {
+            System.out.println("CANNOT RETRIEVE THE MESSAGE");
+            e.printStackTrace();
+            return null;
+        }
     }
 
     /**
      * if you need the full message content from some email message,
      * this is the method to use
+     *
      * @return the message with all body text, headers, links, images, etc
      */
     public Message getFullMessagePayload(Message message) {
@@ -234,6 +266,7 @@ public class FullMessage {
             return null;
         }
     }
+
     private Message getFullMessagePayload(String mId) {
         try {
             return auth.service.users().messages()
@@ -258,7 +291,6 @@ public class FullMessage {
     }
 
     /**
-     *
      * @return the first couple words (about 20 words) in the email
      */
 
@@ -268,6 +300,7 @@ public class FullMessage {
 
     /**
      * gets the decoded raw version of the email, formatted with format=RAW
+     *
      * @return returns the entire raw version (contains HTML) of the message
      */
     public Message getRawVersion() {
@@ -309,7 +342,6 @@ public class FullMessage {
     }
 
     /**
-     *
      * @return returns the text of the email
      */
     public String getMessageBody() {
@@ -363,33 +395,10 @@ public class FullMessage {
         }
         if (emailBody != null)
             return emailBody + TROUBLE_VIEWING_MESSAGE + mId;
-        // message does not have a body, so provide the link to the email on gmail site
-        return SECURITY_EMAIL_MESSAGE + mId;
-    }
-    /**
-     *
-     * @param thread thread to take the message from
-     * @param whichMessage number of the message in the thread, 0 = first message
-     *                     1 = second message, etc
-     * @return the body of the specified message in the thread, or the body
-     * of the last message if whichMessage greater than thread.getMessages().size()
-     * @throws IOException
-     */
-    public String getBodyOfMessageInThread(Inbox inbox, Thread thread, int whichMessage)
-            throws IOException {
 
-        if(thread == null) throw new NullPointerException("message is null");
-
-        FullThread t = new FullThread(inbox, thread);
-        // if user requests a message that doesn't exist in thread (ex: only 2 messages
-        // in the thread, user requests the third), then return the last message
-        if(t.getMessages().size() <= whichMessage) {
-            // return the last message in the thread
-            return getBestMessageBody(t.getMessages().get(t.getMessages().size()-1));
-        }
-        // return the message queried for
-        return getBestMessageBody(t.getMessages().get(whichMessage));
+        return "";
     }
+
 
     /**
      * @return the person who sent this message to the user
@@ -397,49 +406,46 @@ public class FullMessage {
     public String getFrom() {
         return getHeaderPart(FROM);
     }
-    public String getDate()
-    {
+
+    public String getDate() {
         return getHeaderPart(DATE);
     }
-    public String getTo()
-    {
+
+    public String getTo() {
         return getHeaderPart(TO);
     }
-    public String getMailingList()
-    {
+
+    public String getMailingList() {
         return getHeaderPart(MAILING_LIST);
     }
 
     /**
      * @return email address that can be used to reply to message
      */
-    public String getReplyToAddress()
-    {
+    public String getReplyToAddress() {
         return getHeaderPart(REPLY_TO);
     }
 
     /**
      * @return Subject of the message
      */
-    public String getSubject()
-    {
+    public String getSubject() {
         return getHeaderPart(SUBJECT);
     }
 
     /**
      * @return the person the message was sent to
      */
-    public String getDeliveredTo()
-    {
+    public String getDeliveredTo() {
         return getHeaderPart(DELIVERED_TO);
     }
 
     /**
      * get the unsubscribe link from the mailing list
+     *
      * @return the link the user can go to to unsubscribe from this mailing list, if it exists
      */
-    public String getUnsubscribeLink()
-    {
+    public String getUnsubscribeLink() {
         return getHeaderPart(LIST_UNSUBSCRIBE);
     }
 
@@ -449,26 +455,5 @@ public class FullMessage {
 
     public Message getM() {
         return m;
-    }
-
-    /**
-     * Modify the labels a message is associated with.
-     *
-     * @param service        Authorized Gmail API instance.
-     * @param userId         User's email address. The special value "me"
-     *                       can be used to indicate the authenticated user.
-     * @param messageId      ID of Message to Modify.
-     * @param labelsToAdd    List of label ids to add.
-     * @param labelsToRemove List of label ids to remove.
-     * @throws IOException
-     */
-    public static void modifyMessage(Gmail service, String userId, String messageId,
-                                     List<String> labelsToAdd, List<String> labelsToRemove) throws IOException {
-        ModifyMessageRequest mods = new ModifyMessageRequest().setAddLabelIds(labelsToAdd)
-                .setRemoveLabelIds(labelsToRemove);
-        Message message = service.users().messages().modify(userId, messageId, mods).execute();
-
-        System.out.println("Message id: " + message.getId());
-        System.out.println(message.toPrettyString());
     }
 }

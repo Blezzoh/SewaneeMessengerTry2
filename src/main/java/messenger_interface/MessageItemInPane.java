@@ -1,9 +1,9 @@
 package messenger_interface;
 
+import com.danielevans.email.FullMessage;
 import com.danielevans.email.LabelMaker;
 import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
@@ -35,28 +35,13 @@ public class MessageItemInPane extends StackPane {
     private int repeatsPlusOne = 2;
     private ListLabelsOnHover allLabels;
     private int count=0;
-    private String messageId;
     private ListView<String> labelsList;
     private NotificationIcon hoveredIcon, notificationIcon;
     private ImageView reply, forward, mark, addToTrash, download, label;
-    /**
-     * a listener that controls the clicked label in the labels list's VBox
-     * it moves the corresponding email in the specific label
-     */
-    private InvalidationListener listener = new InvalidationListener() {
-        @Override
-        public void invalidated(Observable observable) {
-            System.out.println(labelsList.getSelectionModel().getSelectedItem() + "\n" + messageId);
-            LabelMaker.modifyMessage(msgItem.getAuth(), messageId, labelsList.getSelectionModel().getSelectedItem());
-            hideLabels();
-
-        }
-    };
     public MessageItemInPane(MessageItem messageItem) throws FileNotFoundException {
 
         super();
         msgItem = messageItem;
-        messageId = msgItem.getMessageId();
         label = msgItem.getLabelEmail();
         timer = new Timer();
         label.setOnMouseClicked(event -> showLabels());
@@ -69,10 +54,27 @@ public class MessageItemInPane extends StackPane {
         addToTrash = msgItem.getAddToTrash();
         download = msgItem.getDownloadAttach();
 
+        /**
+         * a listener that controls the clicked label in the labels list's VBox
+         * it moves the corresponding email in the specific label
+         */
+        FullMessage fm = messageItem.getFm();
+        InvalidationListener listener = observable -> {
+            System.out.println(labelsList.getSelectionModel()
+                    .getSelectedItem() + "\n" + messageItem);
+
+            System.out.println(labelsList.getSelectionModel().getSelectedItem());
+            LabelMaker.modifyMessage(fm, fm.getId()
+                    , labelsList.getSelectionModel().getSelectedItem(),
+                    true);
+            hideLabels();
+
+        };
+
         setIconsProperties();
 
 
-        allLabels = new ListLabelsOnHover(msgItem.getAuth());
+        allLabels = new ListLabelsOnHover(fm);
         setLabelsProperties(allLabels);
 
         labelsList = allLabels.getAllLabels();
@@ -115,7 +117,8 @@ public class MessageItemInPane extends StackPane {
      *move the email to a label s and display to the user that the task is done
      */
     private void trashEmail (){
-        boolean b = LabelMaker.modifyMessage(msgItem.getAuth(), messageId, "TRASH");
+        // put email clicked on in the trash
+        boolean b = msgItem.getFm().trashMessage();
 
         if (b) {
             FadeTransition st = new FadeTransition(Duration.millis(375), this);

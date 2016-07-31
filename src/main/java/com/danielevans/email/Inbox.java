@@ -14,6 +14,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,14 +24,14 @@ import java.util.Properties;
  * Created by daniel on 6/2/16.
  * @author Daniel Evans
  */
-public class Inbox {
+public class Inbox implements Auth {
 
     /**
      * the number of messages to retrieve on both a search and on startup of the application
      */
-     public static final int MESSAGE_SIZE = 50;
-    static final String MESSAGE_NULL_ERROR = "message is null";
-    static final String QUERY_NULL_ERROR = "query is null";
+    public static final int MESSAGE_SIZE = 50;
+    static final String MESSAGE_NULL_ERROR = "param message is null";
+    private static final String QUERY_NULL_ERROR = "param query is null";
     // Recipient's email ID needs to be mentioned.
     private String me = "evansdb0@sewanee.edu";
     // Assuming you are sending email from localhost
@@ -38,23 +39,52 @@ public class Inbox {
 
     private List<Message> inbox;
     private Authenticator auth;
+    private int retries = 0;
+    private static int NO_INTERNET_CONNECTION = 137;
 
     /**
      * default constructor
-     * sets up oAuth authentication and ensures access to all neccessary
+     * sets up oAuth authentication and ensures access to all necessary
      * facilities of the user's account
-     * @param auth Authenticator that performs the oauth authentication
+     * @param emailAddress email address of the account to access
      */
-    public Inbox(Authenticator auth) {
-        // TODO make sure this is correct -> shouldn't it be auth.userId = userId passed to auth
-        auth.userId = "me";
-        this.auth = auth;
-        try {
-            inbox = getInbox();
-        } catch (IOException e) {
-            System.out.println("Problem getting email messages... Internet connection?");
-            e.printStackTrace();
+    public Inbox(String emailAddress) {
+        auth = new Authenticator(emailAddress);
+//        auth.userId = "me";
+        boolean retry = true;
+        // if connection fails during getInbox() call, retry the connection
+        // up to 5 times with exponential backoff
+        while (retry && retries != 20) {
+            try {
+                inbox = getInbox();
+                retry = false; // kill the while loop because getInbox() never threw
+            } catch (UnknownHostException e) {
+                ++retries;
+                System.out.println("Failed to connect on try " + retries + " " +
+                        "Retrying now...");
+                try {
+                    // server is possibly receiving a lot of traffic
+                    // so wait a little while before trying again
+                    // via exponential backoff
+                    java.lang.Thread.sleep(expBackoff());
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                if (retries == 20) {
+                    System.out.println("Problem getting email messages. " +
+                            "Aborting connection. Are you connected to the internet?");
+                    System.exit(NO_INTERNET_CONNECTION);
+                }
+            } catch (IOException e) {
+                System.out.println
+                        ("We got 1 problem but an internet connection ain't one");
+            }
         }
+        System.out.println("Connection established");
+    }
+
+    private long expBackoff() {
+        return Math.round(1000 * retries);
     }
 
     /**

@@ -1,6 +1,6 @@
 package messenger_interface;
 
-import com.danielevans.email.Authenticator;
+import com.danielevans.email.Auth;
 import com.danielevans.email.LabelMaker;
 import com.google.api.services.gmail.model.Label;
 import javafx.geometry.Insets;
@@ -25,7 +25,7 @@ public class LabelHolderOnHover extends VBox {
     private TextField newLabel;
 
 
-    public LabelHolderOnHover  (Authenticator auth){
+    public LabelHolderOnHover(Auth auth) {
 
         super();
         String [] allLabels = getAllTheLabels(auth);
@@ -67,7 +67,7 @@ public class LabelHolderOnHover extends VBox {
     }
 
 
-    private void addToLabel(Authenticator auth) {
+    private void addToLabel(Auth auth) {
 
         int counter = 0;
 
@@ -96,9 +96,9 @@ public class LabelHolderOnHover extends VBox {
     private void moveMessageToLabel(String text) {
     }
 
-    private String[] getAllTheLabels(Authenticator authenticator) {
+    private String[] getAllTheLabels(Auth auth) {
 
-        List<Label> allLabel = LabelMaker.listLabels(authenticator);
+        List<Label> allLabel = LabelMaker.listLabels(auth);
         String[] labels = new String[allLabel.size()];
         for (int i = 0; i < allLabel.size(); i++) {
             labels[i] = allLabel.get(i).getName();

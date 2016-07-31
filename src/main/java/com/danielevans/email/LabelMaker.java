@@ -14,6 +14,8 @@ import java.util.List;
  * @author Daniel Evans
  */
 public class LabelMaker {
+    private static final String NULL_AUTH = "param auth is null";
+
     /**
      * Updates the specified label.
      *
@@ -21,11 +23,11 @@ public class LabelMaker {
      * @param labelPatch Label with properties to patch.
      */
 
-    public static Label patchLabel(Inbox inbox, String labelId, Label labelPatch) {
+    public static Label patchLabel(Auth auth, String labelId, Label labelPatch) {
         Label patchedLabel = null;
         try {
-            patchedLabel = inbox.getAuth().service.users().labels()
-                    .patch(inbox.getAuth().userId, labelId, labelPatch).execute();
+            patchedLabel = auth.getAuth().service.users().labels()
+                    .patch(auth.getAuth().userId, labelId, labelPatch).execute();
             return patchedLabel;
         } catch (IOException e) {
             e.printStackTrace();
@@ -36,44 +38,55 @@ public class LabelMaker {
     /**
      * Add a new Label to user's inbox.
      */
-    public static Label createLabel(Inbox inbox,String newLabelName,
-    boolean showInMessageList, boolean showInLabelList) throws IOException {
+    public static Label createLabel(Auth auth, String newLabelName,
+                                    boolean showInMessageList, boolean showInLabelList) throws IOException {
+        Preconditions.objectNotNull(auth, NULL_AUTH);
+        Preconditions.objectNotNull(auth, newLabelName);
+
         String messageListVisibility = showInMessageList ? "show" : "hide";
         String labelListVisibility = showInLabelList ? "labelShow" : "labelHide";
         Label label = new Label().setName(newLabelName)
                 .setMessageListVisibility(messageListVisibility)
                 .setLabelListVisibility(labelListVisibility);
-        label = inbox.getAuth().service.users()
-                .labels().create(inbox.getUser(), label).execute();
-
-        System.out.println("Label id: " + label.getId());
-        System.out.println(label.toPrettyString());
+        label = auth.getAuth().service.users()
+                .labels().create(auth.getAuth().userId, label).execute();
+        System.out.println("The label \"" + label.getName() + "\" was created.");
 
         return label;
     }
 
+    public static Label updateLabel(Auth auth,
+                                    String oldLabelName,
+                                    String newLabelName, boolean showInMessageList,
+                                    boolean showInLabelList) {
+        Label label = findLabel(auth, oldLabelName);
+        if (label != null)
+            return updateLabel(auth, label, newLabelName, showInMessageList, showInLabelList);
+        return null;
+    }
+
     /**
      * Update an existing label.
-     * <p>
-     * can be used to indicate the authenticated user.
-     *
      * @param labelToUpdate     The label that will be updated
      * @param newLabelName      New name of the label.
      * @param showInMessageList Show or hide label in message.
      * @param showInLabelList   Show or hide label in label list.
      */
-    public static Label updateLabel(Inbox inbox,
+    public static Label updateLabel(Auth auth,
                                     Label labelToUpdate,
                                     String newLabelName, boolean showInMessageList,
                                     boolean showInLabelList) {
+        Preconditions.objectNotNull(auth, NULL_AUTH);
+        Preconditions.objectNotNull(auth, "param newLabelName is null");
+
         String messageListVisibility = showInMessageList ? "show" : "hide";
         String labelListVisibility = showInLabelList ? "labelShow" : "labelHide";
         Label newLabel = new Label().setName(newLabelName)
                 .setMessageListVisibility(messageListVisibility)
                 .setLabelListVisibility(labelListVisibility);
         try {
-            newLabel = inbox.getAuth().service.users().labels()
-                    .update(inbox.getAuth().userId, labelToUpdate.getId(), newLabel).execute();
+            newLabel = auth.getAuth().service.users().labels()
+                    .update(auth.getAuth().userId, labelToUpdate.getId(), newLabel).execute();
             return newLabel;
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,75 +127,100 @@ public class LabelMaker {
         return null;
     }
 
-    public static boolean modifyMessage(Inbox inbox,
-                                        String messageId, String labelToAdd) {
-        return modifyMessage(inbox.getAuth(), messageId, labelToAdd);
+    /**
+     * @param auth               any class that implements Auth, used for account access/modification
+     * @param messageId          the id of the message whose labels will be modified
+     * @param labelToAddOrRemove the names of the labels to add or remove
+     * @param addOrRemove        true if you want to add the label, false if you want to
+     *                           remove the label
+     * @return returns true if the message's labelList was successfully modified
+     * false otherwise
+     */
+
+    public static boolean modifyMessage(Auth auth,
+                                        String messageId, String labelToAddOrRemove,
+                                        boolean addOrRemove) {
+        Preconditions.objectNotNull(auth, NULL_AUTH);
+        return modifyMessage(auth.getAuth(), messageId
+                , labelToAddOrRemove, addOrRemove);
     }
 
-    public static boolean modifyMessage(Authenticator auth,
-                                        String messageId, String labelToAdd) {
+    private static boolean modifyMessage(Authenticator auth,
+                                         String messageId
+            , String labelToRemove,
+                                         boolean addOrRemove) {
+        Preconditions.objectNotNull(auth, NULL_AUTH);
         List<String> labelList = new ArrayList<>(1);
-        labelList.add(labelToAdd);
-        Message m = modifyMessage(auth, messageId, labelList, null);
+        labelList.add(labelToRemove);
+        Message m;
+        if (addOrRemove)
+            m = modifyMessage(auth, messageId, labelList, null);
+        else
+            m = modifyMessage(auth, messageId, null, labelList);
         return m != null;
     }
 
+    private static boolean deleteLabel(Auth auth, Label label) {
+        Preconditions.objectNotNull(label, "label is null and was not found " +
+                "by the findLabel(Inbox, String) method");
+        Preconditions.objectNotNull(auth, NULL_AUTH);
+        try {
+            auth.getAuth().service.users().labels()
+                    .delete(auth.getAuth().userId, label.getId()).execute();
+            // TODO: notify user that the it was deleted successfully
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+    private static Label findLabel(Auth auth, String labelName) {
+        Preconditions.objectNotNull(auth, NULL_AUTH);
+        Preconditions.objectNotNull(auth, "param labelName is null");
+        List<Label> labels = LabelMaker.listLabels(auth);
+        if (labels != null) {
+            for (int i = 0; i < labels.size(); i++)
+                if (labels.get(i).getName().equals(labelName))
+                    return labels.get(i);
+        }
+        return null;
+    }
 
     /**
-     * @param inbox
-     * @param label
+     * @param auth any class that implements Auth  (needed for account access)
+     * @param labelName the name of the label to delete
      * @return message to user saying that the label was deleted successfully
      * or that it failed
      */
-    public static String deleteLabel(Inbox inbox, Label label) {
-        try {
-            inbox.getAuth().service.users().labels()
-                    .delete(inbox.getAuth().userId, label.getId()).execute();
-            // TODO: notify user that the it was deleted successfully
-            return "The label \"" + label.getName() + "\" was deleted successfully";
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return "There was a problem deleting the message. Try again";
+    public static boolean deleteLabel(Auth auth, String labelName) {
+        return LabelMaker.deleteLabel(auth, findLabel(auth, labelName));
     }
 
-    public static String deleteLabel(Inbox inbox, String labelName) {
-        List<Label> labels = LabelMaker.listLabels(inbox);
-        for (int i = 0; i < labels.size(); i++) {
-            if (labels.get(i).getName().equals(labelName)) {
-                return LabelMaker.deleteLabel(inbox, labels.get(i));
-            }
-        }
-        return "The label specified \"" + labelName + "\" was not found in your inbox";
-    }
-
-    public static Label getLabelPayload(Inbox inbox, Label label) {
+    public static Label getLabelPayload(Auth auth, Label label) {
         try {
-            return inbox.getAuth().service.users().labels()
-                    .get(inbox.getAuth().userId, label.getId()).execute();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            return auth.getAuth().service.users().labels()
+                    .get(auth.getAuth().userId, label.getId()).execute();
+        } catch (IOException e) { e.printStackTrace(); }
         return null;
     }
 
     /**
      * List the Labels in the user's mailbox.
      */
-    public static List<Label> listLabels(Inbox inbox) {
-        return listLabels(inbox.getAuth());
+    public static List<Label> listLabels(Auth auth) {
+        Preconditions.objectNotNull(auth, NULL_AUTH);
+        return listLabels(auth.getAuth());
     }
 
-    public static List<Label> listLabels(Authenticator auth) {
-
+    private static List<Label> listLabels(Authenticator auth) {
         ListLabelsResponse response = null;
         try {
             response = auth.service.users().labels()
                     .list(auth.userId).execute();
             return response.getLabels();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        } catch (IOException e) { e.printStackTrace(); }
         return null;
     }
 }
