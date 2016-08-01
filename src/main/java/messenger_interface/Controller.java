@@ -58,6 +58,20 @@ public class Controller extends Application {
     @Override
     public void start(Stage primaryStage) {
 
+
+        /**
+         *    inbox gives access to the user's gmail messages using an authenticator
+         */
+        // creating title for application and scene
+        primaryStage.setTitle("Sewanee Messenger");
+        // root container of the interface
+        root = new BorderPane();
+
+        Scene scene = new Scene(root, 1100, 800);
+        primaryStage.setScene(scene);
+
+        sceneStack = new Stack<>();
+        sceneStack.push(scene);
         // inbox gives access to the user's gmail messages using an authenticator
         inbox = new Inbox("iradub0@sewanee.edu");
 

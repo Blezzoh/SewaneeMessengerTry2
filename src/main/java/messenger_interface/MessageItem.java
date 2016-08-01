@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Stack;
 
 /**
  * Created by iradu_000 on 6/3/2016.
@@ -35,24 +36,23 @@ public class MessageItem extends HBox {
     private HBox secondRowOptions;
     private HBox firstRowOptions;
     private Button b = new Button("BACK");
-    private BorderPane p = new BorderPane();
-    private Stage stage;
     private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
     private static final String STYLE_ON_EXIT = "-fx-background-color: white;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;" ;
 
     private FullMessage fm;
     private ImageView downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
-    private Scene bodyScene, originalScene;
-    private WebView messageBody = new WebView();
-    private WebEngine engine = messageBody.getEngine();
-    private int originalInt = 0;
+    private Scene bodyScene;
     private ImageView labelEmail;
+    private Stage stage;
+    private WebEngine engine;
+    Stack<Scene> sceneStack;
 
 
-    public MessageItem(BorderPane root, FullMessage m, String imageUrl) throws IOException {
+    public MessageItem(Stack<Scene> stack, FullMessage m, String imageUrl) throws IOException {
 
         super();
         this.fm = m;
+        sceneStack = stack;
         senderField = new Text(MessageParser.parseSenderFromEmail(m));
         subjectField = new Text("S: " + m.getSubject() + "\n");
         snippetField = new Text(m.getSnippet());
@@ -109,14 +109,14 @@ public class MessageItem extends HBox {
         subjectField.setOnMouseEntered(event -> underline(subjectField));
         subjectField.setOnMouseExited(event -> removeUnderline(subjectField));
         snippetField.setOnMouseExited(event -> removeUnderline(snippetField));
-        engine.loadContent(fm.getBestMessageBody());
 
-        subjectField.setOnMouseClicked(event -> showContent());
+        subjectField.setOnMouseClicked(event -> {
+
+            showContent();
+            System.out.println(event.getSource().equals(this));
+        });
         snippetField.setOnMouseClicked(event -> showContent());
         b.setOnMouseClicked(event -> goBack());
-
-        p.setCenter(messageBody);
-        p.setTop(b);
     }
 
     public FullMessage getFm() {
@@ -130,19 +130,6 @@ public class MessageItem extends HBox {
         senderField.setText(MessageParser.parseSenderFromEmail(fm));
         dateField.setText("Sent: " + MessageParser.parseDate(fm.getDate()));
 
-        String bodyText = fm.getBestMessageBody();
-
-        System.out.println(bodyText.length());
-
-        // loadContent(String) will return and do nothing if bodyText is null
-        // therefore the old bodyText from previous message Item will be loaded when the
-        // user clicks on the snippet or the subject
-        if(!FullMessage.testForHTML(bodyText))
-            // load plain text version
-            engine.loadContent(bodyText, "text/plain");
-        else
-            // load html version
-            engine.loadContent(bodyText);
     }
 
     protected static void setSize(Node node, double w, double h) {
@@ -157,27 +144,34 @@ public class MessageItem extends HBox {
     }
 
     private void goBack() {
-        getStage().setScene(getOriginalScene());
+        sceneStack.pop();
+        stage.setScene(sceneStack.peek());
     }
 
     private void showContent() {
-        getStage().setScene(bodyScene);
+        WebView wv = new WebView();
+        String bodyText = fm.getBestMessageBody();
+
+        System.out.println(bodyText.length());
+
+        // loadContent(String) will return and do nothing if bodyText is null
+        // therefore the old bodyText from previous message Item will be loaded when the
+        // user clicks on the snippet or the subject
+        engine = wv.getEngine();
+        if (!FullMessage.testForHTML(bodyText))
+            // load plain text version
+            engine.loadContent(bodyText, "text/plain");
+        else
+            // load html version
+            engine.loadContent(bodyText);
+        stage = (Stage) this.getScene().getWindow();
+        BorderPane p = new BorderPane();
+        p.setTop(b);
+        p.setCenter(wv);
+        sceneStack.push(new Scene(p, stage.getX() + 500, stage.getY() + 500));
+        stage.setScene(sceneStack.peek());
     }
 
-    private Stage getStage(){
-
-        if (originalInt == 0){
-            stage = (Stage) this.getScene().getWindow();
-            originalScene = this.getScene();
-            bodyScene = new Scene(p, stage.getX() + 500, stage.getY() + 500);
-            originalInt++;
-        }
-       return stage;
-    }
-
-    public Scene getOriginalScene() {
-        return originalScene;
-    }
 
     private void removeUnderline(Text node) {
         node.setUnderline(false);
