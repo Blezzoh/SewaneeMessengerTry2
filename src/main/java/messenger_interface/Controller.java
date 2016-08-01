@@ -3,11 +3,13 @@ package messenger_interface;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
 import com.google.api.services.gmail.model.Message;
+import com.sun.javafx.scene.control.skin.ScrollBarSkin;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Pagination;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -19,6 +21,7 @@ import javafx.scene.layout.TilePane;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import java.io.IOException;
@@ -44,7 +47,7 @@ public class Controller extends Application {
     private long pagingTime;
     private int itemsPerPage = 15;
     private Hashtable<String, FullMessage> emailData;
-    BorderPane root;
+    private BorderPane root;
     private int temp = 0;
     String[] bodyText = new String[1000];
 
@@ -92,6 +95,7 @@ public class Controller extends Application {
         // creating title for application and scene
         primaryStage.setTitle("Sewanee Messenger");
         Scene scene = new Scene(root, 1100, 800);
+        scene.getStylesheets().add("MessengerStyle.css");
 
         // on key pressed gives functionality for what user types automatically
         //showing up in the search box
@@ -136,6 +140,7 @@ public class Controller extends Application {
         // creates the paginator based on the messages in the @field{messages} field
         createPaginator(root, sp);
         primaryStage.setScene(scene);
+        primaryStage.initStyle(StageStyle.UNIFIED);
         primaryStage.show();
     }
 
@@ -203,7 +208,6 @@ public class Controller extends Application {
      */
     public void createPaginator(BorderPane root, ScrollPane sp) {
         pagination = new Pagination(getPageCount(messages));
-        pagination.setStyle("-fx-border-color:red;");
 
         // set page factory is passed a new 'callable'
         // every time the user clicks to a new page this callable is called
@@ -384,5 +388,6 @@ public class Controller extends Application {
             st.play();
         }
     }
+
 
 }

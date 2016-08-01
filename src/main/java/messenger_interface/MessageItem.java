@@ -3,6 +3,7 @@ package messenger_interface;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.MessageParser;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -57,10 +58,13 @@ public class MessageItem extends HBox {
         snippetField = new Text(m.getSnippet());
         dateField = new Text("Sent: " + MessageParser.parseDate(fm.getDate()));
         subjectField.setWrappingWidth(190);
-        subjectField.setFont(Font.font("Constantia", FontWeight.BLACK, 13));
         snippetField.setWrappingWidth(190);
         dateField.setWrappingWidth(190);
         senderField.setWrappingWidth(100);
+        senderField.setFont(Font.font("Trebuchet MS",13));
+        snippetField.setFont(Font.font("Trebuchet MS", 13));
+        dateField.setFont(Font.font("Trebuchet MS", 13));
+        subjectField.setFont(Font.font("Trebuchet MS",FontWeight.BLACK, 13));
         addOptionsOnMessage();
         // add the image to the message item
         Image imageField = new Image(imageUrl, 80, 0, true, true, false);
@@ -71,13 +75,11 @@ public class MessageItem extends HBox {
         Rectangle canvas = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
         canvas.setArcHeight(20);
         canvas.setArcWidth(20);
-        VBox picField = new VBox(canvas, senderField, dateField);
+        VBox picField = new VBox(canvas, senderField, dateField,firstRowOptions);
         VBox msgSummary = new VBox(subjectField, snippetField);
 
-        VBox options = new VBox();
-        options.getChildren().addAll(firstRowOptions);
-        setMargin(options, new Insets(10,10,10,10));
-        VBox container = new VBox(msgSummary, options);
+        VBox container = new VBox(msgSummary);
+        firstRowOptions.setAlignment(Pos.BOTTOM_LEFT);
 
         getChildren().addAll(picField, container);
 
