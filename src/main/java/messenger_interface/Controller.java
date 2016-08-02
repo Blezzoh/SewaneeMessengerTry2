@@ -44,12 +44,11 @@ public class Controller extends Application {
             "http://4.bp.blogspot.com/-SjsG6gvCasI/Ve6PJxhPEiI/AAAAAAAAFYU/dYvGfnIxPzk/s1600/Kundwa%2BDoriane%2Brwanda.jpg";
     private List<Message> messages;
     private ScrollPane sp;
-    private long pagingTime;
     private int itemsPerPage = 15;
     private Hashtable<String, FullMessage> emailData;
     private BorderPane root;
-    private ComposerManager cm;
     private Stack<Scene> sceneStack;
+    private ComposerManager right;
 
     public static void main(String[] args) {
         launch(args);
@@ -65,7 +64,8 @@ public class Controller extends Application {
         messages = inbox.getDefaultInbox();
 
         long initTime = System.currentTimeMillis();
-        initEmailData();
+        // TEMPORARILY NOT LOADING EMAIL DATA TO SPEED UP INIT TIME
+//        initEmailData();
 
 
         // root container of the interface
@@ -76,10 +76,8 @@ public class Controller extends Application {
         top.getChildren().add(composeButton);
         composeButton.setOnMousePressed(event -> compose());
         root.setTop(top);
-        cm = new ComposerManager();
-        BorderPane right = new BorderPane();
+        right = new ComposerManager();
         root.setRight(right);
-        right.setTop(cm);
 
         initSpAndCenter();
 
@@ -93,6 +91,23 @@ public class Controller extends Application {
 
         sceneStack = new Stack<>();
         sceneStack.push(scene);
+        /*
+
+     _._ _..._ .-',     _.._(`))
+    '-. `     '  /-._.-'    ',/
+       )         \            '.
+      / _    _    |  Mr. Safety \
+     |  a    a    /     Pig      |
+     \   .-.                     ;
+      '-('' ).-'       ,'       ;
+         '-;           |     .'
+            \           \    /
+            | 7  .__  _.-\   \
+            | |  |  ``/  /`  /
+           /,_|  |   /,_/   /
+              /,_/      '`-'
+
+         */
 
         // on key pressed gives functionality for what user types automatically
         //showing up in the search box
@@ -124,15 +139,16 @@ public class Controller extends Application {
     }
 
     public void compose() {
-        BorderPane bp = (BorderPane) root.getRight();
-        if (bp.getCenter() != null) {
+//        BorderPane bp = (BorderPane) root.getRight();
+        if (right.getCenter() != null) {
             System.out.println("dflksdfldsjflkdjflkdsjfldsjf");
-            Composer center = (Composer) bp.getCenter();
-            cm.addComposer(center);
+            Composer center = (Composer) right.getCenter();
+            right.addComposer(center);
         }
         Composer composer = new Composer(inbox);
-        bp.setCenter(composer);
+        right.setCenter(composer);
         composer.setVisible(true);
+        composer.getEmailAddress().requestFocus();
     }
 
     private void initSpAndCenter() {
@@ -207,7 +223,6 @@ public class Controller extends Application {
                         (Integer pageIndex) ->
                         {
                             try {
-                                pagingTime = System.currentTimeMillis();
                                 System.out.println("Creating page...");
                                 return createPage(pageIndex, sp);
 
@@ -293,7 +308,11 @@ public class Controller extends Application {
 //        long fmpageTime = System.currentTimeMillis();
         for (int i = page; i < page + itemsPerPage && i < messages.size(); i++) {
             // need to initialize the message items if they haven't already been initialized
-            if (center.getChildren().size() < itemsPerPage) {
+
+            // TEMPORARILY NOT LOADING EMAIL DATA TO SPEED UP INIT TIME
+/*
+          if (center.getChildren().size() < itemsPerPage) {
+
                 center.getChildren().add(new MessageItemInPane(new MessageItem
                         (root, sceneStack, emailData.get(messages.get(i).getId()), imgUrl)));
                 // message items have been init'd so just change the information in the objects
@@ -306,13 +325,14 @@ public class Controller extends Application {
                 mItem.setFm(emailData.get(mId));
                 // add info to the message items
 //                mItem.setMessageId(mId);
-/*                mItem.setSenderField(MessageParser.parseSenderFromEmail(emailData.get(mId)));
-                String body = emailData.get(mId).getBestMessageBody();
-                mItem.setBodyText(body);
-                mItem.setSubjectField(emailData.get(mId).getSubject());
-                mItem.setSnippetField(emailData.get(mId).getSnippet());*/
+//                mItem.setSenderField(MessageParser.parseSenderFromEmail(emailData.get(mId)));
+//                String body = emailData.get(mId).getBestMessageBody();
+//                mItem.setBodyText(body);
+//                mItem.setSubjectField(emailData.get(mId).getSubject());
+//                mItem.setSnippetField(emailData.get(mId).getSnippet());
                 ++messageItemNum;
             }
+*/
         }
         sp.setContent(center);
         return sp;

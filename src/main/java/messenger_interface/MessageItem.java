@@ -37,13 +37,11 @@ public class MessageItem extends HBox {
     private HBox firstRowOptions;
     private Button b = new Button("BACK");
     private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
-    private static final String STYLE_ON_EXIT = "-fx-background-color: white;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;" ;
-
+    private static final String STYLE_ON_EXIT = "-fx-background-color: white;" + "-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
     private FullMessage fm;
     private ImageView labelEmail, downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
     private Stage stage;
-    private WebEngine engine;
-    Stack<Scene> sceneStack;
+    private Stack<Scene> sceneStack;
 
 
     public MessageItem(BorderPane root, Stack<Scene> stack, FullMessage m, String imageUrl) throws IOException {
@@ -51,18 +49,7 @@ public class MessageItem extends HBox {
         super();
         this.fm = m;
         sceneStack = stack;
-        senderField = new Text(MessageParser.parseSenderFromEmail(m));
-        subjectField = new Text("S: " + m.getSubject() + "\n");
-        snippetField = new Text(m.getSnippet());
-        dateField = new Text("Sent: " + MessageParser.parseDate(fm.getDate()));
-        subjectField.setWrappingWidth(190);
-        snippetField.setWrappingWidth(190);
-        dateField.setWrappingWidth(190);
-        senderField.setWrappingWidth(100);
-        senderField.setFont(Font.font("Trebuchet MS",13));
-        snippetField.setFont(Font.font("Trebuchet MS", 13));
-        dateField.setFont(Font.font("Trebuchet MS", 13));
-        subjectField.setFont(Font.font("Trebuchet MS",FontWeight.BLACK, 13));
+        initTextFields(m);
         addOptionsOnMessage(root);
         // add the image to the message item
         Image imageField = new Image(imageUrl, 80, 0, true, true, false);
@@ -102,12 +89,31 @@ public class MessageItem extends HBox {
         dropShadow.setColor(Color.color(0.4, 0.5, 0.5));
         setEffect(dropShadow);
 
+    }
 
+    private void initTextFields(FullMessage m) {
+        // Initialization
+        senderField = new Text(MessageParser.parseSenderFromEmail(m));
+        subjectField = new Text("S: " + m.getSubject() + "\n");
+        snippetField = new Text(m.getSnippet());
+        dateField = new Text("Sent: " + MessageParser.parseDate(fm.getDate()));
+
+        // Look/Feel
+        subjectField.setWrappingWidth(190);
+        snippetField.setWrappingWidth(190);
+        dateField.setWrappingWidth(190);
+        senderField.setWrappingWidth(100);
+
+        senderField.setFont(Font.font("Trebuchet MS", 13));
+        snippetField.setFont(Font.font("Trebuchet MS", 13));
+        dateField.setFont(Font.font("Trebuchet MS", 13));
+        subjectField.setFont(Font.font("Trebuchet MS", FontWeight.BLACK, 13));
+
+        // EVENTS
         snippetField.setOnMouseEntered(event -> underline(snippetField));
         subjectField.setOnMouseEntered(event -> underline(subjectField));
         subjectField.setOnMouseExited(event -> removeUnderline(subjectField));
         snippetField.setOnMouseExited(event -> removeUnderline(snippetField));
-
         subjectField.setOnMouseClicked(event -> {
 
             showContent();
@@ -142,7 +148,10 @@ public class MessageItem extends HBox {
     }
 
     private void goBack() {
+        // pop() the seen created in showContent()
         sceneStack.pop();
+        // sceneStack already has the original scene saved (controller pushed its scene)
+        // so it is available here
         stage.setScene(sceneStack.peek());
     }
 
@@ -150,12 +159,10 @@ public class MessageItem extends HBox {
         WebView wv = new WebView();
         String bodyText = fm.getBestMessageBody();
 
-        System.out.println(bodyText.length());
-
         // loadContent(String) will return and do nothing if bodyText is null
         // therefore the old bodyText from previous message Item will be loaded when the
         // user clicks on the snippet or the subject
-        engine = wv.getEngine();
+        WebEngine engine = wv.getEngine();
         if (!FullMessage.testForHTML(bodyText))
             // load plain text version
             engine.loadContent(bodyText, "text/plain");

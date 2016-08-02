@@ -32,9 +32,9 @@ public class Composer extends BorderPane {
     private Button send;
     private Button attachments;
     private TextField subject;
-    private int id;
     private VBox vbox;
-
+    private ComposerButton buttonForComposerManager;
+    z
     public Composer(Emailer emailer) {
 
         initFields();
@@ -74,21 +74,27 @@ public class Composer extends BorderPane {
         });
         sendAndExtrasContainer = new HBox(8, send, attachments);
         vbox = new VBox(8);
-        vbox.setPadding(new Insets(4));
+        vboxSettings();
         vbox.getChildren().addAll(emailAddress, Cc, subject, bodyText, sendAndExtrasContainer);
         this.setCenter(vbox);
         this.setVisible(false);
     }
 
-    public void initFields() {
+    private void vboxSettings() {
+        vbox.setPadding(new Insets(4));
+    }
+
+    private void initFields() {
+        buttonForComposerManager = new ComposerButton();
         subject = new TextField();
         subject.setPromptText("Subject");
         bodyText = new TextArea();
         bodyText.setPromptText("Body Text");
         bodyText.setWrapText(true);
-        bodyText.setMaxWidth(200);
         emailAddress = new TextField();
         emailAddress.setPromptText("To: ");
+        // Temporary
+        emailAddress.setText("evansdb0@sewanee.edu");
         Cc = new TextField();
         Cc.setPromptText("Cc: ");
         send = new Button("Send");
@@ -133,5 +139,13 @@ public class Composer extends BorderPane {
 
     public int getComposerId() {
         return composerId;
+    }
+
+    public ComposerButton getButtonForComposerManager() {
+        return buttonForComposerManager;
+    }
+
+    public void setButtonForComposerManager(ComposerButton buttonForComposerManager) {
+        this.buttonForComposerManager = buttonForComposerManager;
     }
 }
