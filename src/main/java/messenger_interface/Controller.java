@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * @author Daniel Evans and Blaise Iradukunda
@@ -47,9 +48,8 @@ public class Controller extends Application {
     private int itemsPerPage = 15;
     private Hashtable<String, FullMessage> emailData;
     private BorderPane root;
-    private int temp = 0;
     private ComposerManager cm;
-    String[] bodyText = new String[1000];
+    private Stack<Scene> sceneStack;
 
     public static void main(String[] args) {
         launch(args);
@@ -58,20 +58,6 @@ public class Controller extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-
-        /**
-         *    inbox gives access to the user's gmail messages using an authenticator
-         */
-        // creating title for application and scene
-        primaryStage.setTitle("Sewanee Messenger");
-        // root container of the interface
-        root = new BorderPane();
-
-        Scene scene = new Scene(root, 1100, 800);
-        primaryStage.setScene(scene);
-
-        sceneStack = new Stack<>();
-        sceneStack.push(scene);
         // inbox gives access to the user's gmail messages using an authenticator
         inbox = new Inbox("iradub0@sewanee.edu");
 
@@ -90,9 +76,9 @@ public class Controller extends Application {
         top.getChildren().add(composeButton);
         composeButton.setOnMousePressed(event -> compose());
         root.setTop(top);
+        cm = new ComposerManager();
         BorderPane right = new BorderPane();
         root.setRight(right);
-        cm = new ComposerManager();
         right.setTop(cm);
 
         initSpAndCenter();
@@ -104,6 +90,9 @@ public class Controller extends Application {
         primaryStage.setTitle("Sewanee Messenger");
         Scene scene = new Scene(root, 1100, 800);
         scene.getStylesheets().add("MessengerStyle.css");
+
+        sceneStack = new Stack<>();
+        sceneStack.push(scene);
 
         // on key pressed gives functionality for what user types automatically
         //showing up in the search box
@@ -306,7 +295,7 @@ public class Controller extends Application {
             // need to initialize the message items if they haven't already been initialized
             if (center.getChildren().size() < itemsPerPage) {
                 center.getChildren().add(new MessageItemInPane(new MessageItem
-                        (root, emailData.get(messages.get(i).getId()), imgUrl)));
+                        (root, sceneStack, emailData.get(messages.get(i).getId()), imgUrl)));
                 // message items have been init'd so just change the information in the objects
             } else {
                 long time = System.currentTimeMillis();

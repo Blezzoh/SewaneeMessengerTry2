@@ -40,15 +40,13 @@ public class MessageItem extends HBox {
     private static final String STYLE_ON_EXIT = "-fx-background-color: white;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;" ;
 
     private FullMessage fm;
-    private ImageView downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
-    private Scene bodyScene;
-    private ImageView labelEmail;
+    private ImageView labelEmail, downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
     private Stage stage;
     private WebEngine engine;
     Stack<Scene> sceneStack;
 
 
-    public MessageItem(Stack<Scene> stack, FullMessage m, String imageUrl) throws IOException {
+    public MessageItem(BorderPane root, Stack<Scene> stack, FullMessage m, String imageUrl) throws IOException {
 
         super();
         this.fm = m;
