@@ -34,7 +34,6 @@ public class Composer extends BorderPane {
     private TextField subject;
     private VBox vbox;
     private ComposerButton buttonForComposerManager;
-    z
     public Composer(Emailer emailer) {
 
         initFields();
