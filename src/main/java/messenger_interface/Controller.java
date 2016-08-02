@@ -7,6 +7,7 @@ import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -47,6 +48,7 @@ public class Controller extends Application {
     private Hashtable<String, FullMessage> emailData;
     private BorderPane root;
     private int temp = 0;
+    private ComposerManager cm;
     String[] bodyText = new String[1000];
 
     public static void main(String[] args) {
@@ -56,24 +58,28 @@ public class Controller extends Application {
     @Override
     public void start(Stage primaryStage) {
 
-
-        /**
-         *    inbox gives access to the user's gmail messages using an authenticator
-         */
+        // inbox gives access to the user's gmail messages using an authenticator
         inbox = new Inbox("iradub0@sewanee.edu");
-        /**
-         *  loads the user's inbox
-         */
+
+        // loads the user's inbox
         messages = inbox.getDefaultInbox();
 
         long initTime = System.currentTimeMillis();
         initEmailData();
 
-        System.out.println("init time: " +
-                (System.currentTimeMillis() - initTime) / 1000.0);
 
         // root container of the interface
         root = new BorderPane();
+
+        HBox top = new HBox(5);
+        Button composeButton = new Button("Compose");
+        top.getChildren().add(composeButton);
+        composeButton.setOnMousePressed(event -> compose());
+        root.setTop(top);
+        BorderPane right = new BorderPane();
+        root.setRight(right);
+        cm = new ComposerManager();
+        right.setTop(cm);
 
         initSpAndCenter();
 
@@ -109,7 +115,21 @@ public class Controller extends Application {
         createPaginator(root, sp);
         primaryStage.setScene(scene);
         primaryStage.initStyle(StageStyle.UNIFIED);
+        System.out.println("init time: " +
+                (System.currentTimeMillis() - initTime) / 1000.0);
         primaryStage.show();
+    }
+
+    public void compose() {
+        BorderPane bp = (BorderPane) root.getRight();
+        if (bp.getCenter() != null) {
+            System.out.println("dflksdfldsjflkdjflkdsjfldsjf");
+            Composer center = (Composer) bp.getCenter();
+            cm.addComposer(center);
+        }
+        Composer composer = new Composer(inbox);
+        bp.setCenter(composer);
+        composer.setVisible(true);
     }
 
     private void initSpAndCenter() {
@@ -273,7 +293,7 @@ public class Controller extends Application {
             // need to initialize the message items if they haven't already been initialized
             if (center.getChildren().size() < itemsPerPage) {
                 center.getChildren().add(new MessageItemInPane(new MessageItem
-                        (root, emailData.get(messages.get(i).getId()), imgUrl)));
+                        (emailData.get(messages.get(i).getId()), imgUrl)));
                 // message items have been init'd so just change the information in the objects
             } else {
                 long time = System.currentTimeMillis();

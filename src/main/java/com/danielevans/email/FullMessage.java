@@ -1,8 +1,15 @@
 package com.danielevans.email;
 
+import com.google.api.client.util.Base64;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePartHeader;
+import messenger_interface.Emailer;
 
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -15,7 +22,7 @@ import static com.danielevans.email.Inbox.decodeString;
  *
  * @author Daniel Evans
  */
-public class FullMessage implements Auth {
+public class FullMessage implements Auth, Emailer {
 
     private static final String DATE = "Date";
     private static final String DELIVERED_TO = "Delivered-To";
@@ -32,6 +39,8 @@ public class FullMessage implements Auth {
     private static final String PROBLEM_TRASHING_MESSAGE = "There were problems trashing message with id ";
     private Message m;
     private Authenticator auth;
+    public static final int REPLY = 0;
+    public static final int FWD = 0;
 
     public FullMessage(Authenticator auth, Message message) throws IOException {
         this.auth = auth;
@@ -455,5 +464,49 @@ public class FullMessage implements Auth {
 
     public Message getM() {
         return m;
+    }
+
+    /**
+     * Create a Message from an email
+     *
+     * @param email Email to be set to raw of message
+     * @return Message containing base64 encoded email.
+     * @throws IOException
+     * @throws MessagingException
+     */
+    public static Message createMessageWithEmail(MimeMessage email)
+            throws MessagingException, IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        email.writeTo(baos);
+        String encodedEmail = Base64.encodeBase64URLSafeString(baos.toByteArray());
+        Message message = new Message();
+        message.setRaw(encodedEmail);
+        return message;
+    }
+
+    @Override
+    public MimeMessage composeMessage(Session session,
+                                      String to,
+                                      String subject,
+                                      String message) throws MessagingException {
+        Preconditions.objectNotNull(session, "session is null");
+        Preconditions.objectNotNull(to, "to is null");
+        Preconditions.objectNotNull(subject, "subject is null");
+        Preconditions.objectNotNull(message, "message is null");
+        MimeMessage m = new MimeMessage(session);
+        m.setFrom(new InternetAddress(this.auth.userId));
+
+        // TODO: if CC/BCC contains an email address, iterate through the
+        // TODO: email addresses using this method
+        m.addRecipients(javax.mail.Message.RecipientType.CC, to);
+        m.setSubject(subject);
+        m.setText(message);
+        return m;
+
+    }
+
+    @Override
+    public void sendMessage(MimeMessage email) throws MessagingException, IOException {
+
     }
 }

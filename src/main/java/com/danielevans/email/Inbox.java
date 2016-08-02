@@ -7,6 +7,7 @@ import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;
+import messenger_interface.Emailer;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -23,7 +24,7 @@ import java.util.Properties;
  * Created by daniel on 6/2/16.
  * @author Daniel Evans
  */
-public class Inbox implements Auth {
+public class Inbox implements Auth, Emailer {
 
     /**
      * the number of messages to retrieve on both a search and on startup of the application

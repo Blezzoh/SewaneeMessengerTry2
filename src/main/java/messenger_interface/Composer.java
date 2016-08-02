@@ -1,11 +1,10 @@
 package messenger_interface;
 
-import com.danielevans.email.FullMessage;
-import com.danielevans.email.Inbox;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -13,13 +12,14 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
+import java.util.Properties;
 
 /**
  * Created by daniel on 6/8/16.
  *
  * @author Daniel Evans
  */
-public class Composer {
+public class Composer extends BorderPane {
 
     private TextArea bodyText;
     /*
@@ -32,13 +32,10 @@ public class Composer {
     private Button send;
     private Button attachments;
     private TextField subject;
-    private VBox root;
+    private int id;
+    private VBox vbox;
 
-    public Composer(FullMessage fm) {
-
-    }
-
-    public Composer(Inbox inbox) {
+    public Composer(Emailer emailer) {
 
         initFields();
 
@@ -62,21 +59,25 @@ public class Composer {
                 // make message and send
                 MimeMessage mimeMessage = null;
                 try {
-                    Session s = inbox.getSessionWithDefaultProps();
-                    mimeMessage = inbox.composeMessage
-                            (
-                                    s, emailAddress.getText(), subject.getText(), bodyText.getText()
-                            );
-                    inbox.sendMessage(mimeMessage);
+
+                    Properties props = System.getProperties();
+                    props.setProperty("mail.smtp.host", "localhost");
+                    Session session = Session.getDefaultInstance(props);
+                    mimeMessage = emailer
+                            .composeMessage(session, emailAddress.getText()
+                                    , subject.getText(), bodyText.getText());
+                    emailer.sendMessage(mimeMessage);
                 } catch (MessagingException | IOException e1) {
                     e1.printStackTrace();
                 }
             }
         });
         sendAndExtrasContainer = new HBox(8, send, attachments);
-        root = new VBox(8);
-        root.setPadding(new Insets(4));
-        root.getChildren().addAll(emailAddress, Cc, subject, bodyText, sendAndExtrasContainer);
+        vbox = new VBox(8);
+        vbox.setPadding(new Insets(4));
+        vbox.getChildren().addAll(emailAddress, Cc, subject, bodyText, sendAndExtrasContainer);
+        this.setCenter(vbox);
+        this.setVisible(false);
     }
 
     public void initFields() {
@@ -92,14 +93,6 @@ public class Composer {
         Cc.setPromptText("Cc: ");
         send = new Button("Send");
         attachments = new Button("Attachment");
-    }
-
-    public void setVisible(boolean visible) {
-        root.setVisible(visible);
-    }
-
-    public VBox getRoot() {
-        return root;
     }
 
     public TextField getEmailAddress() {

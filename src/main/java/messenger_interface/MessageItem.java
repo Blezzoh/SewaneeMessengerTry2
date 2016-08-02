@@ -65,7 +65,7 @@ public class MessageItem extends HBox {
         snippetField.setFont(Font.font("Trebuchet MS", 13));
         dateField.setFont(Font.font("Trebuchet MS", 13));
         subjectField.setFont(Font.font("Trebuchet MS",FontWeight.BLACK, 13));
-        addOptionsOnMessage();
+        addOptionsOnMessage(root);
         // add the image to the message item
         Image imageField = new Image(imageUrl, 80, 0, true, true, false);
         ImagePattern imageView = new ImagePattern(imageField);
@@ -193,8 +193,9 @@ public class MessageItem extends HBox {
 
     /**
      * GUIs that represents the set of options that can be applied to a MessageItem
-     **/
-    private void addOptionsOnMessage() throws FileNotFoundException {
+     *
+     * @param root*/
+    private void addOptionsOnMessage(BorderPane root) throws FileNotFoundException {
 
         firstRowOptions = new HBox();
         secondRowOptions = new HBox();
@@ -209,6 +210,12 @@ public class MessageItem extends HBox {
         downloadAttach = new ImageView(download);
         setMargin(downloadAttach, new Insets(1,5,1,1));
         forwardEmail = new ImageView(forward);
+        forwardEmail.setOnMousePressed(event -> {
+            Composer cm = new Composer(fm);
+            cm.getSubject().setText("FWD: " + fm.getSubject());
+            cm.getEmailAddress().requestFocus();
+//            root.setRight(no);
+        });
         setMargin(forwardEmail, new Insets(1,5,1,1));
         labelEmail = new ImageView(label);
         setMargin(labelEmail, new Insets(1,5,1,1));
@@ -221,8 +228,10 @@ public class MessageItem extends HBox {
         replyEmail= new ImageView(reply);
         replyEmail.setOnMouseClicked(event -> {
             Composer cm = new Composer(fm);
-            // TODO need to implement manager for multiple ComposeMessage objects
-            // TODO so that way the user can have several interfaces to send emails.
+            cm.getEmailAddress()
+                    .setText(MessageParser.parseEmailAddress(fm.getFrom()));
+            cm.getSubject().setText("REPLY: " + fm.getSubject());
+            cm.getBodyText().requestFocus();
         });
         setMargin(replyEmail, new Insets(1,5,1,1));
         addToTrash = new ImageView(trash);
