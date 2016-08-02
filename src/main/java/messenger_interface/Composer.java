@@ -16,11 +16,16 @@ import java.io.IOException;
 
 /**
  * Created by daniel on 6/8/16.
+ *
  * @author Daniel Evans
  */
-public class ComposeMessage {
+public class Composer {
 
     private TextArea bodyText;
+    /*
+    composerId is set by the manager
+     */
+    private int composerId;
     private TextField emailAddress;
     private TextField Cc;
     private HBox sendAndExtrasContainer;
@@ -29,12 +34,17 @@ public class ComposeMessage {
     private TextField subject;
     private VBox root;
 
-    public ComposeMessage(Inbox inbox) {
+    public Composer(FullMessage fm) {
+
+    }
+
+    public Composer(Inbox inbox) {
+
         initFields();
 
         attachments.setOnMouseClicked(e ->
         {
-           // open file manager, load attachment into message
+            // open file manager, load attachment into message
         });
 
         send.setOnMouseClicked(e ->
@@ -54,23 +64,19 @@ public class ComposeMessage {
                 try {
                     Session s = inbox.getSessionWithDefaultProps();
                     mimeMessage = inbox.composeMessage
-                    (
-                        s, emailAddress.getText(), subject.getText(), bodyText.getText()
-                    );
+                            (
+                                    s, emailAddress.getText(), subject.getText(), bodyText.getText()
+                            );
                     inbox.sendMessage(mimeMessage);
                 } catch (MessagingException | IOException e1) {
                     e1.printStackTrace();
                 }
             }
         });
-        sendAndExtrasContainer = new HBox(8,send,attachments);
+        sendAndExtrasContainer = new HBox(8, send, attachments);
         root = new VBox(8);
         root.setPadding(new Insets(4));
-        root.getChildren().addAll(emailAddress,Cc,subject,bodyText,sendAndExtrasContainer);
-    }
-
-    public ComposeMessage(FullMessage fm) {
-
+        root.getChildren().addAll(emailAddress, Cc, subject, bodyText, sendAndExtrasContainer);
     }
 
     public void initFields() {
@@ -91,6 +97,7 @@ public class ComposeMessage {
     public void setVisible(boolean visible) {
         root.setVisible(visible);
     }
+
     public VBox getRoot() {
         return root;
     }
@@ -125,5 +132,13 @@ public class ComposeMessage {
 
     public void setSubject(TextField subject) {
         this.subject = subject;
+    }
+
+    public void setComposerId(int composerId) {
+        this.composerId = composerId;
+    }
+
+    public int getComposerId() {
+        return composerId;
     }
 }

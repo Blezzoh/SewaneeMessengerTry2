@@ -132,6 +132,8 @@ public class MessageItem extends HBox {
 
         String bodyText = fm.getBestMessageBody();
 
+        System.out.println(bodyText.length());
+
         // loadContent(String) will return and do nothing if bodyText is null
         // therefore the old bodyText from previous message Item will be loaded when the
         // user clicks on the snippet or the subject
@@ -218,7 +220,7 @@ public class MessageItem extends HBox {
         setMargin(markEmail, new Insets(1,5,1,1));
         replyEmail= new ImageView(reply);
         replyEmail.setOnMouseClicked(event -> {
-            ComposeMessage cm = new ComposeMessage(fm);
+            Composer cm = new Composer(fm);
             // TODO need to implement manager for multiple ComposeMessage objects
             // TODO so that way the user can have several interfaces to send emails.
         });

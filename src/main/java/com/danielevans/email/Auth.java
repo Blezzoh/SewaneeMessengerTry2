@@ -13,7 +13,7 @@ package com.danielevans.email;
  */
 public interface Auth {
 
-    /**
+    /**ff
      * @return An Authenticator that gives access to modify the user's account
      * base on the GmailScopes params
      */

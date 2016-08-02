@@ -3,13 +3,11 @@ package messenger_interface;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
 import com.google.api.services.gmail.model.Message;
-import com.sun.javafx.scene.control.skin.ScrollBarSkin;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Pagination;
-import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -71,16 +69,6 @@ public class Controller extends Application {
         long initTime = System.currentTimeMillis();
         initEmailData();
 
-        /*System.out.println("potential email address suggestions\n----------------------");
-        Iterator<Map.Entry<String, FullMessage>> iterator = emailData.entrySet().iterator();
-        while (iterator.hasNext()) {
-            FullMessage fm = iterator.next().getValue();
-            System.out.println(MessageParser.parseNameFromEmail(fm));
-            if (startsWith("D", MessageParser.parseNameFromEmail(fm))) {
-                //System.out.println("here " + MessageParser.parseNameFromEmail(fm));
-            }
-        }*/
-
         System.out.println("init time: " +
                 (System.currentTimeMillis() - initTime) / 1000.0);
 
@@ -103,11 +91,6 @@ public class Controller extends Application {
                 (event ->
                 {
                     try {
-                /*
-                // attempt to search email addresses while user types
-                setMessageToUser(searchEmailAddressOnKeyPressed
-                        (emailAddresses, searchField.getText()));
-                */
 
                         // USER HIT ENTER
                         if (event.getCode() == KeyCode.ENTER) {
@@ -119,21 +102,6 @@ public class Controller extends Application {
                         if (Character.isLetter(key)) {
                             // checks if searchField is already visible, displays w/ animations if not
                             displaySearchField(searchField);
-                            /**
-                             * search suggestions
-                             */
-                     /*       System.out.println("potential email address suggestions\n----------------------");
-                            Iterator<Map.Entry<String, FullMessage>> i = emailData.entrySet().iterator();
-                            while (i.hasNext()) {
-                                FullMessage fm = i.next().getValue();
-                                if (startsWith(searchField.getText(), MessageParser.parseNameFromEmail(fm))
-                                        && searchField.getText() != "") {
-                                    System.out.println("k" + searchField.getText() + "k");
-                                    System.out.println(
-                                            " this here " + MessageParser.parseNameFromEmail(fm));
-                                }
-                            }
-                            System.out.println("\n\n");*/
                         }
                     } catch (StringIndexOutOfBoundsException e) { /* user pressed a non-alphanumeric key */ }
                 });
@@ -217,6 +185,7 @@ public class Controller extends Application {
                         {
                             try {
                                 pagingTime = System.currentTimeMillis();
+                                System.out.println("Creating page...");
                                 return createPage(pageIndex, sp);
 
                             } catch (IOException e) {
@@ -314,10 +283,10 @@ public class Controller extends Application {
                 MessageItem mItem = item.getMsgItem();
                 mItem.setFm(emailData.get(mId));
                 // add info to the message items
-                /*mItem.setMessageId(mId);
-                mItem.setSenderField(MessageParser.parseNameFromEmail(emailData.get(mId)));
+//                mItem.setMessageId(mId);
+/*                mItem.setSenderField(MessageParser.parseSenderFromEmail(emailData.get(mId)));
                 String body = emailData.get(mId).getBestMessageBody();
-                mItem.setBodyText(emailData.get(mId).getBestMessageBody());
+                mItem.setBodyText(body);
                 mItem.setSubjectField(emailData.get(mId).getSubject());
                 mItem.setSnippetField(emailData.get(mId).getSnippet());*/
                 ++messageItemNum;
