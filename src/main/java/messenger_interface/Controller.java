@@ -285,7 +285,6 @@ public class Controller extends Application {
             throw new NullPointerException("messages is null");
 
         int page = pageIndex * itemsPerPage;
-        String[] msgIds = new String[1000];
         // messageItemNum used to iterate through the messageItems
         int messageItemNum = 0;
 //        long fmpageTime = System.currentTimeMillis();
@@ -293,7 +292,7 @@ public class Controller extends Application {
             // need to initialize the message items if they haven't already been initialized
             if (center.getChildren().size() < itemsPerPage) {
                 center.getChildren().add(new MessageItemInPane(new MessageItem
-                        (emailData.get(messages.get(i).getId()), imgUrl)));
+                        (root, emailData.get(messages.get(i).getId()), imgUrl)));
                 // message items have been init'd so just change the information in the objects
             } else {
                 long time = System.currentTimeMillis();
