@@ -123,7 +123,7 @@ public class Controller extends Application {
                         }
                         char key = event.getText().charAt(0);
                         // USER HIT AN ALPHA-NUMERIC KEY
-                        if (Character.isLetter(key)) {
+                        if (Character.isLetterOrDigit(key)) {
                             // checks if searchField is already visible, displays w/ animations if not
                             displaySearchField(searchField);
                         }

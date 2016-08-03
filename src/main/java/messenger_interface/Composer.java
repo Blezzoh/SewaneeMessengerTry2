@@ -86,8 +86,6 @@ public class Composer extends BorderPane {
         bodyText.setWrapText(true);
         emailAddress = new TextField();
         emailAddress.setPromptText("To: ");
-        // Temporary
-        emailAddress.setText("evansdb0@sewanee.edu");
         Cc = new TextField();
         Cc.setPromptText("Cc: ");
         send = new Button("Send");
@@ -127,7 +125,7 @@ public class Composer extends BorderPane {
     }
 
     public void clearAllTextFields() {
-        subject.setText("");
+        emailAddress.setText("");
         bodyText.setText("");
         Cc.setText("");
         subject.setText("");
