@@ -8,12 +8,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
-import java.io.IOException;
-import java.util.Properties;
-
 /**
  * Created by daniel on 6/8/16.
  *
@@ -25,7 +19,6 @@ public class Composer extends BorderPane {
     /*
     composerId is set by the manager
      */
-    private int composerId;
     private TextField emailAddress;
     private TextField Cc;
     private HBox sendAndExtrasContainer;
@@ -33,11 +26,11 @@ public class Composer extends BorderPane {
     private Button attachments;
     private TextField subject;
     private VBox vbox;
-    private ComposerButton buttonForComposerManager;
-    public Composer(Emailer emailer) {
+
+    public Composer() {
 
         initFields();
-
+/*
         attachments.setOnMouseClicked(e ->
         {
             // open file manager, load attachment into message
@@ -71,6 +64,8 @@ public class Composer extends BorderPane {
                 }
             }
         });
+*/
+
         sendAndExtrasContainer = new HBox(8, send, attachments);
         vbox = new VBox(8);
         vboxSettings();
@@ -84,7 +79,6 @@ public class Composer extends BorderPane {
     }
 
     private void initFields() {
-        buttonForComposerManager = new ComposerButton();
         subject = new TextField();
         subject.setPromptText("Subject");
         bodyText = new TextArea();
@@ -132,19 +126,10 @@ public class Composer extends BorderPane {
         this.subject = subject;
     }
 
-    public void setComposerId(int composerId) {
-        this.composerId = composerId;
-    }
-
-    public int getComposerId() {
-        return composerId;
-    }
-
-    public ComposerButton getButtonForComposerManager() {
-        return buttonForComposerManager;
-    }
-
-    public void setButtonForComposerManager(ComposerButton buttonForComposerManager) {
-        this.buttonForComposerManager = buttonForComposerManager;
+    public void clearAllTextFields() {
+        subject.setText("");
+        bodyText.setText("");
+        Cc.setText("");
+        subject.setText("");
     }
 }

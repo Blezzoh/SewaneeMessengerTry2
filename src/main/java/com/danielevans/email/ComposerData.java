@@ -7,15 +7,14 @@ import messenger_interface.Composer;
  * Class that holds data while of a Composer
  */
 public class ComposerData {
-    String emailAddress,  subject, cc, body;
-    int Id;
+    private String emailAddress, subject, cc, body;
+    private int composerDataId;
 
     public ComposerData(Composer composer){
         this.emailAddress = composer.getEmailAddress().getText();
         this.subject= composer.getSubject().getText();
         this.cc = composer.getCc().getText();
         this.body = composer.getBodyText().getText();
-        this.Id = composer.getComposerId();
     }
 
     public String getEmailAddress() {
@@ -28,9 +27,6 @@ public class ComposerData {
 
     public String getCc() {
         return cc;
-    }
-    public int getId() {
-        return Id;
     }
 
     public String getSubject() {
@@ -53,8 +49,12 @@ public class ComposerData {
         this.body = body;
     }
 
-    public void setId(int id) {
-        Id = id;
+
+    public int getComposerDataId() {
+        return composerDataId;
     }
 
+    public void setComposerDataId(int composerDataId) {
+        this.composerDataId = composerDataId;
+    }
 }

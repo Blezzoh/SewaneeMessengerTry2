@@ -1,9 +1,9 @@
 package messenger_interface;
 
+import com.danielevans.email.ComposerData;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -15,69 +15,110 @@ import java.util.ListIterator;
  */
 public class ComposerManager extends BorderPane {
 
-    private LinkedList<Composer> composerList;
+    private LinkedList<ComposerData> composerDataList;
     private HBox buttonContainer;
     private static final int COMPOSER_MAX = 3;
+    private Composer composer;
+    private int numActiveComposers;
 
-    public ComposerManager() {
+    public ComposerManager(Composer composer) {
         super();
-        composerList = new LinkedList<>();
+        this.composer = composer;
+        this.composer.setVisible(false);
+        this.setCenter(this.composer);
+        numActiveComposers = 0;
+        composerDataList = new LinkedList<>();
         buttonContainer = new HBox(8);
         this.setBottom(buttonContainer);
     }
 
+    /*
+     * When calling generateId(), make sure to generate the id before
+     * and set it to a ComposerData object before adding the ComposerData
+     * to the ComposerDataList
+     */
     private int generateId() {
-        return composerList.size() + 1;
+        return composerDataList.size() + 1;
     }
 
     /*
     1 active composer and up to 3 "waiting in the wings"
      */
-    public boolean addComposer(Composer composer) {
-        if (composerList.contains(composer)) {
-            updateComposerList(composer);
-        } else {
-            composer.setComposerId(generateId());
-            if (composerList.size() != COMPOSER_MAX
+    public boolean newComposer() {
+        if (composerDataList.size() != COMPOSER_MAX
                     && !composer.getEmailAddress().getText().equals("")) {
-                composerList.add(composer);
-                composer.setVisible(false);
-                ComposerButton cmButton = composer.getButtonForComposerManager();
+
+            composer.setVisible(true);
+            composer.getEmailAddress().requestFocus();
+            ++numActiveComposers;
+            if (numActiveComposers > 1) {
+                // ComposerData
+                ComposerData cd = new ComposerData(composer);
+                cd.setComposerDataId(generateId()); // do this before adding to composerDataList
+                composerDataList.add(cd);
+
+                // ComposerButton
+                ComposerButton cmButton = new ComposerButton();
+                cmButton = composerButtonSettings(cmButton);
                 cmButton.setText("To: " + composer.getEmailAddress().getText());
-                composer.setButtonForComposerManager(composerButtonSettings(cmButton));
-                cmButton.setComposerId(composer.getComposerId());
-                composer.getButtonForComposerManager().setOnMousePressed
+                cmButton.setComposerDataId(cd.getComposerDataId());
+                buttonContainer.getChildren().add(cmButton);
+
+                // ComposerButton event
+                cmButton.setOnMousePressed
                         (e -> {
-                            Composer current = getCurrentComposer();
-                            ComposerButton button = (ComposerButton) e.getSource();
-                            Composer toDisplay = findComposer(button.getComposerId());
-                            this.setCenter(toDisplay);
-                            composerList.remove(toDisplay);
-                            if (current != null) {
-                                button.setText(current.getEmailAddress().getText());
-                                button.setComposerId(generateId());
-                                composerList.add(current);
-                            } else {
-                                this.getChildren().remove(button);
+
+                            ComposerData currentComposerMessageData = null;
+                            if (checkTextFieldsEmpty()) {
+                                currentComposerMessageData = new ComposerData(composer);
+                                currentComposerMessageData.setComposerDataId(generateId());
                             }
-                            // store current composer in the linkedlist
+                            ComposerButton button = (ComposerButton) e.getSource();
+                            ComposerData composerData = getComposerData(button.getComposerDataId());
+                            composer.getBodyText().setText(composerData.getBody());
+                            composer.getEmailAddress().setText(composerData.getEmailAddress());
+                            composer.getCc().setText(composerData.getCc());
+                            composer.getSubject().setText(composerData.getSubject());
+                            if (currentComposerMessageData != null) {
+                                button.setText("To: " + currentComposerMessageData.getEmailAddress());
+                                button.setComposerDataId(generateId());
+                                composerDataList.add(currentComposerMessageData);
+                            } else {
+                                composerDataList.remove(composerData);
+                                buttonContainer.getChildren().remove(button);
+                                --numActiveComposers;
+                            }
                         });
-                buttonContainer.getChildren().add(composer.getButtonForComposerManager());
                 return true;
             }
-        }
+            }
         return false;
     }
 
-    private Composer getCurrentComposer() {
-        return this.getCenter() == null ? null : (Composer) this.getRight();
+    public boolean checkTextFieldsEmpty() {
+        return !composer.getEmailAddress().getText().equals("") ||
+                !composer.getSubject().getText().equals("") ||
+                !composer.getCc().getText().equals("") ||
+                !composer.getBodyText().getText().equals("");
     }
 
-    private Composer findComposer(int composerId) {
-        ListIterator<Composer> li = composerList.listIterator();
+    public Composer getComposer() {
+        return composer;
+    }
+
+    private void removeOldComposerData() {
+    }
+
+    public void hideComposer() {
+        composer.clearAllTextFields();
+        composer.setVisible(false);
+    }
+
+    private ComposerData getComposerData(int composerId) {
+        ListIterator<ComposerData> li = composerDataList.listIterator();
         while (li.hasNext()) {
-            Composer next = li.next();
-            if (next.getComposerId() == composerId)
+            ComposerData next = li.next();
+            if (next.getComposerDataId() == composerId)
                 return next;
         }
         return null;
@@ -89,16 +130,8 @@ public class ComposerManager extends BorderPane {
         return button;
     }
 
-    private void updateComposerList(Composer composer) {
-//        this.getChildren().remove()
-    }
-
-    public boolean deleteComposer(Composer composer, Text text) {
-        return composerList.remove(composer) && this.getChildren().remove(text);
-    }
-
     public int size() {
-        return composerList.size();
+        return composerDataList.size();
     }
 
 }

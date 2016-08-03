@@ -9,17 +9,18 @@ import javafx.scene.control.Button;
  */
 public class ComposerButton extends Button {
 
-    private int composerId;
+    private int composerDataId;
 
     public ComposerButton() {
         super();
     }
 
-    public void setComposerId(int composerId) {
-        this.composerId = composerId;
+
+    public int getComposerDataId() {
+        return composerDataId;
     }
 
-    public int getComposerId() {
-        return composerId;
+    public void setComposerDataId(int composerDataId) {
+        this.composerDataId = composerDataId;
     }
 }

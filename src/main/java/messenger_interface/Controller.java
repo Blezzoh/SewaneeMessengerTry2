@@ -74,9 +74,9 @@ public class Controller extends Application {
         HBox top = new HBox(5);
         Button composeButton = new Button("Compose");
         top.getChildren().add(composeButton);
-        composeButton.setOnMousePressed(event -> compose());
+        composeButton.setOnMousePressed(event -> right.newComposer());
         root.setTop(top);
-        right = new ComposerManager();
+        right = new ComposerManager(new Composer());
         root.setRight(right);
 
         initSpAndCenter();
@@ -136,19 +136,6 @@ public class Controller extends Application {
         System.out.println("init time: " +
                 (System.currentTimeMillis() - initTime) / 1000.0);
         primaryStage.show();
-    }
-
-    public void compose() {
-//        BorderPane bp = (BorderPane) root.getRight();
-        if (right.getCenter() != null) {
-            System.out.println("dflksdfldsjflkdjflkdsjfldsjf");
-            Composer center = (Composer) right.getCenter();
-            right.addComposer(center);
-        }
-        Composer composer = new Composer(inbox);
-        right.setCenter(composer);
-        composer.setVisible(true);
-        composer.getEmailAddress().requestFocus();
     }
 
     private void initSpAndCenter() {

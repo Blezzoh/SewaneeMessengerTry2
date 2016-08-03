@@ -209,12 +209,12 @@ public class MessageItem extends HBox {
         downloadAttach = new ImageView(download);
         setMargin(downloadAttach, new Insets(1,5,1,1));
         forwardEmail = new ImageView(forward);
-        forwardEmail.setOnMousePressed(event -> {
+        /*forwardEmail.setOnMousePressed(event -> {
             Composer cm = new Composer(fm);
             cm.getSubject().setText("FWD: " + fm.getSubject());
             cm.getEmailAddress().requestFocus();
 //            root.setRight(no);
-        });
+        });*/
         setMargin(forwardEmail, new Insets(1,5,1,1));
         labelEmail = new ImageView(label);
         setMargin(labelEmail, new Insets(1,5,1,1));
@@ -225,13 +225,13 @@ public class MessageItem extends HBox {
         markEmail = new ImageView( mark);
         setMargin(markEmail, new Insets(1,5,1,1));
         replyEmail= new ImageView(reply);
-        replyEmail.setOnMouseClicked(event -> {
+        /*replyEmail.setOnMouseClicked(event -> {
             Composer cm = new Composer(fm);
             cm.getEmailAddress()
                     .setText(MessageParser.parseEmailAddress(fm.getFrom()));
             cm.getSubject().setText("REPLY: " + fm.getSubject());
             cm.getBodyText().requestFocus();
-        });
+        });*/
         setMargin(replyEmail, new Insets(1,5,1,1));
         addToTrash = new ImageView(trash);
         setMargin(addToTrash, new Insets(1,5,1,1));
