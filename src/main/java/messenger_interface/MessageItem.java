@@ -32,12 +32,15 @@ import java.util.Stack;
  * @author Blaise Iradukunda
  */
 public class MessageItem extends HBox {
+    private static final String ITEM_STYLE = "-fx-padding: 10px; "+"-fx-background-color:white;" + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #66007a;";
+    private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
+    private static final String STYLE_ON_EXIT = "-fx-background-color: white;" + "-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
+    private static final String BACKB_STYLE = "-fx-font-family: AR DESTINE; -fx-font-size: 26px; -fx-background-color: rgba(7, 171,202,1); -fx-border-color: rgb(255, 153, 51);" +
+            "-fx-effect: dropshadow(three-pass-box, black, 2, 0, 3, 3); -fx-text-fill: white; -fx-font-weight: bolder; ";
     private Text senderField, subjectField, snippetField, dateField;
     private HBox secondRowOptions;
     private HBox firstRowOptions;
-    private Button b = new Button("BACK");
-    private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
-    private static final String STYLE_ON_EXIT = "-fx-background-color: white;" + "-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
+    private Button b = new Button("<-");
     private FullMessage fm;
     private ImageView labelEmail, downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
     private Stage stage;
@@ -73,8 +76,8 @@ public class MessageItem extends HBox {
         setSize(picField, 100.0, 200.0);
         setSize(msgSummary, 200.0, 160.0);
         setSize(container, 200.0, 200.0);
-        setStyle("-fx-padding: 10px; "+"-fx-background-color:white;" + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #66007a;");
-        container.setBackground(new Background(new BackgroundFill(Color.rgb(208, 0, 255, 0.4), new CornerRadii(5), new Insets(0))));
+        setStyle(ITEM_STYLE);
+        container.setBackground(new Background(new BackgroundFill(Color.rgb(255, 153, 51, .8), new CornerRadii(5), new Insets(0))));
         container.setPadding(new Insets(4));
 
         setOnMouseEntered(event -> this.setStyle(STYLE_ON_ENTER));
@@ -88,6 +91,9 @@ public class MessageItem extends HBox {
         dropShadow.setOffsetY(3.0);
         dropShadow.setColor(Color.color(0.4, 0.5, 0.5));
         setEffect(dropShadow);
+
+        b.setStyle(BACKB_STYLE);
+        setSize(b, 60, 40);
 
     }
 
@@ -105,9 +111,12 @@ public class MessageItem extends HBox {
         senderField.setWrappingWidth(100);
 
         senderField.setFont(Font.font("Trebuchet MS", 13));
+        senderField.setFill(Color.WHITE);
         snippetField.setFont(Font.font("Trebuchet MS", 13));
+        snippetField.setFill(Color.WHITE);
         dateField.setFont(Font.font("Trebuchet MS", 13));
         subjectField.setFont(Font.font("Trebuchet MS", FontWeight.BLACK, 13));
+        subjectField.setFill(Color.WHITE);
 
         // EVENTS
         snippetField.setOnMouseEntered(event -> underline(snippetField));
@@ -170,10 +179,13 @@ public class MessageItem extends HBox {
             // load html version
             engine.loadContent(bodyText);
         stage = (Stage) this.getScene().getWindow();
+        double x = sceneStack.peek().getWidth(), y = sceneStack.peek().getWidth();
         BorderPane p = new BorderPane();
         p.setTop(b);
         p.setCenter(wv);
-        sceneStack.push(new Scene(p, stage.getX() + 500, stage.getY() + 500));
+        Scene body = new Scene(p, x, y);
+        sceneStack.push(body);
+        body.getStylesheets().add("MessengerStyle.css");
         stage.setScene(sceneStack.peek());
     }
 

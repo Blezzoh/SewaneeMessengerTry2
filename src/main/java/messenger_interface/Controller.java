@@ -6,12 +6,14 @@ import com.google.api.services.gmail.model.Message;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -23,6 +25,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -35,6 +40,11 @@ import java.util.Stack;
 
 public class Controller extends Application {
 
+    static final String COMPOSE_STYLE = "-fx-background-color: rgba(7, 171,202,.7); -fx-font-family: Trebuchet MS; -fx-font-size: 13px; -fx-font-weight: bold; -fx-border-color: white;"
+            +"-fx-effect: dropshadow(gaussian, black, 2, 0, 3, 3); -fx-border-insets: 3px; -fx-border-width: 2px; -fx-text-fill: white";
+    private static final String TOP_STYLE = "-fx-background-color: rgba(7, 171,202,.7); -fx-padding: 15px; -fx-spacing: 15px; -fx-start-margin: 40px; -fx-border-color:rgba(255, 153, 51, .8);" +
+            "-fx-border-radius: 3px" ;
+    private static final String SP_STYLE = "";
     private final TextField searchField = new TextField();
     Pagination pagination;
     long searchTime;
@@ -55,7 +65,7 @@ public class Controller extends Application {
     }
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws FileNotFoundException {
 
         // inbox gives access to the user's gmail messages using an authenticator
         inbox = new Inbox("iradub0@sewanee.edu");
@@ -65,28 +75,28 @@ public class Controller extends Application {
 
         long initTime = System.currentTimeMillis();
         // TEMPORARILY NOT LOADING EMAIL DATA TO SPEED UP INIT TIME
-//        initEmailData();
+        initEmailData();
 
 
         // root container of the interface
         root = new BorderPane();
 
-        HBox top = new HBox(5);
-        Button composeButton = new Button("Compose");
-        top.getChildren().add(composeButton);
+        HBox top =  makeTopMenu(root, sp);
+        Button composeButton = new Button("COMPOSE");
+        composeButton.setStyle(COMPOSE_STYLE);
+        top.getChildren().add(0, composeButton);
         composeButton.setOnMousePressed(event -> right.newComposer());
         root.setTop(top);
         right = new ComposerManager(new Composer());
-        root.setRight(right);
+//        root.setRight(right);
 
         initSpAndCenter();
 
-        HBox bottomMenu = makeBottomMenu(root, sp);
-        root.setBottom(bottomMenu);
+
 
         // creating title for application and scene
         primaryStage.setTitle("Sewanee Messenger");
-        Scene scene = new Scene(root, 1100, 800);
+        Scene scene = new Scene(root);
         scene.getStylesheets().add("MessengerStyle.css");
 
         sceneStack = new Stack<>();
@@ -143,14 +153,16 @@ public class Controller extends Application {
          *   creates and loads the messages for the center of the root
          */
         center = new TilePane();
-        center.setHgap(5);
+        center.setHgap(8);
         center.setVgap(5);
-        center.setPadding(new Insets(8, 0, 8, 8));
-
+        center.setPadding(new Insets(8, 0, 8, 0));
+        center.setAlignment(Pos.CENTER);
+        center.setStyle("-fx-background-color: rgba(7, 171,202,.4)");
         sp = new ScrollPane(center);
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setFitToWidth(true);
+        sp.setStyle(SP_STYLE);
     }
 
     private void initEmailData() {
@@ -297,7 +309,6 @@ public class Controller extends Application {
             // need to initialize the message items if they haven't already been initialized
 
             // TEMPORARILY NOT LOADING EMAIL DATA TO SPEED UP INIT TIME
-/*
           if (center.getChildren().size() < itemsPerPage) {
 
                 center.getChildren().add(new MessageItemInPane(new MessageItem
@@ -319,21 +330,18 @@ public class Controller extends Application {
 //                mItem.setSnippetField(emailData.get(mId).getSnippet());
                 ++messageItemNum;
             }
-*/
         }
         sp.setContent(center);
         return sp;
     }
 
-    private HBox makeBottomMenu(BorderPane root, ScrollPane sp) {
+/*    private HBox makeBottomMenu(BorderPane root, ScrollPane sp) {
         HBox lowerMenu = new HBox();
         Rectangle menuRec = new Rectangle(100, 60);
         Rectangle searchRect = new Rectangle(100, 60);
 
 
-        HBox.setHgrow(menuRec, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
         HBox.setHgrow(searchField, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
-        HBox.setHgrow(searchRect, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
         HBox.setMargin(searchField, new Insets(10, 25, 10, 25));
         lowerMenu.setPrefHeight(65);
         lowerMenu.setMaxHeight(65);
@@ -370,6 +378,43 @@ public class Controller extends Application {
         lowerMenu.getChildren().addAll(menuRec, searchField, searchRect);
 
         return lowerMenu;
+    }*/
+    private HBox makeTopMenu(BorderPane root, ScrollPane sp) throws FileNotFoundException {
+        HBox topMenu = new HBox();
+        Image search = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/Search-white.png")),30, 15, false, true);
+        ImageView view = new ImageView(search);
+        Button searchButton = new Button();
+        searchButton.setStyle(COMPOSE_STYLE );
+        searchButton.setText("SEARCH");
+        searchButton.setGraphic(view);
+
+
+
+        HBox.setHgrow(searchField, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
+        HBox.setMargin(searchField, new Insets(10, 25, 10, 25));
+
+        topMenu.setPadding(new Insets(2, 2, 2, 2));
+        searchField.setStyle("-fx-font-size: 14;");
+
+
+
+
+        searchField.setTranslateY(-3);
+        searchField.setVisible(false);
+
+        searchButton.setOnMouseClicked(e ->
+        {
+            if(searchField.isVisible()) {
+                userSearchForMessages(root, sp);
+                searchField.setVisible(false);
+            } else
+                displaySearchField(searchField);
+        });
+
+        topMenu.getChildren().addAll( searchButton,searchField);
+        topMenu.setStyle(TOP_STYLE);
+
+        return topMenu;
     }
 
     private void displaySearchField(TextField searchField) {
