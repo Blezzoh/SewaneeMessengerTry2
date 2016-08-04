@@ -143,8 +143,16 @@ public class MessageParser {
         Preconditions.objectNotNull(emailAddress, "emailAddress is null");
         int start = emailAddress.indexOf('<');
         int end = emailAddress.indexOf('>', start) + 1;
-        if (start == -1 || end == -1) return "";
-        return emailAddress.substring(start, end);
+        if (start == -1 || end == -1) return emailAddress;
+        String str = emailAddress.substring(start, end);
+        if (checkIsValidEmailAddress(str)) // primitive check for email address validity
+            return emailAddress;
+        else
+            return str;
+    }
+
+    public static boolean checkIsValidEmailAddress(String emailAddress) {
+        return emailAddress.contains("@") && emailAddress.contains(".") && emailAddress.length() > 7;
     }
 
     public static String parseSenderFromEmail(FullMessage message) {

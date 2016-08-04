@@ -4,6 +4,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -16,16 +17,25 @@ import javafx.scene.layout.VBox;
 public class Composer extends BorderPane {
 
     private TextArea bodyText;
-    /*
-    composerId is set by the manager
-     */
     private TextField emailAddress;
     private TextField Cc;
-    private HBox sendAndExtrasContainer;
     private Button send;
     private Button attachments;
     private TextField subject;
     private VBox vbox;
+    private ImageView xCloser;
+
+    public Button getSend() {
+        return send;
+    }
+
+    public Button getAttachments() {
+        return attachments;
+    }
+
+    public ImageView getxCloser() {
+        return xCloser;
+    }
 
     public Composer() {
 
@@ -66,16 +76,24 @@ public class Composer extends BorderPane {
         });
 */
 
-        sendAndExtrasContainer = new HBox(8, send, attachments);
+        HBox sendAndExtrasContainer = new HBox(8, send, attachments);
+        xCloser = xCloserSettings(new ImageView
+                ("https://cdn3.iconfinder.com/data/icons/virtual-notebook/16/button_close-128.png"));
         vbox = new VBox(8);
         vboxSettings();
-        vbox.getChildren().addAll(emailAddress, Cc, subject, bodyText, sendAndExtrasContainer);
+        vbox.getChildren().addAll(xCloser, emailAddress, Cc, subject, bodyText, sendAndExtrasContainer);
         this.setCenter(vbox);
         this.setVisible(false);
     }
 
     private void vboxSettings() {
         vbox.setPadding(new Insets(4));
+    }
+
+    private ImageView xCloserSettings(ImageView xCloser) {
+        xCloser.setFitHeight(15);
+        xCloser.setFitWidth(15);
+        return xCloser;
     }
 
     private void initFields() {

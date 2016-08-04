@@ -33,7 +33,7 @@ public class Inbox implements Auth, Emailer {
     static final String MESSAGE_NULL_ERROR = "param message is null";
     private static final String QUERY_NULL_ERROR = "param query is null";
     // Assuming you are sending email from localhost
-    private String host = "localhost";
+    private static String host = "localhost";
     private List<Message> inbox;
     private Authenticator auth;
     private int retries = 0;
@@ -270,7 +270,7 @@ public class Inbox implements Auth, Emailer {
      * @return Session with the default system properties
      *
      */
-    public Session getSessionWithDefaultProps() {
+    public static Session getSessionWithDefaultProps() {
         Properties props = System.getProperties();
         props.setProperty("mail.smtp.host",host);
         return Session.getDefaultInstance(props);
@@ -285,17 +285,16 @@ public class Inbox implements Auth, Emailer {
      * @return composed MimeMessage
      * @throws MessagingException
      */
-    public MimeMessage composeMessage(Session session,
-                                      String to,
+    public MimeMessage composeMessage(String to,
                                       String subject,
                                       String message) throws MessagingException {
 
-        MimeMessage m = new MimeMessage(session);
+        MimeMessage m = new MimeMessage(getSessionWithDefaultProps());
         m.setFrom(new InternetAddress(this.auth.userId));
 
         // TODO: if CC/BCC contains an email address, iterate through the
         // TODO: email addresses using this method
-        m.addRecipients(javax.mail.Message.RecipientType.CC,to);
+        m.addRecipients(MimeMessage.RecipientType.CC, to);
         m.setSubject(subject);
         m.setText(message);
         return m;
@@ -309,7 +308,7 @@ public class Inbox implements Auth, Emailer {
             for (int i = 0; i < inbox.size()/25; i++) {
                 FullMessage fm = new FullMessage(this,inbox.get(i));
                 if(!emailAddresses.contains(fm.getFrom()))
-                    emailAddresses.add(MessageParser.parseEmailAddress(fm.getFrom()));
+                    emailAddresses.add(fm.getFrom());
             }
             Collections.sort(emailAddresses);
         } catch (IOException e) {

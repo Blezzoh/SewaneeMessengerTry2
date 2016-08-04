@@ -1,15 +1,13 @@
 package com.danielevans.email;
 
-import com.google.api.client.util.Base64;
 import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartHeader;
 import messenger_interface.Emailer;
 
 import javax.mail.MessagingException;
-import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -39,21 +37,10 @@ public class FullMessage implements Auth, Emailer {
     private static final String PROBLEM_TRASHING_MESSAGE = "There were problems trashing message with id ";
     private Message m;
     private Authenticator auth;
-    public static final int REPLY = 0;
-    public static final int FWD = 0;
 
-    public FullMessage(Authenticator auth, Message message) throws IOException {
-        this.auth = auth;
+    public FullMessage(Auth auth, Message message) throws IOException {
+        this.auth = auth.getAuth();
         this.m = getFullMessagePayload(message);
-    }
-
-    public FullMessage(Inbox inbox, Message message) throws IOException {
-        this(inbox.getAuth(), message);
-    }
-
-    public FullMessage(Inbox inbox, String mId) throws IOException {
-        this.auth = inbox.getAuth();
-        this.m = getFullMessagePayload(mId);
     }
 
     public Authenticator getAuth() {
@@ -110,6 +97,10 @@ public class FullMessage implements Auth, Emailer {
         } catch (Exception ignored) {
         }
         return null;
+    }
+
+    public MessagePart getPayload() {
+        return m.getPayload();
     }
 
     /**
@@ -338,11 +329,7 @@ public class FullMessage implements Auth, Emailer {
          */
         List<MessagePartHeader> headers = m.getPayload().getHeaders();
         for (MessagePartHeader header : headers) {
-            // TESTING
-//            System.out.println(header);
             if (header.getName().equals(part)) {
-                // when we find the correct header (key),
-                // return its value
                 return header.getValue();
             }
         }
@@ -413,7 +400,7 @@ public class FullMessage implements Auth, Emailer {
      * @return the person who sent this message to the user
      */
     public String getFrom() {
-        return getHeaderPart(FROM);
+        return MessageParser.parseEmailAddress(getHeaderPart(FROM));
     }
 
     public String getDate() {
@@ -421,7 +408,7 @@ public class FullMessage implements Auth, Emailer {
     }
 
     public String getTo() {
-        return getHeaderPart(TO);
+        return MessageParser.parseEmailAddress(getHeaderPart(TO));
     }
 
     public String getMailingList() {
@@ -432,7 +419,7 @@ public class FullMessage implements Auth, Emailer {
      * @return email address that can be used to reply to message
      */
     public String getReplyToAddress() {
-        return getHeaderPart(REPLY_TO);
+        return MessageParser.parseEmailAddress(getHeaderPart(REPLY_TO));
     }
 
     /**
@@ -466,34 +453,15 @@ public class FullMessage implements Auth, Emailer {
         return m;
     }
 
-    /**
-     * Create a Message from an email
-     *
-     * @param email Email to be set to raw of message
-     * @return Message containing base64 encoded email.
-     * @throws IOException
-     * @throws MessagingException
-     */
-    public static Message createMessageWithEmail(MimeMessage email)
-            throws MessagingException, IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        email.writeTo(baos);
-        String encodedEmail = Base64.encodeBase64URLSafeString(baos.toByteArray());
-        Message message = new Message();
-        message.setRaw(encodedEmail);
-        return message;
-    }
-
     @Override
-    public MimeMessage composeMessage(Session session,
-                                      String to,
+    public MimeMessage composeMessage(String to,
                                       String subject,
                                       String message) throws MessagingException {
-        Preconditions.objectNotNull(session, "session is null");
+
         Preconditions.objectNotNull(to, "to is null");
         Preconditions.objectNotNull(subject, "subject is null");
         Preconditions.objectNotNull(message, "message is null");
-        MimeMessage m = new MimeMessage(session);
+        MimeMessage m = new MimeMessage(Inbox.getSessionWithDefaultProps());
         m.setFrom(new InternetAddress(this.auth.userId));
 
         // TODO: if CC/BCC contains an email address, iterate through the

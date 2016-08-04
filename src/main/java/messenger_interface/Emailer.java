@@ -1,7 +1,8 @@
 package messenger_interface;
 
+import com.danielevans.email.Authenticator;
+
 import javax.mail.MessagingException;
-import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 
@@ -12,10 +13,12 @@ import java.io.IOException;
  */
 public interface Emailer {
 
-    public MimeMessage composeMessage(Session session, String to,
-                                      String subject, String message)
+    MimeMessage composeMessage(String to,
+                               String subject, String message)
             throws MessagingException;
 
-    public void sendMessage(MimeMessage email)
+    void sendMessage(MimeMessage email)
             throws MessagingException, IOException;
+
+    Authenticator getAuth();
 }
