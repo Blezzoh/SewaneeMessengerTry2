@@ -71,12 +71,14 @@ public class ComposerManager extends BorderPane {
                 buttonContainer.getChildren().remove(currentButton);
                 currentButton = getButton(currentData.getComposerDataId());
                 colorButtons(currentButton);
+                System.out.println("composer data list size -> " + composerDataList.size());
             }
             // close the Composer because there is not other ComposerData
             else {
                 hideComposer();
                 composerDataList.remove(currentData);
                 buttonContainer.getChildren().remove(currentButton);
+                System.out.println("composer data list size -> " + composerDataList.size());
             }
         });
         composer.getSend().setOnMousePressed(e -> {
@@ -173,6 +175,7 @@ public class ComposerManager extends BorderPane {
                         currentData = getComposerData(button.getComposerDataId());
                         setComposerFields(currentData);
                     });
+            System.out.println("composer data list size -> " + composerDataList.size());
             return true;
         }
         return false;
@@ -207,9 +210,9 @@ public class ComposerManager extends BorderPane {
         for (int i = 0; i < buttonContainer.getChildren().size(); i++) {
             Button button = (Button) buttonContainer.getChildren().get(i);
             if (button == cmButton)
-                button.setStyle("-fx-background-color: blue; -fx-text-fill: white");
+                button.setStyle("-fx-background-color: rgba(7, 171,202,.7); -fx-text-fill: white");
             else
-                button.setStyle("-fx-background-color: black; -fx-text-fill: white");
+                button.setStyle("-fx-background-color: rgba(7, 171,202,1); -fx-text-fill: white");
         }
     }
 

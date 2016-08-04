@@ -21,6 +21,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -179,11 +180,15 @@ public class MessageItem extends HBox {
             // load html version
             engine.loadContent(bodyText);
         stage = (Stage) this.getScene().getWindow();
-        double x = sceneStack.peek().getWidth(), y = sceneStack.peek().getWidth();
+        double stageX = stage.getWidth(), stageY = stage.getHeight();
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        // make sure that the size of the of the scene is smaller than the screen size
+        stageX = stageX >= screenSize.getWidth() ? stageX - 250 : stageX;
+        stageY = stageY >= screenSize.getHeight() ? stageY - 250 : stageY;
         BorderPane p = new BorderPane();
         p.setTop(b);
         p.setCenter(wv);
-        Scene body = new Scene(p, x, y);
+        Scene body = new Scene(p, stageX, stageY);
         sceneStack.push(body);
         body.getStylesheets().add("MessengerStyle.css");
         stage.setScene(sceneStack.peek());
@@ -205,7 +210,8 @@ public class MessageItem extends HBox {
     /**
      * GUIs that represents the set of options that can be applied to a MessageItem
      *
-     * @param root*/
+     * @param root
+     */
     private void addOptionsOnMessage(BorderPane root) throws FileNotFoundException {
 
         firstRowOptions = new HBox();
@@ -220,13 +226,8 @@ public class MessageItem extends HBox {
 
         downloadAttach = new ImageView(download);
         setMargin(downloadAttach, new Insets(1,5,1,1));
+        // TODO: set the forwardEmail event to interact with ComposerManger
         forwardEmail = new ImageView(forward);
-        /*forwardEmail.setOnMousePressed(event -> {
-            Composer cm = new Composer(fm);
-            cm.getSubject().setText("FWD: " + fm.getSubject());
-            cm.getEmailAddress().requestFocus();
-//            root.setRight(no);
-        });*/
         setMargin(forwardEmail, new Insets(1,5,1,1));
         labelEmail = new ImageView(label);
         setMargin(labelEmail, new Insets(1,5,1,1));
@@ -236,14 +237,8 @@ public class MessageItem extends HBox {
 
         markEmail = new ImageView( mark);
         setMargin(markEmail, new Insets(1,5,1,1));
+        // TODO: set the replyEmail event to interact with ComposerManger
         replyEmail= new ImageView(reply);
-        /*replyEmail.setOnMouseClicked(event -> {
-            Composer cm = new Composer(fm);
-            cm.getEmailAddress()
-                    .setText(MessageParser.parseEmailAddress(fm.getFrom()));
-            cm.getSubject().setText("REPLY: " + fm.getSubject());
-            cm.getBodyText().requestFocus();
-        });*/
         setMargin(replyEmail, new Insets(1,5,1,1));
         addToTrash = new ImageView(trash);
         setMargin(addToTrash, new Insets(1,5,1,1));
