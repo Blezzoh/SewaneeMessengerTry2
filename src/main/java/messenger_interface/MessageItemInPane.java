@@ -39,6 +39,7 @@ public class MessageItemInPane extends StackPane {
     private ListView<String> labelsList;
     private NotificationIcon hoveredIcon, notificationIcon;
     private ImageView reply, forward, mark, addToTrash, download, label;
+
     public MessageItemInPane(MessageItem messageItem) throws FileNotFoundException {
 
         super();
@@ -46,14 +47,9 @@ public class MessageItemInPane extends StackPane {
         label = msgItem.getLabelEmail();
         timer = new Timer();
         label.setOnMouseClicked(event -> showLabels());
-        hoveredIcon = new NotificationIcon("string");
+        hoveredIcon = new NotificationIcon("");
         hoveredIcon.setStyle("-fx-background-color: white;");
         notificationIcon = new NotificationIcon("DONE");
-        reply = msgItem.getReplyEmail();
-        forward = msgItem.getForwardEmail();
-        mark = msgItem.getMarkEmail();
-        addToTrash = msgItem.getAddToTrash();
-        download = msgItem.getDownloadAttach();
 
         /**
          * a listener that controls the clicked label in the labels list's VBox
@@ -112,7 +108,7 @@ public class MessageItemInPane extends StackPane {
 //        mark.setOnMouseClicked(event -> moveEmail("READ"));
 
     }
-
+    // controller method
     /**
      *move the email to a label s and display to the user that the task is done
      */
@@ -135,7 +131,7 @@ public class MessageItemInPane extends StackPane {
         }
 
     }
-
+    // mitem
     /**
      * times the duration a notification
      */
@@ -149,7 +145,7 @@ public class MessageItemInPane extends StackPane {
             }
         },0, 2000);
     }
-
+    // mitem
     /**
      * Method in charge of cancelling the notification timer
      */
@@ -161,7 +157,7 @@ public class MessageItemInPane extends StackPane {
             timer.cancel();
         }
     }
-
+    // mitem
     /**
      * the next two methods interact with the visibility of the hovered icon and the text displayed by this icon
      */
@@ -169,11 +165,13 @@ public class MessageItemInPane extends StackPane {
         hoveredIcon.setVisible(false);
     }
 
+    // mitem
     private void showIcon(String s) {
         hoveredIcon.setLabelText(s);
         hoveredIcon.setVisible(true);
     }
 
+    // mitem
     /**
      * @param allLabels a list all the labels that the user have in a VBox
      * its adds functionality and listeners to this list
@@ -187,6 +185,7 @@ public class MessageItemInPane extends StackPane {
         allLabels.setPrefHeight(msgItem.getHeight());
 
     }
+    // mitem
 
     /**
      * hides all the labels
@@ -197,6 +196,7 @@ public class MessageItemInPane extends StackPane {
             count=0;
         }
     }
+    // mitem
 
     /**
      * increases the count that controls the visibility of the labels list
@@ -205,6 +205,7 @@ public class MessageItemInPane extends StackPane {
         count = 1;
     }
 
+    // mitem
     /**
      * displays the list of all the labels in a VBox
      */

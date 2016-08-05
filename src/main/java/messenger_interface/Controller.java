@@ -287,7 +287,7 @@ public class Controller extends Application {
         return filteredMessages;
     }
 
-    /**
+    /** -fx-font-size: 26px
      * handles the restructuring of the message items and fills them with the relevant info
      * when application begins and on search
      *
