@@ -3,7 +3,6 @@ package messenger_interface;
 import com.danielevans.email.ComposerData;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
-import com.danielevans.email.Preconditions;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -30,10 +29,9 @@ public class ComposerManager extends BorderPane {
     private static final int DRAFT = 2;
 
 
-    public ComposerManager(Composer c) {
+    public ComposerManager() {
         super();
-        Preconditions.objectNotNull(c, "Composer cannot be null");
-        composer = c;
+        composer = new Composer();
         composer.setVisible(false);
         setComposerEvents();
         composerDataList = new LinkedList<>();

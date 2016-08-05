@@ -23,6 +23,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
+import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -85,7 +86,7 @@ public class Controller extends Application {
         top.getChildren().add(0, composeButton);
         composeButton.setOnMousePressed(event -> right.createNewMessage(inbox));
         root.setTop(top);
-        right = new ComposerManager(new Composer());
+        right = new ComposerManager();
         root.setRight(right);
 
         initSpAndCenter();
@@ -141,6 +142,8 @@ public class Controller extends Application {
         createPaginator(root, sp);
         primaryStage.setScene(scene);
         primaryStage.initStyle(StageStyle.UNIFIED);
+        primaryStage.setWidth(Toolkit.getDefaultToolkit().getScreenSize().getWidth());
+        primaryStage.setHeight(Toolkit.getDefaultToolkit().getScreenSize().getHeight());
         System.out.println("init time: " +
                 (System.currentTimeMillis() - initTime) / 1000.0);
         primaryStage.show();
