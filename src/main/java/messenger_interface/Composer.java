@@ -1,17 +1,19 @@
 package messenger_interface;
 
 import javafx.geometry.Insets;
+import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.image.ImageView;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Rectangle;
 
 /**
  * Created by daniel on 6/8/16.
- *
  * @author Daniel Evans
  */
 public class Composer extends BorderPane {
@@ -23,7 +25,23 @@ public class Composer extends BorderPane {
     private Button attachments;
     private TextField subject;
     private VBox vbox;
-    private ImageView xCloser;
+    private Rectangle xCloser;
+
+    public Composer() {
+
+        initFields();
+
+        HBox sendAndExtrasContainer = new HBox(8, send, attachments);
+        setButtonEvents();
+        xCloser = xCloserSettings
+                (makeImage("https://cdn3.iconfinder.com/data/icons/virtual-notebook/16/button_close-128.png"
+                        , 15, 15));
+        vbox = new VBox(8);
+        vboxSettings();
+        vbox.getChildren().addAll(xCloser, emailAddress, Cc, subject, bodyText, sendAndExtrasContainer);
+        this.setCenter(vbox);
+        this.setVisible(false);
+    }
 
     public Button getSend() {
         return send;
@@ -33,66 +51,20 @@ public class Composer extends BorderPane {
         return attachments;
     }
 
-    public ImageView getxCloser() {
+    public Rectangle getxCloser() {
         return xCloser;
     }
 
-    public Composer() {
-
-        initFields();
-/*
-        attachments.setOnMouseClicked(e ->
-        {
-            // open file manager, load attachment into message
-        });
-
-        send.setOnMouseClicked(e ->
-        {
-            // TODO: display a message to user as well as return so that user knows what
-            // she needs to do to send the message
-            if (bodyText.getText().equals(""))
-                return;
-            else if (emailAddress.getText().equals(""))
-                return;
-                // else if check if it is a valid email address
-            else {
-                // upload attachment if any
-                // ...
-                // make message and send
-                MimeMessage mimeMessage = null;
-                try {
-
-                    Properties props = System.getProperties();
-                    props.setProperty("mail.smtp.host", "localhost");
-                    Session session = Session.getDefaultInstance(props);
-                    mimeMessage = emailer
-                            .composeMessage(session, emailAddress.getText()
-                                    , subject.getText(), bodyText.getText());
-                    emailer.sendMessage(mimeMessage);
-                } catch (MessagingException | IOException e1) {
-                    e1.printStackTrace();
-                }
-            }
-        });
-*/
-
-        HBox sendAndExtrasContainer = new HBox(8, send, attachments);
-        xCloser = xCloserSettings(new ImageView
-                ("https://cdn3.iconfinder.com/data/icons/virtual-notebook/16/button_close-128.png"));
-        vbox = new VBox(8);
-        vboxSettings();
-        vbox.getChildren().addAll(xCloser, emailAddress, Cc, subject, bodyText, sendAndExtrasContainer);
-        this.setCenter(vbox);
-        this.setVisible(false);
+    private void setButtonEvents() {
+        send.setOnMouseEntered(e -> this.getScene().setCursor(Cursor.HAND));
+        send.setOnMouseExited(e -> this.getScene().setCursor(Cursor.DEFAULT));
     }
 
     private void vboxSettings() {
         vbox.setPadding(new Insets(4));
     }
 
-    private ImageView xCloserSettings(ImageView xCloser) {
-        xCloser.setFitHeight(15);
-        xCloser.setFitWidth(15);
+    private Rectangle xCloserSettings(Rectangle xCloser) {
         return xCloser;
     }
 
@@ -108,6 +80,16 @@ public class Composer extends BorderPane {
         Cc.setPromptText("Cc: ");
         send = new Button("Send");
         attachments = new Button("Attachment");
+    }
+
+    private Rectangle makeImage(String imageUrl,
+                                double requestedWidth,
+                                double requestedHeight) {
+        Image imageField = new Image(imageUrl, requestedWidth, requestedHeight
+                , true, true, false);
+        ImagePattern imageView = new ImagePattern(imageField);
+
+        return new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
     }
 
     public TextField getEmailAddress() {

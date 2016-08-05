@@ -4,6 +4,7 @@ import com.danielevans.email.FullMessage;
 import com.danielevans.email.MessageParser;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -38,6 +39,7 @@ public class MessageItem extends HBox {
     private static final String STYLE_ON_EXIT = "-fx-background-color: white;" + "-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
     private static final String BACKB_STYLE = "-fx-font-family: AR DESTINE; -fx-font-size: 26px; -fx-background-color: rgba(7, 171,202,1); -fx-border-color: rgb(255, 153, 51);" +
             "-fx-effect: dropshadow(three-pass-box, black, 2, 0, 3, 3); -fx-text-fill: white; -fx-font-weight: bolder; ";
+
     private Text senderField, subjectField, snippetField, dateField;
     private HBox secondRowOptions;
     private HBox firstRowOptions;
@@ -55,18 +57,16 @@ public class MessageItem extends HBox {
         sceneStack = stack;
         initTextFields(m);
         addOptionsOnMessage(root);
+
         // add the image to the message item
         Image imageField = new Image(imageUrl, 80, 0, true, true, false);
         ImagePattern imageView = new ImagePattern(imageField);
-//        ImageView imageView = new ImageView(imageField);
-
-
         Rectangle canvas = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
         canvas.setArcHeight(20);
         canvas.setArcWidth(20);
         VBox picField = new VBox(canvas, senderField, dateField,firstRowOptions);
-        VBox msgSummary = new VBox(subjectField, snippetField);
 
+        VBox msgSummary = new VBox(subjectField, snippetField);
         VBox container = new VBox(msgSummary);
         firstRowOptions.setAlignment(Pos.BOTTOM_LEFT);
 
@@ -81,10 +81,14 @@ public class MessageItem extends HBox {
         container.setBackground(new Background(new BackgroundFill(Color.rgb(255, 153, 51, .8), new CornerRadii(5), new Insets(0))));
         container.setPadding(new Insets(4));
 
-        setOnMouseEntered(event -> this.setStyle(STYLE_ON_ENTER));
-        setOnMouseExited(event -> this.setStyle(STYLE_ON_EXIT));
+        this.setOnMouseEntered(event -> {
+            this.setStyle(STYLE_ON_ENTER);
+        });
+        this.setOnMouseExited(event -> {
+            this.setStyle(STYLE_ON_EXIT);
+        });
 
-
+        setButtonAndImageEvents();
 
         DropShadow dropShadow = new DropShadow();
         dropShadow.setRadius(5. * 0);
@@ -112,25 +116,46 @@ public class MessageItem extends HBox {
         senderField.setWrappingWidth(100);
 
         senderField.setFont(Font.font("Trebuchet MS", 13));
-        senderField.setFill(Color.WHITE);
         snippetField.setFont(Font.font("Trebuchet MS", 13));
         snippetField.setFill(Color.WHITE);
         dateField.setFont(Font.font("Trebuchet MS", 13));
         subjectField.setFont(Font.font("Trebuchet MS", FontWeight.BLACK, 13));
         subjectField.setFill(Color.WHITE);
 
-        // EVENTS
-        snippetField.setOnMouseEntered(event -> underline(snippetField));
-        subjectField.setOnMouseEntered(event -> underline(subjectField));
-        subjectField.setOnMouseExited(event -> removeUnderline(subjectField));
-        snippetField.setOnMouseExited(event -> removeUnderline(snippetField));
-        subjectField.setOnMouseClicked(event -> {
-
-            showContent();
-            System.out.println(event.getSource().equals(this));
-        });
+        subjectField.setOnMouseClicked(event -> showContent());
         snippetField.setOnMouseClicked(event -> showContent());
         b.setOnMouseClicked(event -> goBack());
+    }
+
+    public void setButtonAndImageEvents() {
+        // EVENTS
+        b.setOnMouseEntered(e -> this.getScene().setCursor(Cursor.HAND));
+        b.setOnMouseExited(e -> this.getScene().setCursor(Cursor.DEFAULT));
+        snippetField.setOnMouseEntered(event -> {
+            underline(snippetField);
+            this.getScene().setCursor(javafx.scene.Cursor.HAND);
+        });
+        subjectField.setOnMouseEntered(event -> {
+            underline(subjectField);
+            this.getScene().setCursor(javafx.scene.Cursor.HAND);
+
+        });
+        subjectField.setOnMouseExited(event -> {
+            removeUnderline(subjectField);
+            this.getScene().setCursor(Cursor.DEFAULT);
+        });
+        snippetField.setOnMouseExited(event -> {
+            removeUnderline(snippetField);
+            this.getScene().setCursor(Cursor.DEFAULT);
+        });
+        for (int i = 0; i < firstRowOptions.getChildren().size(); i++) {
+            firstRowOptions.getChildren().get(i).setOnMouseEntered(e -> {
+                this.getScene().setCursor(javafx.scene.Cursor.HAND);
+            });
+            firstRowOptions.getChildren().get(i).setOnMouseExited(e -> {
+                this.getScene().setCursor(javafx.scene.Cursor.HAND);
+            });
+        }
     }
 
     public FullMessage getFm() {
@@ -225,23 +250,23 @@ public class MessageItem extends HBox {
         Image trash = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/trash.png")), 20, 20, true, true);
 
         downloadAttach = new ImageView(download);
-        setMargin(downloadAttach, new Insets(1,5,1,1));
+        HBox.setMargin(downloadAttach, new Insets(1, 5, 1, 1));
         // TODO: set the forwardEmail event to interact with ComposerManger
         forwardEmail = new ImageView(forward);
-        setMargin(forwardEmail, new Insets(1,5,1,1));
+        HBox.setMargin(forwardEmail, new Insets(1, 5, 1, 1));
         labelEmail = new ImageView(label);
-        setMargin(labelEmail, new Insets(1,5,1,1));
+        HBox.setMargin(labelEmail, new Insets(1, 5, 1, 1));
 //        secondRowOptions.getChildren().add(allLabels);
         secondRowOptions.setVisible(false);
 
 
         markEmail = new ImageView( mark);
-        setMargin(markEmail, new Insets(1,5,1,1));
+        HBox.setMargin(markEmail, new Insets(1, 5, 1, 1));
         // TODO: set the replyEmail event to interact with ComposerManger
         replyEmail= new ImageView(reply);
-        setMargin(replyEmail, new Insets(1,5,1,1));
+        HBox.setMargin(replyEmail, new Insets(1, 5, 1, 1));
         addToTrash = new ImageView(trash);
-        setMargin(addToTrash, new Insets(1,5,1,1));
+        HBox.setMargin(addToTrash, new Insets(1, 5, 1, 1));
 
         firstRowOptions.getChildren().addAll(replyEmail,forwardEmail, labelEmail, downloadAttach, markEmail,addToTrash );
     }

@@ -95,6 +95,10 @@ public class ComposerData {
         MimeMessage mimeMessage = null;
         try {
             mimeMessage = emailer.composeMessage(emailAddress, subject, body);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e1) {
+            }
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -104,5 +108,4 @@ public class ComposerData {
             e.printStackTrace();
         }
     }
-
 }

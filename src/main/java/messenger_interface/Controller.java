@@ -383,7 +383,7 @@ public class Controller extends Application {
         Image search = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/Search-white.png")),30, 15, false, true);
         ImageView view = new ImageView(search);
         Button searchButton = new Button();
-        searchButton.setStyle(COMPOSE_STYLE );
+        searchButton.setStyle(COMPOSE_STYLE);
         searchButton.setText("SEARCH");
         searchButton.setGraphic(view);
 
