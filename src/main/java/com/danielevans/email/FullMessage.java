@@ -3,14 +3,12 @@ package com.danielevans.email;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartHeader;
-import messenger_interface.Emailer;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import static com.danielevans.email.Inbox.MESSAGE_NULL_ERROR;
 import static com.danielevans.email.Inbox.decodeString;
@@ -168,24 +166,6 @@ public class FullMessage implements Auth, Emailer {
         }
         // decode the largest string
         return Inbox.decodeString(largest);
-    }
-
-    // </?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[\^'">\s]+))?)+\s*|\s*)/?>
-    public static boolean testForHTML(String largest) {
-        String r1 = "</?\\w+((\\s+\\w+(\\s*=\\s*(?:\".*?\"|'.*?'|[\\^'\">\\s]+))?)+\\s*|\\s*)/?>";
-        Pattern p1 = Pattern.compile(r1);
-        for (int i = 0; i + 1 < largest.length(); ) {
-            int i1 = largest.indexOf("<", i);
-            int i2 = largest.indexOf(">", i1);
-            if (i1 == -1 || i2 == -1 || i2 == largest.length() - 1)
-                return false;
-
-            if (p1.matcher(largest.substring(i1, i2 + 1)).matches()) {
-                return true;
-            }
-            i = i2 + 1;
-        }
-        return false;
     }
 
     private String getMessageBodyAsHTML(Message message) throws IOException {

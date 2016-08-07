@@ -1,6 +1,4 @@
-package messenger_interface;
-
-import com.danielevans.email.Authenticator;
+package com.danielevans.email;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -11,7 +9,7 @@ import java.io.IOException;
  *
  * @author Daniel Evans
  */
-public interface Emailer {
+public interface Emailer extends Auth {
 
     MimeMessage composeMessage(String to,
                                String subject, String message)
@@ -19,6 +17,4 @@ public interface Emailer {
 
     void sendMessage(MimeMessage email)
             throws MessagingException, IOException;
-
-    Authenticator getAuth();
 }

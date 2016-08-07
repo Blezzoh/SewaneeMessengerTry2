@@ -7,6 +7,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.regex.Pattern;
 
 import static com.danielevans.email.Inbox.MESSAGE_NULL_ERROR;
 
@@ -153,6 +154,24 @@ public class MessageParser {
 
     public static boolean checkIsValidEmailAddress(String emailAddress) {
         return emailAddress.contains("@") && emailAddress.contains(".") && emailAddress.length() > 7;
+    }
+
+    // </?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[\^'">\s]+))?)+\s*|\s*)/?>
+    public static boolean testForHTML(String strToTest) {
+        String r1 = "</?\\w+((\\s+\\w+(\\s*=\\s*(?:\".*?\"|'.*?'|[\\^'\">\\s]+))?)+\\s*|\\s*)/?>";
+        Pattern p1 = Pattern.compile(r1);
+        for (int i = 0; i + 1 < strToTest.length(); ) {
+            int i1 = strToTest.indexOf("<", i);
+            int i2 = strToTest.indexOf(">", i1);
+            if (i1 == -1 || i2 == -1 || i2 == strToTest.length() - 1)
+                return false;
+
+            if (p1.matcher(strToTest.substring(i1, i2 + 1)).matches()) {
+                return true;
+            }
+            i = i2 + 1;
+        }
+        return false;
     }
 
     public static String parseSenderFromEmail(FullMessage message) {

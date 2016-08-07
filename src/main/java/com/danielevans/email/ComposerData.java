@@ -3,7 +3,6 @@ package com.danielevans.email;
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
 import messenger_interface.Composer;
-import messenger_interface.Emailer;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;

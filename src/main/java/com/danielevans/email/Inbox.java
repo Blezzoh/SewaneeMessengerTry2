@@ -7,7 +7,6 @@ import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;
-import messenger_interface.Emailer;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;

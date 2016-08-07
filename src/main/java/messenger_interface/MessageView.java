@@ -1,5 +1,6 @@
 package messenger_interface;
 
+import com.danielevans.email.Emailer;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.MessageParser;
 import javafx.geometry.Insets;
@@ -21,6 +22,7 @@ import javafx.scene.text.Text;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import org.w3c.dom.css.Rect;
 
 import java.awt.*;
 import java.io.File;
@@ -32,7 +34,8 @@ import java.io.IOException;
  * Created by iradu_000 on 6/3/2016.
  * @author Blaise Iradukunda
  */
-public class MessagePane extends TilePane {
+public class
+MessageView extends StackPane {
 
     private static final String ITEM_STYLE = "-fx-padding: 10px; "+"-fx-background-color:white;" + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #66007a;";
     private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
@@ -45,20 +48,25 @@ public class MessagePane extends TilePane {
     private Text senderField, subjectField, snippetField, dateField;
     private HBox firstRowOptions;
     private Button b;
-    private FullMessage fm;
     private ImageView labelEmail, downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
-
     private Rectangle picCanvas;
 
-    private Stage stage;
+    public String getMessageId() {
+        return messageId;
+    }
 
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
 
-    public MessagePane(FullMessage m, String imageUrl) throws IOException {
+    private String messageId;
+
+    public MessageView(String messageId, String imageUrl) {
 
         super();
-        this.fm = m;
+        initFields()
+        this.messageId = messageId;
 //        sceneStack = stack;
-        initFields(m);
         initHoveredIcon();
         addMessageOptions();
 
@@ -76,15 +84,8 @@ public class MessagePane extends TilePane {
         HBox message = initMessage();
         message.getChildren().addAll(picField, container);
 
-        StackPane stackPane = initStackPane(message);
+        this.getChildren().addAll(message, hoveredIcon);
 
-
-        // MessagePane events and style handling
-        this.setHgap(8);
-        this.setVgap(5);
-        this.setPadding(new Insets(8, 0, 8, 0));
-        this.setAlignment(Pos.CENTER);
-        this.setStyle("-fx-background-color: rgba(7, 171,202,.4)");
 
         // button and image view events
         setButtonAndImageEvents();
@@ -92,12 +93,6 @@ public class MessagePane extends TilePane {
         // the shadow behind the MessagePane
         createMessagePaneShadow();
 
-    }
-
-    private StackPane initStackPane(HBox message) {
-        StackPane stackPane = new StackPane();
-        stackPane.getChildren().addAll(message, hoveredIcon);
-        return stackPane;
     }
 
     private HBox initMessage() {
@@ -122,24 +117,65 @@ public class MessagePane extends TilePane {
         this.setEffect(dropShadow);
     }
 
-    private VBox loadImage(String imageUrl) {
+    public static Rectangle makeImage(String imageUrl) {
         // add the image to the message item
         Image imageField = new Image(imageUrl, 80, 0, true, true, false);
         ImagePattern imageView = new ImagePattern(imageField);
-        picCanvas = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
-        picCanvas.setArcHeight(20);
-        picCanvas.setArcWidth(20);
+        Rectangle image = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
+        image.setArcHeight(20);
+        image.setArcWidth(20);
+        return image;
+    }
+
+    private VBox loadImage(String imageUrl) {
+        picCanvas = makeImage(imageUrl);
         return new VBox(picCanvas, senderField, dateField, firstRowOptions);
     }
 
-    private void initFields(FullMessage m) {
+    public NotificationIcon getHoveredIcon() {
+        return hoveredIcon;
+    }
+
+    public void setHoveredIcon(NotificationIcon hoveredIcon) {
+        this.hoveredIcon = hoveredIcon;
+    }
+
+    public void setSenderField(Text senderField) {
+        this.senderField = senderField;
+    }
+
+    public void setSubjectField(Text subjectField) {
+        this.subjectField = subjectField;
+    }
+
+    public void setSnippetField(Text snippetField) {
+        this.snippetField = snippetField;
+    }
+
+    public Text getDateField() {
+        return dateField;
+    }
+
+    public void setDateField(Text dateField) {
+        this.dateField = dateField;
+    }
+
+    public Button getB() {
+        return b;
+    }
+
+    public void setB(Button b) {
+        this.b = b;
+    }
+
+    private void initFields() {
         // Initialization
         b = new Button("<-");
         setSize(b, 60, 40);
-        senderField = new Text(MessageParser.parseSenderFromEmail(m));
-        subjectField = new Text("S: " + m.getSubject() + "\n");
-        snippetField = new Text(m.getSnippet());
-        dateField = new Text("Sent: " + MessageParser.parseDate(fm.getDate()));
+        senderField = new Text();
+        subjectField = new Text();
+        snippetField = new Text();
+        dateField = new Text();
 
         // Look/Feel
         b.setStyle(BACKB_STYLE);
@@ -260,18 +296,12 @@ public class MessagePane extends TilePane {
 //        mark.setOnMouseClicked(event -> moveEmail("READ"));
     }
 
-    public FullMessage getFm() {
-        return fm;
-    }
-
     // controller method
     public void setFm(FullMessage fm) {
-        this.fm = fm;
         snippetField.setText(fm.getSnippet());
         subjectField.setText(fm.getSubject());
         senderField.setText(MessageParser.parseSenderFromEmail(fm));
         dateField.setText("Sent: " + MessageParser.parseDate(fm.getDate()));
-
     }
 
     private static void setSize(Node node, double w, double h) {
@@ -305,9 +335,9 @@ public class MessagePane extends TilePane {
 
         // loadContent(String) will return and do nothing if bodyText is null
         // therefore the old bodyText from previous message Item will be loaded when the
-        // user clicks on the snippet or the subject
+        // user clicks on the snippet or the subject (see line 1199 of WebPage class)
         WebEngine engine = wv.getEngine();
-        if (!FullMessage.testForHTML(bodyText))
+        if (!MessageParser.testForHTML(bodyText))
             // load plain text version
             engine.loadContent(bodyText, "text/plain");
         else
@@ -344,18 +374,38 @@ public class MessagePane extends TilePane {
     /**
      * GUIs that represents the set of options that can be applied to a MessageItem
      */
-    private void addMessageOptions() throws FileNotFoundException {
+    private void addMessageOptions() {
 
         firstRowOptions = new HBox();
         firstRowOptions.setAlignment(Pos.BOTTOM_LEFT);
 
-        Image download = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/download.png")), 20, 20, true, true);
-        Image forward = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/forward.png")), 20, 20, true, true);
-        Image label = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/label.png")), 20, 20, true, true);
-        Image mark = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/mark.png")), 20, 20, true, true);
-        Image reply = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/reply.png")), 20, 20, true, true);
-        Image trash = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/trash.png")), 20, 20, true, true);
 
+        Image download = null;
+        Image trash = null;
+        Image reply = null;
+        Image mark = null;
+        Image label = null;
+        Image forward = null;
+        try {
+            download = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/download.png")), 20, 20, true, true);
+        } catch (FileNotFoundException e) { e.printStackTrace();}
+        try {
+            forward = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/forward.png")), 20, 20, true, true);
+        } catch (FileNotFoundException e) {e.printStackTrace();}
+        try {
+            label = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/label.png")), 20, 20, true, true);
+        } catch (FileNotFoundException e) {e.printStackTrace();}
+        try {
+            mark = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/mark.png")), 20, 20, true, true);
+        } catch (FileNotFoundException e) {e.printStackTrace();}
+        try {
+            reply = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/reply.png")), 20, 20, true, true);
+        } catch (FileNotFoundException e) {e.printStackTrace();}
+        try {
+            trash = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/trash.png")), 20, 20, true, true);
+        } catch (FileNotFoundException e) {e.printStackTrace();}
+
+        // TODO: what if the above image local vars are null?????
         downloadAttach = new ImageView(download);
         HBox.setMargin(downloadAttach, new Insets(1, 5, 1, 1));
         // TODO: set the forwardEmail event to interact with ComposerManger

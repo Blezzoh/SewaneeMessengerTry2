@@ -43,14 +43,11 @@ public class Controller extends Application {
             +"-fx-effect: dropshadow(gaussian, black, 2, 0, 3, 3); -fx-border-insets: 3px; -fx-border-width: 2px; -fx-text-fill: white";
     private static final String TOP_STYLE = "-fx-background-color: rgba(7, 171,202,.7); -fx-padding: 15px; -fx-spacing: 15px; -fx-start-margin: 40px; -fx-border-color:rgba(255, 153, 51, .8);" +
             "-fx-border-radius: 3px" ;
-    private static final String SP_STYLE = "";
     private final TextField searchField = new TextField();
-    Pagination pagination;
-    long searchTime;
+    private Pagination pagination;
+    private long searchTime;
     private TilePane center;
     private Inbox inbox;
-    private String imgUrl =
-            "http://4.bp.blogspot.com/-SjsG6gvCasI/Ve6PJxhPEiI/AAAAAAAAFYU/dYvGfnIxPzk/s1600/Kundwa%2BDoriane%2Brwanda.jpg";
     private List<Message> messages;
     private ScrollPane sp;
     private int itemsPerPage = 15;
@@ -90,8 +87,6 @@ public class Controller extends Application {
         root.setRight(right);
 
         initSpAndCenter();
-
-
 
         // creating title for application and scene
         primaryStage.setTitle("Sewanee Messenger");
@@ -163,20 +158,6 @@ public class Controller extends Application {
         sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setFitToWidth(true);
-        sp.setStyle(SP_STYLE);
-        sp.setStyle(SP_STYLE);
-    }
-
-    private void initEmailData() {
-        System.out.println("Initializing email data...");
-        emailData = new Hashtable<>(messages.size() * 2);
-        for (int i = 0; i < messages.size(); i++) {
-            try {
-                emailData.put(messages.get(i).getId(), new FullMessage(inbox, messages.get(i)));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private boolean startsWith(String prefix, String str) {
