@@ -1,5 +1,6 @@
 package messenger_interface;
 
+import com.danielevans.email.Email;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
 import com.google.api.services.gmail.model.Message;
@@ -27,6 +28,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
@@ -39,9 +41,9 @@ import java.util.Stack;
 public class Controller extends Application {
 
     static final String COMPOSE_STYLE = "-fx-background-color: rgba(7, 171,202,.7); -fx-font-family: Trebuchet MS; -fx-font-size: 13px; -fx-font-weight: bold; -fx-border-color: white;"
-            +"-fx-effect: dropshadow(gaussian, black, 2, 0, 3, 3); -fx-border-insets: 3px; -fx-border-width: 2px; -fx-text-fill: white";
+            + "-fx-effect: dropshadow(gaussian, black, 2, 0, 3, 3); -fx-border-insets: 3px; -fx-border-width: 2px; -fx-text-fill: white";
     private static final String TOP_STYLE = "-fx-background-color: rgba(7, 171,202,.7); -fx-padding: 15px; -fx-spacing: 15px; -fx-start-margin: 40px; -fx-border-color:rgba(255, 153, 51, .8);" +
-            "-fx-border-radius: 3px" ;
+            "-fx-border-radius: 3px";
     private static final String SP_STYLE = "";
     private final TextField searchField = new TextField();
     Pagination pagination;
@@ -68,6 +70,13 @@ public class Controller extends Application {
         // inbox gives access to the user's gmail messages using an authenticator
         inbox = new Inbox("iradub0@sewanee.edu");
 
+        try {
+            Class.forName("com.mysql.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+
         // loads the user's inbox
         messages = inbox.getDefaultInbox();
 
@@ -79,7 +88,7 @@ public class Controller extends Application {
         // root container of the interface
         root = new BorderPane();
 
-        HBox top =  makeTopMenu(root, sp);
+        HBox top = makeTopMenu(root, sp);
         Button composeButton = new Button("Compose");
         composeButton.setStyle(COMPOSE_STYLE);
         top.getChildren().add(0, composeButton);
@@ -89,7 +98,6 @@ public class Controller extends Application {
         root.setRight(right);
 
         initSpAndCenter();
-
 
 
         // creating title for application and scene
@@ -166,13 +174,10 @@ public class Controller extends Application {
 
     private void initEmailData() {
         System.out.println("Initializing email data...");
-        emailData = new Hashtable<>(messages.size() * 2);
-        for (int i = 0; i < messages.size(); i++) {
-            try {
-                emailData.put(messages.get(i).getId(), new FullMessage(inbox, messages.get(i)));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            new Email(inbox);
+        } catch (IOException | SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -195,7 +200,7 @@ public class Controller extends Application {
 
         int foundIndex = 0;
         for (int i = 0; i < emailAddresses.size(); i++) {
-            if(emailAddresses.get(i).startsWith(searchText)) {
+            if (emailAddresses.get(i).startsWith(searchText)) {
                 foundIndex = i;
             }
         }
@@ -209,6 +214,7 @@ public class Controller extends Application {
 
     /**
      * this method requires that the messages field and center field not be null
+     *
      * @param root the root interface of the application
      */
     public void createPaginator(BorderPane root, ScrollPane sp) {
@@ -232,8 +238,7 @@ public class Controller extends Application {
                 );
         pagination.setOnMousePressed(e ->
         {
-            if (e.getClickCount() == 1)
-            {
+            if (e.getClickCount() == 1) {
                 searchField.setVisible(false);
             }
         });
@@ -247,7 +252,7 @@ public class Controller extends Application {
         // TODO: HANDLE THE CASE WHERE NO MESSAGES ARE RETURNED
         // only search for messages if the searchField is visible
         // and there is some text in it
-        if(!searchField.isVisible() || searchField.getText().equals(""))
+        if (!searchField.isVisible() || searchField.getText().equals(""))
             return;
         // time is used to show how long search and ui update takes
         /*List<Message> searchMessages =
@@ -295,9 +300,9 @@ public class Controller extends Application {
      */
     private ScrollPane createPage(int pageIndex, ScrollPane sp) throws IOException {
         // TESTING
-        if(center == null || center.getChildren() == null)
+        if (center == null || center.getChildren() == null)
             throw new NullPointerException("center or the container containing its children is null");
-        if(messages == null)
+        if (messages == null)
             throw new NullPointerException("messages is null");
 
         int page = pageIndex * itemsPerPage;
@@ -308,18 +313,31 @@ public class Controller extends Application {
             // need to initialize the message items if they haven't already been initialized
 
             // TEMPORARILY NOT LOADING EMAIL DATA TO SPEED UP INIT TIME
-          if (center.getChildren().size() < itemsPerPage) {
+            if (center.getChildren().size() < itemsPerPage) {
 
-                center.getChildren().add(new MessageItemInPane(new MessageItem
-                        (root, sceneStack, emailData.get(messages.get(i).getId()), imgUrl)));
+                try {
+                    center.getChildren().add(new MessageItemInPane(new MessageItem
+                            (root, sceneStack, new Email(inbox, messages.get(i)), imgUrl)));
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
                 // message items have been init'd so just change the information in the objects
             } else {
                 long time = System.currentTimeMillis();
-                String mId = messages.get(i).getId();
                 // if the search returned messages, that's the only case when we want to reset info in the mItem fields
                 MessageItemInPane item = (MessageItemInPane) center.getChildren().get(messageItemNum);
                 MessageItem mItem = item.getMsgItem();
-                mItem.setFm(emailData.get(mId));
+                try {
+                    Email email = new Email(inbox, messages.get(i));
+                    mItem.setSenderField(email.getFromName());
+                    mItem.setSubjectField(email.getSubject());
+                    mItem.setSnippetField(email.getSnippet());
+                    mItem.setMessageId(email.getMessageId());
+                    mItem.setDateField(email.getDate());
+
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
                 // add info to the message items
 //                mItem.setMessageId(mId);
 //                mItem.setSenderField(MessageParser.parseSenderFromEmail(emailData.get(mId)));
@@ -334,59 +352,58 @@ public class Controller extends Application {
         return sp;
     }
 
-/*    private HBox makeBottomMenu(BorderPane root, ScrollPane sp) {
-        HBox lowerMenu = new HBox();
-        Rectangle menuRec = new Rectangle(100, 60);
-        Rectangle searchRect = new Rectangle(100, 60);
+    /*    private HBox makeBottomMenu(BorderPane root, ScrollPane sp) {
+            HBox lowerMenu = new HBox();
+            Rectangle menuRec = new Rectangle(100, 60);
+            Rectangle searchRect = new Rectangle(100, 60);
 
 
-        HBox.setHgrow(searchField, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
-        HBox.setMargin(searchField, new Insets(10, 25, 10, 25));
-        lowerMenu.setPrefHeight(65);
-        lowerMenu.setMaxHeight(65);
-        lowerMenu.setPadding(new Insets(2, 2, 2, 2));
-        searchField.setPrefHeight(40);
-        searchField.setStyle(""
-                + "-fx-font-weight: bold;"
-                + "-fx-font-size: 16;");
-        lowerMenu.setStyle("" + "-fx-background-radius: 5px");
-        lowerMenu.setStyle("" + "-fx-border-color: rgba(93,56,107,0.5)");
+            HBox.setHgrow(searchField, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
+            HBox.setMargin(searchField, new Insets(10, 25, 10, 25));
+            lowerMenu.setPrefHeight(65);
+            lowerMenu.setMaxHeight(65);
+            lowerMenu.setPadding(new Insets(2, 2, 2, 2));
+            searchField.setPrefHeight(40);
+            searchField.setStyle(""
+                    + "-fx-font-weight: bold;"
+                    + "-fx-font-size: 16;");
+            lowerMenu.setStyle("" + "-fx-background-radius: 5px");
+            lowerMenu.setStyle("" + "-fx-border-color: rgba(93,56,107,0.5)");
 
-        Image search = new Image("http://hive.sewanee.edu/iradub0/webDevelopment/search.png");
-        Image menu = new Image("http://hive.sewanee.edu/iradub0/webDevelopment/menu.png");
+            Image search = new Image("http://hive.sewanee.edu/iradub0/webDevelopment/search.png");
+            Image menu = new Image("http://hive.sewanee.edu/iradub0/webDevelopment/menu.png");
 
 
-        searchRect.setFill(new ImagePattern(search));
-        menuRec.setFill(new ImagePattern(menu));
+            searchRect.setFill(new ImagePattern(search));
+            menuRec.setFill(new ImagePattern(menu));
 
-        menuRec.setArcWidth(10);
-        menuRec.setArcHeight(10);
-        searchRect.setArcWidth(10);
-        searchRect.setArcHeight(10);
+            menuRec.setArcWidth(10);
+            menuRec.setArcHeight(10);
+            searchRect.setArcWidth(10);
+            searchRect.setArcHeight(10);
 
-        searchField.setVisible(false);
+            searchField.setVisible(false);
 
-        searchRect.setOnMouseClicked(e ->
-        {
-            if(searchField.isVisible()) {
-                userSearchForMessages(root, sp);
-                searchField.setVisible(false);
-            } else
-                displaySearchField(searchField);
-        });
-        lowerMenu.getChildren().addAll(menuRec, searchField, searchRect);
+            searchRect.setOnMouseClicked(e ->
+            {
+                if(searchField.isVisible()) {
+                    userSearchForMessages(root, sp);
+                    searchField.setVisible(false);
+                } else
+                    displaySearchField(searchField);
+            });
+            lowerMenu.getChildren().addAll(menuRec, searchField, searchRect);
 
-        return lowerMenu;
-    }*/
+            return lowerMenu;
+        }*/
     private HBox makeTopMenu(BorderPane root, ScrollPane sp) throws FileNotFoundException {
         HBox topMenu = new HBox();
-        Image search = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/Search-white.png")),30, 15, false, true);
+        Image search = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/Search-white.png")), 30, 15, false, true);
         ImageView view = new ImageView(search);
         Button searchButton = new Button();
         searchButton.setStyle(COMPOSE_STYLE);
         searchButton.setText("SEARCH");
         searchButton.setGraphic(view);
-
 
 
         HBox.setHgrow(searchField, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
@@ -396,28 +413,26 @@ public class Controller extends Application {
         searchField.setStyle("-fx-font-size: 14;");
 
 
-
-
         searchField.setTranslateY(-3);
         searchField.setVisible(false);
 
         searchButton.setOnMouseClicked(e ->
         {
-            if(searchField.isVisible()) {
+            if (searchField.isVisible()) {
                 userSearchForMessages(root, sp);
                 searchField.setVisible(false);
             } else
                 displaySearchField(searchField);
         });
 
-        topMenu.getChildren().addAll( searchButton,searchField);
+        topMenu.getChildren().addAll(searchButton, searchField);
         topMenu.setStyle(TOP_STYLE);
 
         return topMenu;
     }
 
     private void displaySearchField(TextField searchField) {
-        if(!searchField.isVisible()) {
+        if (!searchField.isVisible()) {
             searchField.setVisible(true);
             searchField.requestFocus();
 

@@ -65,12 +65,12 @@ public class FullThread implements Auth {
             m = t.getMessages().get(t.getMessages().size() - 1);
             // return the last message in the thread
             fm = new FullMessage(inbox, m);
-            return fm.getBestMessageBody();
+            return inbox.decodeString(fm.getBodyBase64());
         }
         m = t.getMessages().get(whichMessage);
         fm = new FullMessage(inbox, m);
         // return the message queried for
-        return fm.getBestMessageBody();
+        return Inbox.decodeString(fm.getBodyBase64());
     }
     public List<Message> getMessages() {
         return thread.getMessages();

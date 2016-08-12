@@ -3,8 +3,6 @@ package messenger_interface;
 import com.danielevans.email.Auth;
 import com.danielevans.email.LabelMaker;
 import com.google.api.services.gmail.model.Label;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -31,10 +29,10 @@ public class ListLabelsOnHover extends VBox{
         Text title = new Text("Add To Label");
         this.getChildren().add(title);
 
-        String[] labels = getAllTheLabels(auth);
+//        String[] labels = getAllTheLabels(auth);
         allLabels = new ListView<>();
-        ObservableList<String> itemLabels = FXCollections.observableArrayList(labels);
-        allLabels.setItems(itemLabels);
+//        ObservableList<String> itemLabels = FXCollections.observableArrayList(labels);
+//        allLabels.setItems(itemLabels);
         allLabels.setPrefWidth(80);
         allLabels.setOrientation(Orientation.VERTICAL);
         HBox addNewLabel = new HBox();

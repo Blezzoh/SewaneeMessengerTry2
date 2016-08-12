@@ -1,13 +1,15 @@
 package com.danielevans.email;
 
-import com.google.api.services.gmail.model.Draft;
-import com.google.api.services.gmail.model.ListDraftsResponse;
+import com.google.api.services.gmail.model.Message;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by Daniel Evans on 7/13/16.
+ *
  * @author Daniel Evans
  */
 public class Test {
@@ -19,29 +21,26 @@ public class Test {
 
         Inbox inbox = new Inbox("iradub0@sewanee.edu");
 
-        listDrafts(inbox);
+        List<Message> messages = inbox.listMessages();
 
+        try {
+            new Email(inbox);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    /**
-     * List the drafts in the user's account.
-     *
-     * @throws IOException
-     */
-    public static void listDrafts(Auth auth) throws IOException {
-        ListDraftsResponse response = auth.getAuth().service.users()
-                .drafts().list(auth.getAuth().userId).execute();
-        List<Draft> drafts = response.getDrafts();
-        FullMessage m = null;
-        for (Draft draft : drafts) {
-            if (draft.getId().equals("r-346745505429578240"))
-                m = new FullMessage(auth, draft.getMessage());
+    private static List<FullMessage> initEmailData(Inbox inbox, List<Message> messages) {
+        System.out.println("Test: initializing email data...");
+        List<FullMessage> emailData = new ArrayList<>(messages.size() * 2);
+        for (int i = 0; i < messages.size(); i++) {
+            try {
+                emailData.add(new FullMessage(inbox, messages.get(i)));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        if (m != null) {
-            System.out.println(m.getFrom());
-            System.out.println(m.getSubject());
-            System.out.println(m.getBestMessageBody());
-        }
+        return emailData;
     }
 
 
@@ -61,4 +60,4 @@ public class Test {
         System.out.println(System.currentTimeMillis() - time);
 
         */
-    }
+}

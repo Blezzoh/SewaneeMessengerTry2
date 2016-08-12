@@ -138,11 +138,39 @@ public class FullMessage implements Auth, Emailer {
     }
 
 
-    public String getBestMessageBody() {
-        return getBestMessageBody(m, PAYLOAD_BODY_PARSER_STRING, m.getPayload().toString());
+    public String getBodyBase64() {
+        return getBodyBase64(m, PAYLOAD_BODY_PARSER_STRING, m.getPayload().toString());
     }
 
-    private String getBestMessageBody(Message m, String textToFind, String searchText) {
+    public static String getMB(String textToFind, String searchText) {
+        int len = textToFind.length();
+        int k = 0;
+        int[] indexes = new int[10];
+        for (int i = 0; i < searchText.length(); i++) {
+            int j = searchText.indexOf(textToFind, i);
+            if (j == -1)
+                break;
+            else {
+                indexes[k++] = j;
+                i = j + len;
+            }
+        }
+        int[] quoteIndices = new int[k];
+        for (int i = 0; i < indexes.length && indexes[i] != 0; i++) {
+            quoteIndices[i] = searchText.indexOf("\"", indexes[i] + len);
+        }
+        // the largest string is the most likely string to contain HTML when decoded
+        String largest = "";
+        for (int i = 0; i < quoteIndices.length && quoteIndices[i] != 0; i++) {
+            String curr = searchText.substring(indexes[i] + len, quoteIndices[i]);
+            if (curr.length() > largest.length())
+                largest = curr;
+        }
+        // decode the largest string
+        return Inbox.decodeString(largest);
+    }
+
+    public String getBodyBase64(Message m, String textToFind, String searchText) {
         int len = textToFind.length();
         int k = 0;
         int[] indexes = new int[10];
@@ -166,8 +194,8 @@ public class FullMessage implements Auth, Emailer {
             if (curr.length() > largest.length())
                 largest = curr;
         }
-        // decode the largest string
-        return Inbox.decodeString(largest);
+        // don't decode to save space in DB
+        return largest;
     }
 
     // </?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[\^'">\s]+))?)+\s*|\s*)/?>
@@ -399,8 +427,12 @@ public class FullMessage implements Auth, Emailer {
     /**
      * @return the person who sent this message to the user
      */
-    public String getFrom() {
+    public String getFromEmail() {
         return MessageParser.parseEmailAddress(getHeaderPart(FROM));
+    }
+
+    public String getFromName() {
+        return MessageParser.parseNameFromEmail(getHeaderPart(FROM));
     }
 
     public String getDate() {

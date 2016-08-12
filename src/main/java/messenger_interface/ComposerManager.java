@@ -227,12 +227,12 @@ public class ComposerManager extends BorderPane {
             FullMessage fm = (FullMessage) emailer;
             if (composerType == ComposerManager.REPLY) {
                 composer.getSubject().setText("Reply: " + fm.getSubject());
-                composer.getEmailAddress().setText(fm.getFrom());
+                composer.getEmailAddress().setText(fm.getFromEmail());
                 composer.getBodyText().requestFocus();
             } else if (composerType == ComposerManager.FWD) {
                 composer.getSubject().setText("Fwd: " + fm.getSubject());
                 // TODO: what if the best message body is HTML?????
-                composer.getBodyText().setText(fm.getBestMessageBody());
+                composer.getBodyText().setText(Inbox.decodeString(fm.getBodyBase64()));
                 composer.getEmailAddress().requestFocus();
             }
         } else if (composerType == ComposerManager.DRAFT) {

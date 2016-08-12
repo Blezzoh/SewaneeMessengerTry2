@@ -1,7 +1,7 @@
 package messenger_interface;
 
+import com.danielevans.email.Email;
 import com.danielevans.email.FullMessage;
-import com.danielevans.email.MessageParser;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -41,21 +41,20 @@ public class MessageItem extends HBox {
             "-fx-effect: dropshadow(three-pass-box, black, 2, 0, 3, 3); -fx-text-fill: white; -fx-font-weight: bolder; ";
 
     private Text senderField, subjectField, snippetField, dateField;
+    private String messageId;
     private HBox secondRowOptions;
     private HBox firstRowOptions;
     private Button b = new Button("<-");
-    private FullMessage fm;
     private ImageView labelEmail, downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
     private Stage stage;
     private Stack<Scene> sceneStack;
 
 
-    public MessageItem(BorderPane root, Stack<Scene> stack, FullMessage m, String imageUrl) throws IOException {
+    public MessageItem(BorderPane root, Stack<Scene> stack, Email email, String imageUrl) throws IOException {
 
         super();
-        this.fm = m;
         sceneStack = stack;
-        initTextFields(m);
+        initTextFields(email);
         addOptionsOnMessage(root);
 
         // add the image to the message item
@@ -102,12 +101,13 @@ public class MessageItem extends HBox {
 
     }
 
-    private void initTextFields(FullMessage m) {
+    private void initTextFields(Email email) {
         // Initialization
-        senderField = new Text(MessageParser.parseSenderFromEmail(m));
-        subjectField = new Text("S: " + m.getSubject() + "\n");
-        snippetField = new Text(m.getSnippet());
-        dateField = new Text("Sent: " + MessageParser.parseDate(fm.getDate()));
+        senderField = new Text(email.getFromName());
+        subjectField = new Text("S: " + email.getSubject() + "\n");
+        snippetField = new Text(email.getSnippet());
+        dateField = new Text("Sent: " + email.getDate());
+
 
         // Look/Feel
         subjectField.setWrappingWidth(190);
@@ -122,8 +122,8 @@ public class MessageItem extends HBox {
         subjectField.setFont(Font.font("Trebuchet MS", FontWeight.BLACK, 13));
         subjectField.setFill(Color.WHITE);
 
-        subjectField.setOnMouseClicked(event -> showContent());
-        snippetField.setOnMouseClicked(event -> showContent());
+        subjectField.setOnMouseClicked(event -> showContent(email.getBody()));
+        snippetField.setOnMouseClicked(event -> showContent(email.getBody()));
         b.setOnMouseClicked(event -> goBack());
     }
 
@@ -157,20 +157,6 @@ public class MessageItem extends HBox {
             });
         }
     }
-
-    public FullMessage getFm() {
-        return fm;
-    }
-
-    public void setFm(FullMessage fm) {
-        this.fm = fm;
-        snippetField.setText(fm.getSnippet());
-        subjectField.setText(fm.getSubject());
-        senderField.setText(MessageParser.parseSenderFromEmail(fm));
-        dateField.setText("Sent: " + MessageParser.parseDate(fm.getDate()));
-
-    }
-
     protected static void setSize(Node node, double w, double h) {
 
         node.prefHeight(h);
@@ -190,20 +176,19 @@ public class MessageItem extends HBox {
         stage.setScene(sceneStack.peek());
     }
 
-    private void showContent() {
+    private void showContent(String body) {
         WebView wv = new WebView();
-        String bodyText = fm.getBestMessageBody();
 
         // loadContent(String) will return and do nothing if bodyText is null
         // therefore the old bodyText from previous message Item will be loaded when the
         // user clicks on the snippet or the subject
         WebEngine engine = wv.getEngine();
-        if (!FullMessage.testForHTML(bodyText))
+        if (!FullMessage.testForHTML(body))
             // load plain text version
-            engine.loadContent(bodyText, "text/plain");
+            engine.loadContent(body, "text/plain");
         else
             // load html version
-            engine.loadContent(bodyText);
+            engine.loadContent(body);
         stage = (Stage) this.getScene().getWindow();
         double stageX = stage.getWidth(), stageY = stage.getHeight();
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -213,9 +198,9 @@ public class MessageItem extends HBox {
         BorderPane p = new BorderPane();
         p.setTop(b);
         p.setCenter(wv);
-        Scene body = new Scene(p, stageX, stageY);
-        sceneStack.push(body);
-        body.getStylesheets().add("MessengerStyle.css");
+        Scene content = new Scene(p, stageX, stageY);
+        sceneStack.push(content);
+        content.getStylesheets().add("MessengerStyle.css");
         stage.setScene(sceneStack.peek());
     }
 
@@ -320,5 +305,16 @@ public class MessageItem extends HBox {
     }
 
 
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
+    public Text getDateField() {
+        return dateField;
+    }
+
+    public void setDateField(String text) {
+        dateField.setText("Sent: " + text);
+    }
 }
 

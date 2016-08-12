@@ -1,16 +1,11 @@
 package messenger_interface;
 
-import com.danielevans.email.FullMessage;
-import com.danielevans.email.LabelMaker;
-import javafx.animation.FadeTransition;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.scene.control.ListView;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.util.Duration;
 
 import java.io.FileNotFoundException;
 import java.util.Timer;
@@ -59,27 +54,26 @@ public class MessageItemInPane extends StackPane {
          * a listener that controls the clicked label in the labels list's VBox
          * it moves the corresponding email in the specific label
          */
-        FullMessage fm = messageItem.getFm();
         InvalidationListener listener = (Observable observable) -> {
             System.out.println(labelsList.getSelectionModel()
                     .getSelectedItem() + "\n" + messageItem);
 
             System.out.println(labelsList.getSelectionModel().getSelectedItem());
-            LabelMaker.modifyMessage(fm, fm.getId()
-                    , labelsList.getSelectionModel().getSelectedItem(),
-                    true);
+//            LabelMaker.modifyMessage(messageItem.getFm(), messageItem.getFm().getId()
+//                    , labelsList.getSelectionModel().getSelectedItem(),
+//                    true);
             hideLabels();
         };
 
         setIconsProperties();
 
 
-        allLabels = new ListLabelsOnHover(fm);
-        setLabelsProperties(allLabels);
+//        allLabels = new ListLabelsOnHover(fm);
+//        setLabelsProperties(allLabels);
 
-        labelsList = allLabels.getAllLabels();
-        labelsList.getSelectionModel().selectedItemProperty().addListener(listener);
-        this.getChildren().addAll(msgItem, allLabels, hoveredIcon,notificationIcon);
+//        labelsList = allLabels.getAllLabels();
+//        labelsList.getSelectionModel().selectedItemProperty().addListener(listener);
+        this.getChildren().addAll(msgItem,/* allLabels, */hoveredIcon, notificationIcon);
         hoveredIcon.setTranslateY(18);
         hoveredIcon.setVisible(false);
         notificationIcon.setVisible(false);
@@ -117,7 +111,7 @@ public class MessageItemInPane extends StackPane {
      *move the email to a label s and display to the user that the task is done
      */
     private void trashEmail() {
-
+/*
         boolean b = msgItem.getFm().trashMessage();
 
         if (b) {
@@ -133,6 +127,8 @@ public class MessageItemInPane extends StackPane {
         else {
             startNotificationCountdown();
         }
+*/
+
 
     }
 

@@ -29,7 +29,7 @@ public class Inbox implements Auth, Emailer {
     /**
      * the number of messages to retrieve on both a search and on startup of the application
      */
-    public static final int MESSAGE_SIZE = 50;
+    public static final int MESSAGE_SIZE = 100;
     static final String MESSAGE_NULL_ERROR = "param message is null";
     private static final String QUERY_NULL_ERROR = "param query is null";
     // Assuming you are sending email from localhost
@@ -49,11 +49,11 @@ public class Inbox implements Auth, Emailer {
         auth = new Authenticator(emailAddress);
 //        auth.userId = "me";
         boolean retry = true;
-        // if connection fails during getInbox() call, retry the connection
+        // if connection fails during listMessages() call, retry the connection
         // up to 5 times with exponential backoff
         while (retry) {
             try {
-                inbox = getInbox();
+                inbox = listMessages();
                 retry = false; // kill the while loop because getInbox() never threw
             } catch (IOException e) {
                 ++retries;
@@ -189,7 +189,7 @@ public class Inbox implements Auth, Emailer {
      * @return list of messages that contain their respective messageId and threadId
      * @throws IOException
      */
-    public List<Message> getInbox() throws IOException {
+    public List<Message> listMessages() throws IOException {
         ListMessagesResponse response = getMetadataResponse(null, null);
 
         List<Message> messages = new ArrayList<>(MESSAGE_SIZE);
@@ -278,7 +278,6 @@ public class Inbox implements Auth, Emailer {
 
     /**
      *
-     * @param session most cases use getSessionWithDefaultProps
      * @param to email address of receiver
      * @param subject subject of message
      * @param message body of the message
@@ -307,8 +306,8 @@ public class Inbox implements Auth, Emailer {
             emailAddresses = new ArrayList<>(25);
             for (int i = 0; i < inbox.size()/25; i++) {
                 FullMessage fm = new FullMessage(this,inbox.get(i));
-                if(!emailAddresses.contains(fm.getFrom()))
-                    emailAddresses.add(fm.getFrom());
+                if (!emailAddresses.contains(fm.getFromEmail()))
+                    emailAddresses.add(fm.getFromEmail());
             }
             Collections.sort(emailAddresses);
         } catch (IOException e) {
