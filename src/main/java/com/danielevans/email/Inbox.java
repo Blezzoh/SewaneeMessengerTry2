@@ -29,11 +29,12 @@ public class Inbox implements Auth, Emailer {
     /**
      * the number of messages to retrieve on both a search and on startup of the application
      */
-    public static final int MESSAGE_SIZE = 100;
+    public static final int MESSAGE_SIZE = 3000;
     static final String MESSAGE_NULL_ERROR = "param message is null";
     private static final String QUERY_NULL_ERROR = "param query is null";
     // Assuming you are sending email from localhost
     private static String host = "localhost";
+
     private List<Message> inbox;
     private Authenticator auth;
     private int retries = 0;
@@ -63,7 +64,7 @@ public class Inbox implements Auth, Emailer {
                     // server is possibly receiving a lot of traffic
                     // so wait a little while before trying again
                     // via exponential backoff
-                    java.lang.Thread.sleep(expBackoff());
+                    java.lang.Thread.sleep(backoff());
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
@@ -78,7 +79,7 @@ public class Inbox implements Auth, Emailer {
         System.out.println("Connection established");
     }
 
-    private long expBackoff() {
+    private long backoff() {
         return Math.round(1000 * retries);
     }
 

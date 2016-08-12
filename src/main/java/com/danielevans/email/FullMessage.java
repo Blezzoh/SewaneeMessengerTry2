@@ -20,7 +20,7 @@ import static com.danielevans.email.Inbox.decodeString;
  *
  * @author Daniel Evans
  */
-public class FullMessage implements Auth, Emailer {
+public class FullMessage implements Emailer {
 
     private static final String DATE = "Date";
     private static final String DELIVERED_TO = "Delivered-To";

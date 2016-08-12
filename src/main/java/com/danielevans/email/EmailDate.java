@@ -12,6 +12,7 @@ import java.util.HashMap;
  */
 public class EmailDate {
 
+    public static final String DEFAULT = "YYYY/mm/dd";
     private String month;
     private String day;
     private String year;
@@ -24,6 +25,7 @@ public class EmailDate {
     private static HashMap<String, String> monthsNumber = new HashMap<>(12);
 
     public EmailDate(String date) {
+        // Handles this format -> Wed, 13 Jul 2016 21:01:22 -0000
         parseDate(date);
     }
 
@@ -59,7 +61,7 @@ public class EmailDate {
      * @param date date in format of precondition specified above
      * @return returns a date in format yyyy/dd/mm or yyyy-mm-dd
      */
-    public String parseDate(String date) {
+    public void parseDate(String date) {
         Preconditions.objectNotNull(date, "date is null");
         initMonthsName();
 
@@ -111,7 +113,6 @@ public class EmailDate {
                 break;
             }
         }
-        return null;
     }
 
     private Date defaultDate() throws ParseException {

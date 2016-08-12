@@ -1,5 +1,6 @@
 package messenger_interface;
 
+import com.danielevans.email.DB;
 import com.danielevans.email.Email;
 import com.danielevans.email.FullMessage;
 import com.danielevans.email.Inbox;
@@ -67,23 +68,21 @@ public class Controller extends Application {
     @Override
     public void start(Stage primaryStage) throws FileNotFoundException {
 
+        long initTime = System.currentTimeMillis();
         // inbox gives access to the user's gmail messages using an authenticator
         inbox = new Inbox("iradub0@sewanee.edu");
 
         try {
             Class.forName("com.mysql.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
+            DB.fillTable(inbox);
+        } catch (IOException | SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
-
 
         // loads the user's inbox
         messages = inbox.getDefaultInbox();
 
-        long initTime = System.currentTimeMillis();
         // TEMPORARILY NOT LOADING EMAIL DATA TO SPEED UP INIT TIME
-        initEmailData();
-
 
         // root container of the interface
         root = new BorderPane();
@@ -170,15 +169,6 @@ public class Controller extends Application {
         sp.setFitToWidth(true);
         sp.setStyle(SP_STYLE);
         sp.setStyle(SP_STYLE);
-    }
-
-    private void initEmailData() {
-        System.out.println("Initializing email data...");
-        try {
-            new Email(inbox);
-        } catch (IOException | SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     private boolean startsWith(String prefix, String str) {
@@ -317,7 +307,7 @@ public class Controller extends Application {
 
                 try {
                     center.getChildren().add(new MessageItemInPane(new MessageItem
-                            (root, sceneStack, new Email(inbox, messages.get(i)), imgUrl)));
+                            (root, sceneStack, new Email(messages.get(i)), imgUrl)));
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
@@ -328,7 +318,7 @@ public class Controller extends Application {
                 MessageItemInPane item = (MessageItemInPane) center.getChildren().get(messageItemNum);
                 MessageItem mItem = item.getMsgItem();
                 try {
-                    Email email = new Email(inbox, messages.get(i));
+                    Email email = new Email(messages.get(i));
                     mItem.setSenderField(email.getFromName());
                     mItem.setSubjectField(email.getSubject());
                     mItem.setSnippetField(email.getSnippet());
