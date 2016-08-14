@@ -1,7 +1,9 @@
 package com.danielevans.email;
 
 import java.io.IOException;
-import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.util.Date;
 
 /**
  * Created by Daniel Evans on 7/13/16.
@@ -16,12 +18,11 @@ public class Test {
     public static void main(String[] args) throws IOException, InterruptedException {
 
         Inbox inbox = new Inbox("iradub0@sewanee.edu");
-
-        try {
-            DB.fillTable(inbox);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy/mm/dd");
+        String date = sdf.format(Date.from(Instant.now()));
+        System.out.println("after:" + date);
+        inbox.listMessagesMatchingQuery("after:" + sdf.format(Date.from(Instant.now())));
+//            DB.fillTable(inbox);
     }
 
 

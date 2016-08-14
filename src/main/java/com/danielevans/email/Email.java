@@ -116,28 +116,6 @@ public class Email {
         return i == 1;
     }
 
-
-    private boolean messageExists(Connection conn, Message message, ResultSet rs) {
-        System.out.print("Checking if message exists...");
-        try {
-            rs = query(conn, "SELECT id from mail");
-
-            int i = 0;
-            while (rs.next()) {
-                if (rs.getString(1).equals(message.getId())) {
-                    System.out.println("  Yes");
-                    return true;
-                }
-            }
-            System.out.println(" No");
-            return false;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        System.out.println("  No");
-        return false;
-    }
-
     private boolean insertInto(Connection con, FullMessage fm) {
         EmailDate emailDate = new EmailDate(fm.getDate());
         return insertInto(con, fm.getSubject()

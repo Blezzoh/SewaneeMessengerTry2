@@ -7,6 +7,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 
 
@@ -21,26 +26,57 @@ public class DB {
 
     public static void updateDatabase(Inbox inbox)
             throws IOException, SQLException {
-/*        Connection conn = Conn.makeConnection();
+        Connection conn = Conn.makeConnection();
         ResultSet resultSet = query(conn, "select date from mail order by date desc limit 1");
         String d = null;
-        while(resultSet.next())
-            d = resultSet.getString(Email.DATE);
+        if (resultSet.next()) {
+            d = resultSet.getString(1);
+            System.out.println(d);
+        } else
+            return;
         // use this -> YYYY-mm-dd format because that is how the date was stored in MySQL
         SimpleDateFormat sdf = new SimpleDateFormat("YYYY-mm-dd");
         Date date = null;
         try {
             date = sdf.parse(d);
         } catch (ParseException e) {e.printStackTrace();}
-        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy/mm/dd");
-        String dateFinal = dateFormatter.format(date);
-        List<Message> messages = inbox.listMessagesMatchingQuery("after:"+ dateFinal);
+        List<Message> messages = inbox.listMessagesMatchingQuery("after:" + getDate(1, "yyyy/LLLL/dd"));
+        System.out.println("Messages.size = " + messages.size());
         ResultSet rs = query(conn, "select id from mail");
 
         System.out.print("Saving new messages...");
         saveAllNewMessages(messages, rs, conn);
         System.out.println("Done. \nDeleting old messages");
-        deleteAllOldMessages(messages, rs, conn);*/
+        deleteAllOldMessages(messages, rs, conn);
+    }
+
+    private boolean messageExists(Connection conn, Message message, ResultSet rs) {
+        System.out.print("Checking if message exists...");
+        try {
+            rs = query(conn, "SELECT id from mail");
+
+            int i = 0;
+            while (rs.next()) {
+                if (rs.getString(1).equals(message.getId())) {
+                    System.out.println("  Yes");
+                    return true;
+                }
+            }
+            System.out.println(" No");
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        System.out.println("  No");
+        return false;
+    }
+
+    private static String getDate(int numDays, String format) {
+        LocalDate now = LocalDate.now();
+        LocalDate numDaysBeforeNow = now.minusDays(numDays);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+        String formattedString = numDaysBeforeNow.format(formatter);
+        return formattedString;
     }
 
     private static void saveAllNewMessages(List<Message> messages,
