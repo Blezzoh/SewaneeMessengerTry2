@@ -1,5 +1,6 @@
 package SophiaMessenger;
 
+import SophiaMessenger.Views.MessageView;
 import com.google.api.services.gmail.model.Label;
 import de.email.LabelMaker;
 import de.email.interfaces.Auth;
@@ -40,7 +41,7 @@ public class ListLabelsOnHover extends VBox{
         HBox addNewLabel = new HBox();
         Rectangle plus = new Rectangle(30,20, new ImagePattern(new Image("https://image.freepik.com/free-icon/add-button-with-plus-symbol-in-a-black-circle_318-48599.png", 20,20, true,false,false)));
         TextField newLabel =new TextField();
-        MessageItem.setSize(newLabel,75, 20.0);
+        MessageView.setSize(newLabel, 75, 20.0);
         HBox.setHgrow(newLabel, Priority.SOMETIMES);
         addNewLabel.getChildren().addAll(newLabel,plus);
         this.getChildren().addAll(allLabels, addNewLabel);

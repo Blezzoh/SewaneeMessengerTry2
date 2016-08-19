@@ -31,7 +31,7 @@ public class MessageController extends TilePane {
         auth = inbox.getAuth();
         messageViews = new ArrayList<>(numMessageViews);
         // should this be getDefaultInbox() or listMessages() ???
-        List<Message> messages = inbox.getDefaultInbox();
+        List<Message> messages = inbox.getInbox();
 
         // fill the messageViews with data
 //        Iterator<String> iterator = imgUrls.iterator();
@@ -51,7 +51,7 @@ public class MessageController extends TilePane {
         }
         if (fm != null) {
             MessageView mv = messageViews.get(i);
-            mv.getSenderField().setText(MessageParser.parseSenderFromEmail(fm));
+            mv.getSenderField().setText(fm.getFromName());
             mv.getSubjectField().setText("S: " + fm.getSubject() + "\n");
             mv.getSnippetField().setText(fm.getSnippet());
             mv.getDateField().setText("Sent: " + MessageParser.parseDate(fm.getDate()));

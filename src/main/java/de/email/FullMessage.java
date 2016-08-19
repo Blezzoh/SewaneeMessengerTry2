@@ -5,6 +5,7 @@ import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartHeader;
 import de.email.interfaces.Auth;
 import de.email.interfaces.EmailSender;
+import de.email.interfaces.Mail;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
@@ -17,7 +18,7 @@ import java.util.List;
  *
  * @author Daniel Evans
  */
-public class FullMessage implements Auth, EmailSender {
+public class FullMessage implements EmailSender, Mail {
 
     private static final String DATE = "Date";
     private static final String DELIVERED_TO = "Delivered-To";
@@ -65,58 +66,6 @@ public class FullMessage implements Auth, EmailSender {
         return auth;
     }
 
-    /**
-     * @return the message body in HTML
-     */
-    public String getMessageHTML() {
-        Preconditions.objectNotNull(m, Inbox.MESSAGE_NULL_ERROR);
-        // try to get the html from a the message parts in m's payload
-        try {
-            String html = Inbox.decodeString(m.getPayload().getParts().get(1)
-                    .getBody().getData());
-            if (html != null) {
-                System.out.println(1);
-                return html;
-            }
-        } catch (Exception ignored) {
-        }
-        try {
-            String html = Inbox.decodeString(m.getPayload().getParts().get(0)
-                    .getParts().get(0).getParts().get(0).getBody().getData());
-            if (html != null) {
-                System.out.println(2);
-                return html;
-            }
-        } catch (Exception ignored) {
-        }
-        try {
-            String html = m.getPayload().getParts().get(0)
-                    .getParts().get(0).getBody().getData();
-            if (html != null) {
-                System.out.println(3);
-                return Inbox.decodeString(html);
-            }
-        } catch (Exception ignored) {
-        }
-        try {
-            String text = m.getPayload().getBody().getData();
-            if (text != null) {
-                System.out.println(4);
-                return Inbox.decodeString(text + "\n");
-            }
-        } catch (Exception ignored) {
-        }
-        try {
-            String text = m.getPayload().getParts().get(0).getBody().getData();
-            if (text != null) {
-                System.out.println(5);
-                return Inbox.decodeString(text + "\n");
-            }
-        } catch (Exception ignored) {
-        }
-        return null;
-    }
-
     public MessagePart getPayload() {
         return m.getPayload();
     }
@@ -138,11 +87,11 @@ public class FullMessage implements Auth, EmailSender {
     }
 
 
-    public String getBestMessageBody() {
-        return getBestMessageBody(m, PAYLOAD_BODY_PARSER_STRING, m.getPayload().toString());
+    public String getBodyBase64String() {
+        return getBodyBase64String(m, PAYLOAD_BODY_PARSER_STRING, m.getPayload().toString());
     }
 
-    private String getBestMessageBody(Message m, String textToFind, String searchText) {
+    private String getBodyBase64String(Message m, String textToFind, String searchText) {
         int len = textToFind.length();
         int k = 0;
         int[] indexes = new int[10];
@@ -167,41 +116,7 @@ public class FullMessage implements Auth, EmailSender {
                 largest = curr;
         }
         // decode the largest string
-        return Inbox.decodeString(largest);
-    }
-
-    private String getMessageBodyAsHTML(Message message) throws IOException {
-        Preconditions.objectNotNull(message, Inbox.MESSAGE_NULL_ERROR);
-        // try to get the html from a the message parts in m's payload
-        Message m = getFullMessagePayload(message);
-        try {
-            String html = Inbox.decodeString(m.getPayload().getParts().get(1)
-                    .getBody().getData());
-            if (html != null) {
-                return html;
-            }
-        } catch (Exception ignored) {
-        }
-        try {
-            String html = m.getPayload().getParts().get(0)
-                    .getParts().get(0).getBody().getData();
-            if (html != null) {
-                return Inbox.decodeString(html);
-            }
-        } catch (Exception ignored) {
-        }
-        try {
-            String text = m.getPayload().getBody().getData();
-            if (text != null) {
-                return Inbox.decodeString(text + "\n");
-            }
-        } catch (Exception ignored) {
-        }
-        return null;
-    }
-
-    public String getMessageBodyAsHTML() throws IOException {
-        return getMessageBodyAsHTML(m);
+        return largest;
     }
 
 
@@ -233,20 +148,11 @@ public class FullMessage implements Auth, EmailSender {
     /**
      * if you need the full message content from some email message,
      * this is the method to use
-     *
      * @return the message with all body text, headers, links, images, etc
      */
     public Message getFullMessagePayload(Message message) {
         Preconditions.objectNotNull(message, Inbox.MESSAGE_NULL_ERROR);
-        try {
-            return auth.service.users().messages()
-                    .get(auth.userId, message.getId())
-                    .execute();
-        } catch (IOException e) {
-            System.out.println("CANNOT RETRIEVE THE MESSAGE");
-            e.printStackTrace();
-            return null;
-        }
+        return getFullMessagePayload(message.getId());
     }
 
     private Message getFullMessagePayload(String mId) {
@@ -262,37 +168,10 @@ public class FullMessage implements Auth, EmailSender {
     }
 
     /**
-     * if you have a bunch of full messages only containing the metadata,
-     * but you need the full content, use this method
-     *
-     * @return the message with all body text, headers, links, images, etc
-     */
-    private Message getFullMessagePayload(FullMessage message) {
-        Preconditions.objectNotNull(message, Inbox.MESSAGE_NULL_ERROR);
-        return getFullMessagePayload(message.getId());
-    }
-
-    /**
      * @return the first couple words (about 20 words) in the email
      */
-
     public String getSnippet() {
         return m.getSnippet();
-    }
-
-    /**
-     * gets the decoded raw version of the email, formatted with format=RAW
-     *
-     * @return returns the entire raw version (contains HTML) of the message
-     */
-    public Message getRawVersion() {
-        try {
-            return auth.service.users().messages().get(auth.userId, m.getId()).set("format", "RAW").execute();
-        } catch (IOException e) {
-            System.out.println("unable to retrieve raw version of the message");
-            e.printStackTrace();
-            return null;
-        }
     }
 
     /**
@@ -319,78 +198,31 @@ public class FullMessage implements Auth, EmailSender {
         return "";
     }
 
-    /**
-     * @return returns the text of the email
-     */
-    public String getMessageBody() {
-        // note that this will throw a null pointer exception
-        // if the message only contains html
-        // that is m.getPayload.getParts will be null
-        // TODO: Fix the above comments
-        return getMessageBody(m);
-    }
-
-    /**
-     * @param message message to retrieve body text from
-     * @return returns the text of the email
-     */
-    public String getMessageBody(Message message) {
-        String mId = message.getId();
-        Preconditions.objectNotNull(message, Inbox.MESSAGE_NULL_ERROR);
-        // note that this will throw a null pointer exception
-        // if the message only contains html
-        // that is m.getPayload.getParts will be null
-        // TODO: Fix the above comments
-        try {
-            String text = Inbox.decodeString(message.getPayload().getParts()
-                    .get(0).getBody().getData());
-            if (text != null) {
-                return text + TROUBLE_VIEWING_MESSAGE;
-            }
-        } catch (NullPointerException e) {
-        }
-        String emailBody = null;
-        Message z = null;
-        try {
-            z = getFullMessagePayload(message);
-            emailBody = z.getPayload().getParts()
-                    .get(0).getBody().getData();
-            if (emailBody != null)
-                return Inbox.decodeString(emailBody) + TROUBLE_VIEWING_MESSAGE + mId;
-        } catch (NullPointerException ignored) {
-        }
-        try {
-            String text = getMessageBodyAsHTML(z);
-            if (text != null) {
-                return text + TROUBLE_VIEWING_MESSAGE + mId;
-            }
-        } catch (IOException ignored) {
-        }
-        try {
-            emailBody = Inbox.decodeString(z.getPayload()
-                    .getParts().get(0).getParts().get(0).getBody().getData());
-        } catch (NullPointerException ignored) {
-        }
-        if (emailBody != null)
-            return emailBody + TROUBLE_VIEWING_MESSAGE + mId;
-
-        return "";
-    }
-
-
-    /**
-     * @return the person who sent this message to the user
-     */
-    public String getFrom() {
-        return MessageParser.parseEmailAddress(getHeaderPart(FROM));
-    }
-
     public String getDate() {
         return getHeaderPart(DATE);
     }
 
+    /**
+     * @return the person who sent this message to the user
+     */
+    @Override
+    public String getFromEmail() {
+        return MessageParser.parseEmailAddress(getHeaderPart(FROM));
+    }
+
+    @Override
+    public String getFromName() {
+        return MessageParser.parseNameFromEmail(getHeaderPart(FROM));
+    }
+
+    @Override
+    public String getBody() {
+        return Inbox.decodeString(getBodyBase64String());
+    }
+
     public String getTo() {
-        return MessageParser.parseEmailAddress(getHeaderPart(TO));
+        return MessageParser.parseEmailAddress
+                (getHeaderPart(TO));
     }
 
     public String getMailingList() {
@@ -420,7 +252,6 @@ public class FullMessage implements Auth, EmailSender {
 
     /**
      * get the unsubscribe link from the mailing list
-     *
      * @return the link the user can go to to unsubscribe from this mailing list, if it exists
      */
     public String getUnsubscribeLink() {

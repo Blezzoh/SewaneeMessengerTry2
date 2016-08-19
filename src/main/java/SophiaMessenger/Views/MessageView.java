@@ -4,6 +4,7 @@ import SophiaMessenger.LabelHolderOnHover;
 import SophiaMessenger.NotificationIcon;
 import de.email.FullMessage;
 import de.email.MessageParser;
+import de.email.interfaces.Mail;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -31,6 +32,7 @@ import java.io.FileNotFoundException;
 public class
 MessageView extends StackPane {
 
+    public static final String RESOURCES_PATH = "proj/IdeaProjects/SewaneeMessengerTry2/src/main/resources/";
     private static final String ITEM_STYLE = "-fx-padding: 10px; "+"-fx-background-color:white;" + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #66007a;";
     private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
     private static final String STYLE_ON_EXIT = "-fx-background-color: white;" + "-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
@@ -46,12 +48,15 @@ MessageView extends StackPane {
     private Rectangle picCanvas;
     private String messageId;
 
+    public MessageView(Mail m, String imageUrl) {
+        this(m.getId(), imageUrl);
+    }
+
     public MessageView(String messageId, String imageUrl) {
 
         super();
         initFields();
         this.messageId = messageId;
-//        sceneStack = stack;
         initHoveredIcon();
         addMessageOptions();
 
@@ -90,7 +95,7 @@ MessageView extends StackPane {
         return image;
     }
 
-    private static void setSize(Node node, double w, double h) {
+    public static void setSize(Node node, double w, double h) {
 
         node.prefHeight(h);
         node.maxHeight(h);
@@ -275,7 +280,7 @@ MessageView extends StackPane {
     public void setFm(FullMessage fm) {
         snippetField.setText(fm.getSnippet());
         subjectField.setText(fm.getSubject());
-        senderField.setText(MessageParser.parseSenderFromEmail(fm));
+        senderField.setText(fm.getFromName());
         dateField.setText("Sent: " + MessageParser.parseDate(fm.getDate()));
     }
 
@@ -351,22 +356,22 @@ MessageView extends StackPane {
         Image label = null;
         Image forward = null;
         try {
-            download = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/download.png")), 20, 20, true, true);
+            download = new Image(new FileInputStream(new File(System.getProperty("user.home"), RESOURCES_PATH + "download.png")), 20, 20, true, true);
         } catch (FileNotFoundException e) { e.printStackTrace();}
         try {
-            forward = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/forward.png")), 20, 20, true, true);
+            forward = new Image(new FileInputStream(new File(System.getProperty("user.home"), RESOURCES_PATH + "forward.png")), 20, 20, true, true);
         } catch (FileNotFoundException e) {e.printStackTrace();}
         try {
-            label = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/label.png")), 20, 20, true, true);
+            label = new Image(new FileInputStream(new File(System.getProperty("user.home"), RESOURCES_PATH + "label.png")), 20, 20, true, true);
         } catch (FileNotFoundException e) {e.printStackTrace();}
         try {
-            mark = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/mark.png")), 20, 20, true, true);
+            mark = new Image(new FileInputStream(new File(System.getProperty("user.home"), RESOURCES_PATH + "mark.png")), 20, 20, true, true);
         } catch (FileNotFoundException e) {e.printStackTrace();}
         try {
-            reply = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/reply.png")), 20, 20, true, true);
+            reply = new Image(new FileInputStream(new File(System.getProperty("user.home"), RESOURCES_PATH + "reply.png")), 20, 20, true, true);
         } catch (FileNotFoundException e) {e.printStackTrace();}
         try {
-            trash = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/trash.png")), 20, 20, true, true);
+            trash = new Image(new FileInputStream(new File(System.getProperty("user.home"), RESOURCES_PATH + "trash.png")), 20, 20, true, true);
         } catch (FileNotFoundException e) {e.printStackTrace();}
 
         // TODO: what if the above image local vars are null?????

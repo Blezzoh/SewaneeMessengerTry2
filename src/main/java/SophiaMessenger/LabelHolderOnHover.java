@@ -1,5 +1,6 @@
 package SophiaMessenger;
 
+import SophiaMessenger.Views.MessageView;
 import com.google.api.services.gmail.model.Label;
 import de.email.LabelMaker;
 import de.email.interfaces.Auth;
@@ -31,7 +32,7 @@ public class LabelHolderOnHover extends VBox {
         String [] allLabels = getAllTheLabels(auth);
         Text title = new Text("Add To Label");
         VBox vBox = new VBox();
-        MessageItem.setSize(vBox, 60, 110);
+        MessageView.setSize(vBox, 60, 110);
         this.getChildren().add(title);
         ScrollPane scrollPane = new ScrollPane(vBox);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
@@ -49,18 +50,18 @@ public class LabelHolderOnHover extends VBox {
         }*/
         scrollPane.setFitToHeight(false);
         scrollPane.setFitToWidth(false);
-        MessageItem.setSize(scrollPane, 62, 112);
+        MessageView.setSize(scrollPane, 62, 112);
         HBox addNewLabel = new HBox();
         Rectangle plus = new Rectangle(20,20, new ImagePattern(new Image("https://image.freepik.com/free-icon/add-button-with-plus-symbol-in-a-black-circle_318-48599.png", 20,20, true,false,false)));
         plus.setStyle("-fx-border-color: black");
         newLabel =new TextField();
-        MessageItem.setSize(newLabel, 75.0, 20.0);
+        MessageView.setSize(newLabel, 75.0, 20.0);
         addNewLabel.getChildren().addAll(plus, newLabel);
         plus.setOnMouseEntered(e -> plus.setStyle("-fx-border-color: aqua"));
         plus.setOnMouseExited(e-> plus.setStyle("-fx-border-color: black"));
         plus.setOnMouseClicked(e-> addToLabel(auth));
 
-        MessageItem.setSize(addNewLabel, 100, 0);
+        MessageView.setSize(addNewLabel, 100, 0);
         this.getChildren().addAll(scrollPane,addNewLabel);
         this.setPadding(new Insets(0,3,0,3));
         this.setStyle("-fx-background-color: beige");

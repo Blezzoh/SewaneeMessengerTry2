@@ -303,8 +303,8 @@ public class Inbox implements Auth, EmailSender {
             emailAddresses = new ArrayList<>(25);
             for (int i = 0; i < inbox.size()/25; i++) {
                 FullMessage fm = new FullMessage(this,inbox.get(i));
-                if(!emailAddresses.contains(fm.getFrom()))
-                    emailAddresses.add(fm.getFrom());
+                if (!emailAddresses.contains(fm.getFromEmail()))
+                    emailAddresses.add(fm.getFromEmail());
             }
             Collections.sort(emailAddresses);
         } catch (IOException e) {

@@ -4,6 +4,7 @@ import java.io.IOException;
 
 /**
  * Created by evansdb0 on 7/15/16.
+ * @author Daniel Evans
  */
 public class ThreadParser {
 

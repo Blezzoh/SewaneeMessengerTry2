@@ -174,11 +174,6 @@ public class MessageParser {
         return false;
     }
 
-    public static String parseSenderFromEmail(FullMessage message) {
-        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
-        return parseNameFromEmail(message.getFrom());
-    }
-
     private static String stripEnds(String str) {
         int start = 0;
         int end = str.length() - 1;
@@ -237,7 +232,7 @@ public class MessageParser {
         Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
         String messageAsHTML = null;
         try {
-            messageAsHTML = message.getMessageBodyAsHTML();
+            messageAsHTML = message.getBody();
         } catch (Exception e) {
             e.printStackTrace();
         }

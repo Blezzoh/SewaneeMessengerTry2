@@ -17,7 +17,7 @@ public class ImageBot {
 
     public static String parseSenderImage(FullMessage m) {
         String google = "http://www.images.google.com/search?q=";
-        String search = MessageParser.parseSenderFromEmail(m) + " logo";
+        String search = m.getFromName() + " logo";
         String charset = "UTF-8";
         String userAgent = "Mozilla/5.0";
         Document doc = null;

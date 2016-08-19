@@ -39,9 +39,9 @@ public class Test {
                 m = new FullMessage(auth, draft.getMessage());
         }
         if (m != null) {
-            System.out.println(m.getFrom());
+            System.out.println(m.getFromName());
             System.out.println(m.getSubject());
-            System.out.println(m.getBestMessageBody());
+            System.out.println(m.getBody());
         }
     }
 
