@@ -1,0 +1,13 @@
+CREATE TABLE email.mail
+(
+  email_id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  subject VARCHAR(2000),
+  snippet VARCHAR(1000) NOT NULL,
+  body LONGTEXT NOT NULL,
+  id VARCHAR(100) NOT NULL,
+  `fromEmail` VARCHAR(500) NOT NULL,
+  fromName VARCHAR(500) NOT NULL,
+  date DATE
+);
+ALTER TABLE email.mail COMMENT = 'all emails stored here';
+/*INSERT INTO mail(subject, snippet, body, id, `fromEmail`, fromName) VALUES ("subject","snippet", "body", "id", "fromEmail", "fromName");*/

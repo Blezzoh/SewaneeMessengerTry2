@@ -1,6 +1,6 @@
-import com.danielevans.email.FullMessage;
-import com.danielevans.email.Inbox;
 import com.google.api.services.gmail.model.Message;
+import de.email.FullMessage;
+import de.email.Inbox;
 import org.junit.Test;
 
 import java.io.IOException;
