@@ -160,6 +160,11 @@ public class EmailDate {
         return formatter.parse(getDefault());
     }
 
+    public String slashDate() {
+        StringBuilder sb = new StringBuilder(20);
+        return sb.append(year).append("/").append(month).append("/").append(day).toString();
+    }
+
     // YYYY-MM-DD HH:MM:SS
     public String format(String pattern) {
         Date date = null;
@@ -168,6 +173,7 @@ public class EmailDate {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        System.out.println(date);
         SimpleDateFormat dateFormatter = new SimpleDateFormat(pattern);
         return dateFormatter.format(date);
 

@@ -1,11 +1,9 @@
 package de.email;
 
-import com.google.api.services.gmail.model.Draft;
-import com.google.api.services.gmail.model.ListDraftsResponse;
-import de.email.interfaces.Auth;
+import de.email.database.MessageTableManager;
 
 import java.io.IOException;
-import java.util.List;
+import java.sql.SQLException;
 
 /**
  * Created by Daniel Evans on 7/13/16.
@@ -19,47 +17,14 @@ public class Test {
     public static void main(String[] args) throws IOException, InterruptedException {
 
         Inbox inbox = new Inbox("iradub0@sewanee.edu");
-
-        listDrafts(inbox);
+        try {
+            MessageTableManager.createMessageTable();
+//            System.out.println(MessageTableManager.update(inbox));
+//            MessageTableManager.fillTable(inbox);
+            MessageTableManager.updateMessageTable(inbox);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
-
-    /**
-     * List the drafts in the user's account.
-     *
-     * @throws IOException
-     */
-    public static void listDrafts(Auth auth) throws IOException {
-        ListDraftsResponse response = auth.getAuth().service.users()
-                .drafts().list(auth.getAuth().userId).execute();
-        List<Draft> drafts = response.getDrafts();
-        FullMessage m = null;
-        for (Draft draft : drafts) {
-            if (draft.getId().equals("r-346745505429578240"))
-                m = new FullMessage(auth, draft.getMessage());
-        }
-        if (m != null) {
-            System.out.println(m.getFromName());
-            System.out.println(m.getSubject());
-            System.out.println(m.getBody());
-        }
-    }
-
-
-    // -----------------     BENCHMARKING IF DESIRED -----------------------------------
-        /*
-
-        long time = System.currentTimeMillis();
-        for (int i = 0; i < 10000000; i++) {
-            MessageParser.parseNameFromEmail(emailData[30]);
-        }
-        System.out.println(System.currentTimeMillis() - time);
-
-        time = System.currentTimeMillis();
-        for (int i = 0; i < 10000000; i++) {
-            MessageParser.parseNameFromEmail2(emailData[30].getFrom());
-        }
-        System.out.println(System.currentTimeMillis() - time);
-
-        */
-    }
+}

@@ -1,9 +1,9 @@
 package SophiaMessenger.Controllers;
 
+import SophiaMessenger.Models.DBMessage;
 import SophiaMessenger.Views.MessageView;
 import com.google.api.services.gmail.model.Message;
 import de.email.Authenticator;
-import de.email.FullMessage;
 import de.email.database.EmailDate;
 import de.email.interfaces.Auth;
 import javafx.geometry.Insets;
@@ -12,7 +12,7 @@ import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.TilePane;
 
-import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -40,8 +40,8 @@ public class MessagesManager extends Pagination {
         for (int i = 0; i < mvs.length; i++) {
             try {
                 mvs[i] = new MessageView(
-                        new FullMessage(auth, messages.get(i)), imgUrl);
-            } catch (IOException e) {
+                        new DBMessage(messages.get(i)), imgUrl);
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
@@ -77,18 +77,17 @@ public class MessagesManager extends Pagination {
 
         int mvsIndex = 0;
         for (int i = page; i < page + itemsPerPage && i < messages.size(); i++) {
-            FullMessage fm = null;
+            DBMessage dbm = null;
             try {
-                fm = new FullMessage(auth, messages.get(i));
-            } catch (IOException e) {
+                dbm = new DBMessage(messages.get(i));
+            } catch (SQLException e) {
                 e.printStackTrace();
             }
-            if (fm != null) {
-                mvs[mvsIndex].getSenderField().setText(fm.getFromName());
-                EmailDate ed = new EmailDate(fm.getDate());
-                mvs[mvsIndex].getDateField().setText(ed.format("yyyy/mm/dd"));
-                mvs[mvsIndex].getSnippetField().setText(fm.getSnippet());
-                mvs[mvsIndex].getSubjectField().setText(fm.getSubject());
+            if (dbm != null) {
+                mvs[mvsIndex].getSenderField().setText(dbm.getFromName());
+                mvs[mvsIndex].getDateField().setText(new EmailDate(dbm.getDate()).slashDate());
+                mvs[mvsIndex].getSnippetField().setText(dbm.getSnippet());
+                mvs[mvsIndex].getSubjectField().setText(dbm.getSubject());
             }
             ++mvsIndex;
         }

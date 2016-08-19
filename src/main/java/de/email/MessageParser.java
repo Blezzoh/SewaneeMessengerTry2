@@ -6,7 +6,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import static de.email.Inbox.MESSAGE_NULL_ERROR;
@@ -46,69 +45,6 @@ public class MessageParser {
                     System.out.println("j = " + j + "  " + "k = " + k + "  " + arr[j]);
             }
         }
-    }
-
-    /**
-     * COULD MAKE THIS MORE USEFUL BY ADDING PARAMETERS FOR LENGTH OF A
-     * YEAR, THE FORMAT OF THE MONTH (January vs. Jan vs jan vs january), etc
-     * Precondition: date is of format Wed, 13 Jul 2016 21:01:22 -0000
-     *
-     * @param date
-     * @return returns a date in format yyyy/dd/mm
-     */
-    public static String parseDate(String date) {
-        Preconditions.objectNotNull(date, "date is null");
-        // make a dictionary for the months
-        HashMap<String, String> months = new HashMap<>(12);
-        months.put("Jan", "01");
-        months.put("Feb", "02");
-        months.put("Mar", "03");
-        months.put("Apr", "04");
-        months.put("May", "05");
-        months.put("Jun", "06");
-        months.put("Jul", "07");
-        months.put("Aug", "08");
-        months.put("Sep", "09");
-        months.put("Oct", "10");
-        months.put("Nov", "11");
-        months.put("Dec", "12");
-
-        String dd = null;
-        String mm = null;
-        String year = null;
-        for (int i = 3; i + 5 < date.length(); i++) {
-            // this will not be -1 if it is a valid number
-            int charIntVal = Character.getNumericValue(date.charAt(i));
-            //  ---- day -----
-            // checks for null are so that the vars aren't reset after they've
-            // been set
-            if (dd == null) {
-                // if a valid number is found
-                if (charIntVal != -1) {
-                    // we want # we are at and the next one
-                    dd = date.substring(i, i + 2);
-                }
-            }
-            //  ---- month -----
-            if (mm == null) {
-                if (months.get(date.substring(i, i + 3)) != null) {
-                    // months are 3 characters long, hence the i + 3
-                    mm = months.get(date.substring(i, i + 3));
-                }
-            }
-            // ----- year  -----
-            if (year == null) {
-                try {
-                    // checking to see if we throw exception; if not, we found the year
-                    Integer.parseInt(date.substring(i, i + 4));
-                    // only get here if we don't throw, years are (assumed) 4 chars long
-                    year = date.substring(i, i + 4);
-                    break;
-                } catch (NumberFormatException e) { /* do nothing here */ }
-            }
-        }
-        // yyyy/dd/mm
-        return mm + "/" + dd + "/" + year;
     }
 
     /**

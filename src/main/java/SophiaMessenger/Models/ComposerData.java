@@ -76,7 +76,7 @@ public class ComposerData {
             throws MessagingException, IOException {
 
         MimeMessage mimeMessage = emailSender.composeMessage(emailAddress, subject, body);
-        Message message = Inbox.createMessageWithEmail(mimeMessage);
+        DBMessage message = Inbox.createMessageWithEmail(mimeMessage);
         Draft draft = new Draft();
         draft.setMessage(message);
         draft = emailSender.getAuth().service.users()

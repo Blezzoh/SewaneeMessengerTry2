@@ -242,7 +242,7 @@ public class MessageItemInPane extends StackPane {
     */
 /**
      * @return  the MessageItem one of the nodes in this StackPane
-     * for full detail Read the Message Item
+ * for full detail Read the DBMessage Item
  *//*
 
     public MessageItem getMsgItem() {

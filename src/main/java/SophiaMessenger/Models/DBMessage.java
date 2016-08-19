@@ -2,26 +2,29 @@ package SophiaMessenger.Models;
 
 import com.google.api.services.gmail.model.Message;
 import de.email.FullMessage;
-import de.email.Inbox;
 import de.email.database.Conn;
 import de.email.database.EmailDate;
+import de.email.interfaces.Mail;
 
 import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * Created by evansdb0 on 8/11/16.
  *
  * @author Daniel Evans
  */
-public class EmailTable {
+public class DBMessage implements Mail {
 
     // TODO: 8/12/16 TURN THIS INTO AN ENUM CLASS
     // COLUMN INDEXES FOR EACH COLUMN NAME
     public static int SUBJECT = 2;
     public static int SNIPPET = 3;
     public static int BODY = 4;
-    public static int MESSAGE_ID = 5;  // IMPORTANT: THE ACTUAL MESSAGE ID THAT CAME WITH THE Message object
+    public static int MESSAGE_ID = 5;  // IMPORTANT: THE ACTUAL MESSAGE ID THAT CAME WITH THE DBMessage object
     public static int FROM_EMAIL = 6;
     public static int FROM_NAME = 7;
     public static int DATE = 8;
@@ -35,61 +38,54 @@ public class EmailTable {
     private String messageId;
 
     /**
-     * only use for first initialization of the table
-     * this method will not check for duplication
-     *
+     * useful for getting a database record using a full message
      * @throws IOException  if there is a problem retrieving emails from Google servers
      * @throws SQLException if there is a problem with the connection
      */
-    private EmailTable(FullMessage fm) throws IOException, SQLException {
-        this(fm.getM());
+    public DBMessage(FullMessage fm) throws IOException, SQLException {
+        this(fm.getId());
     }
 
-    public EmailTable(Message m) throws IOException, SQLException {
-        // initialize this Email with the corresponding data record from DB if exists
-        // if it doesnt exist fetch FullMessage, set fields, and store record in DB
-/*        PreparedStatement ps = con.prepareStatement("select * from email.mail where id = ?");
-        System.out.println(m.getId());
-        ps.setString(1, m.getId());
-        ResultSet resultSet = ps.executeQuery();
-        if(resultSet.next()) {
-            System.out.println("look where i am");
-            initFieldsWithDBRecord(resultSet);
-        }*/
+    /**
+     * useful when we want to retrieve email data from MessageTableManager
+     * using a list of messages
+     *
+     * @param m a message from google servers usually retrieved using
+     *          inbox.getInbox() or inbox.listMessagesMatchingQuery(String)
+     * @throws IOException
+     * @throws SQLException
+     */
+    public DBMessage(Message m) throws SQLException {
+        this(m.getId());
+    }
 
-        Connection con = Conn.makeConnection();
-        ResultSet rs = null;  // 6 entries
+    private DBMessage(String mId) throws SQLException {
+        Connection con = null;
         try {
-            PreparedStatement ps = con.prepareStatement("SELECT * FROM mail WHERE id = ?");
-            ps.setString(1, m.getId());
+            con = Conn.makeConnection();
+            ResultSet rs = null;  // 6 entries
+            PreparedStatement ps = con.prepareStatement("SELECT * FROM message WHERE id = ?");
+            ps.setString(1, mId);
             rs = ps.executeQuery();
-            while (rs.next()) {
-                subject = rs.getString(SUBJECT);
-                fromEmail = rs.getString(FROM_EMAIL);
-                fromName = rs.getString(FROM_NAME);
-                snippet = rs.getString(SNIPPET);
-                body = Inbox.decodeString(rs.getString(BODY));
-                messageId = rs.getString(MESSAGE_ID);
-                date = rs.getString(DATE);
+            System.out.println(fromEmail);
+            System.out.println(fromEmail);
+            System.out.println(fromEmail);
+            if (rs.next()) {
+                System.out.println(fromEmail);
+                initFieldsWithDBRecord(rs);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        con.close();
+        // close db connection
+        if (con != null) con.close();
     }
 
-    private void initFields(FullMessage fm) {
-        subject = fm.getSubject();
-        fromEmail = fm.getFromEmail();
-        fromName = fm.getFromName();
-        snippet = fm.getSnippet();
-        body = fm.getBodyBase64String();
-        messageId = fm.getId();
-        EmailDate emailDate = new EmailDate(fm.getDate());
-        date = emailDate.getDefault();
-    }
-
+    /**
+     *
+     * @param rs Precondition: Must be a Result Set retrieved with "select * from message ..."
+     * @throws SQLException
+     */
     private void initFieldsWithDBRecord(ResultSet rs) throws SQLException {
         subject = rs.getString(SUBJECT);
         fromEmail = rs.getString(FROM_EMAIL);
@@ -98,23 +94,6 @@ public class EmailTable {
         body = rs.getString(BODY);
         messageId = rs.getString(MESSAGE_ID);
         date = rs.getString(DATE);
-    }
-
-    private ResultSet query(Connection connection, String sql) throws SQLException {
-        Statement q = connection.createStatement();
-        return q.executeQuery(sql);
-    }
-
-    private boolean checkMessageExists(Connection conn, Message m) throws SQLException {
-
-        PreparedStatement ps = conn.prepareStatement("SELECT id from mail where id = ?");
-        ps.setString(1, m.getId());
-        ResultSet rs = ps.executeQuery(m.getId());
-        int i = 0;
-        while (rs.next()) {
-            ++i;
-        }
-        return i == 1;
     }
 
     private boolean insertInto(Connection con, FullMessage fm) {
@@ -177,7 +156,13 @@ public class EmailTable {
         return body;
     }
 
+    @Override
+    public String getId() {
+        return messageId;
+    }
+
     public String getDate() {
+        System.out.println(date);
         return date;
     }
 

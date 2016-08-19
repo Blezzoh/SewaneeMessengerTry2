@@ -2,8 +2,6 @@ package SophiaMessenger.Views;
 
 import SophiaMessenger.LabelHolderOnHover;
 import SophiaMessenger.NotificationIcon;
-import de.email.FullMessage;
-import de.email.MessageParser;
 import de.email.interfaces.Mail;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -274,14 +272,6 @@ MessageView extends StackPane {
         }
 //        addToTrash.setOnMouseClicked(event -> trashEmail());
 //        mark.setOnMouseClicked(event -> moveEmail("READ"));
-    }
-
-    // controller method
-    public void setFm(FullMessage fm) {
-        snippetField.setText(fm.getSnippet());
-        subjectField.setText(fm.getSubject());
-        senderField.setText(fm.getFromName());
-        dateField.setText("Sent: " + MessageParser.parseDate(fm.getDate()));
     }
 
     // controller method

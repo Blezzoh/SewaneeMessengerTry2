@@ -47,35 +47,6 @@ public class Inbox implements Auth, EmailSender {
      */
     public Inbox(String emailAddress) {
         auth = new Authenticator(emailAddress);
-//        auth.userId = "me";
-/*        boolean retry = true;
-        // if connection fails during getInbox() call, retry the connection
-        // up to 5 times with exponential backoff
-        while (retry) {
-            try {
-                retry = false; // kill the while loop because getInbox() never threw
-            } catch (IOException e) {
-                ++retries;
-                System.out.println("Failed to connect on try " + retries +
-                        ". Retrying now...");
-                try {
-                    // server is possibly receiving a lot of traffic
-                    // so wait a little while before trying again
-                    // via exponential backoff
-                    java.lang.Thread.sleep(expBackoff());
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-                if (retries == 5) {
-                    System.out.println("Problem getting email messages. " +
-                            "Aborting connection. Are you connected to the internet?");
-                    System.exit(NO_INTERNET_CONNECTION);
-                }
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Connection established");
-        */
     }
 
     /**
@@ -88,10 +59,10 @@ public class Inbox implements Auth, EmailSender {
     }
 
     /**
-     * Create a Message from an email
+     * Create a DBMessage from an email
      *
-     * @param email Email to be set to raw of message
-     * @return Message containing base64 encoded email.
+     * @param email DBMessage to be set to raw of message
+     * @return DBMessage containing base64 encoded email.
      * @throws IOException
      * @throws MessagingException
      */
@@ -182,12 +153,11 @@ public class Inbox implements Auth, EmailSender {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("Inbox: message search size = " + messages.size());
         return messages;
     }
 
     /**
-     * @return list of messages that contain their respective messageId and threadId
+     * @return list of messages that contain their respective messageId and threadId or an empty list
      * @throws IOException
      */
     public List<Message> getInbox() {
@@ -199,20 +169,23 @@ public class Inbox implements Auth, EmailSender {
         }
 
         List<Message> messages = new ArrayList<>(MESSAGE_SIZE);
-        while (response.getMessages() != null) {
-            messages.addAll(response.getMessages());
-            if (response.getNextPageToken() != null) {
-                try {
-                    response = getMetadataResponse(null, response.getNextPageToken());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        if (response != null) {
+            System.out.println("Listing messages.... ");
+            while (response.getMessages() != null) {
+                messages.addAll(response.getMessages());
+                if (response.getNextPageToken() != null) {
+                    try {
+                        response = getMetadataResponse(null, response.getNextPageToken());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
-                if (messages.size() >= MESSAGE_SIZE)
+                    if (messages.size() >= MESSAGE_SIZE)
+                        break;
+
+                } else
                     break;
-
-            } else
-                break;
+            }
         }
         return messages;
     }
@@ -259,7 +232,7 @@ public class Inbox implements Auth, EmailSender {
      * Send an email from the user's mailbox to its recipient.
      *
      * can be used to indicate the authenticated user.
-     * @param email Email to be sent.
+     * @param email DBMessage to be sent.
      * @throws MessagingException
      * @throws IOException
      */
@@ -269,7 +242,7 @@ public class Inbox implements Auth, EmailSender {
         Message message = createMessageWithEmail(email);
         message = auth.service.users().messages().send(auth.userId, message).execute();
 
-        System.out.println("Message id: " + message.getId());
+        System.out.println("DBMessage id: " + message.getId());
         System.out.println(message.toPrettyString());
     }
 

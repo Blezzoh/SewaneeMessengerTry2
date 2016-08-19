@@ -11,11 +11,14 @@ import java.sql.SQLException;
  */
 public class Conn {
 
+    private static final String SERVER_AND_PORT = "jdbc:mysql://localhost:3306/";
     private static final String DATABASE_NAME = "email";
+    private static final String URL_PARAMS = "?autoReconnect=true&useSSL=false";
     private static final String USERNAME = "root";
     private static final String PASS = "Scourts14?!";
 
     public static Connection makeConnection() throws SQLException {
-        return DriverManager.getConnection("jdbc:mysql://localhost:3306/" + DATABASE_NAME, USERNAME, PASS);
+        return DriverManager.getConnection(SERVER_AND_PORT
+                + DATABASE_NAME + URL_PARAMS, USERNAME, PASS);
     }
 }

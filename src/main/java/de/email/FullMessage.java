@@ -28,11 +28,10 @@ public class FullMessage implements EmailSender, Mail {
     private static final String SUBJECT = "Subject";
     private static final String LIST_UNSUBSCRIBE = "List-Unsubscribe";
     private static final String MAILING_LIST = "Mailing-List";
-    private static final String TROUBLE_VIEWING_MESSAGE =
-            "\n\nHaving trouble viewing this message? Sign in to your gmail account in a browser" +
-                    " and go to this url: https://mail.google.com/mail/u/0/#inbox/";
     private static final String PAYLOAD_BODY_PARSER_STRING = "\"body\":{\"data\":\"";
     private static final String PROBLEM_TRASHING_MESSAGE = "There were problems trashing message with id ";
+
+
     private Message m;
     private Authenticator auth;
 
@@ -54,7 +53,7 @@ public class FullMessage implements EmailSender, Mail {
         try {
             execute = inbox.getAuth().service.users()
                     .messages().trash(inbox.getAuth().userId, msgId).execute();
-            System.out.println("Message with id: " + msgId + " has been trashed.");
+            System.out.println("DBMessage with id: " + msgId + " has been trashed.");
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println(PROBLEM_TRASHING_MESSAGE + msgId);
@@ -78,7 +77,7 @@ public class FullMessage implements EmailSender, Mail {
         try {
             execute = auth.service.users()
                     .messages().trash(auth.userId, m.getId()).execute();
-            System.out.println("Message with id: " + m.getId() + " has been trashed.");
+            System.out.println("DBMessage with id: " + m.getId() + " has been trashed.");
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println(PROBLEM_TRASHING_MESSAGE + m.getId());

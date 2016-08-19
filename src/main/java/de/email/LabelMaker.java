@@ -97,7 +97,7 @@ public class LabelMaker {
 
     /**
      * Modify the labels a message is associated with.
-     * @param messageId      ID of Message to Modify.
+     * @param messageId      ID of DBMessage to Modify.
      * @param labelsToAdd    List of label ids to add.
      * @param labelsToRemove List of label ids to remove.
      */

@@ -2,6 +2,7 @@ package SophiaMessenger.Controllers;
 
 import com.google.api.services.gmail.model.Message;
 import de.email.Inbox;
+import de.email.database.MessageTableManager;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -22,6 +23,8 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
@@ -30,7 +33,7 @@ import java.util.Stack;
  * @author Daniel Evans and Blaise Iradukunda
  */
 
-public class Controller extends Application {
+public class MainController extends Application {
 
     static final String COMPOSE_STYLE = "-fx-background-color: rgba(7, 171,202,.7); -fx-font-family: Trebuchet MS; -fx-font-size: 13px; -fx-font-weight: bold; -fx-border-color: white;"
             +"-fx-effect: dropshadow(gaussian, black, 2, 0, 3, 3); -fx-border-insets: 3px; -fx-border-width: 2px; -fx-text-fill: white";
@@ -57,6 +60,13 @@ public class Controller extends Application {
 
         // loads the user's inbox
         messages = inbox.getInbox();
+        try {
+            MessageTableManager.createMessageTable();
+            MessageTableManager.fillTable(inbox);
+            MessageTableManager.updateMessageTable(inbox);
+        } catch (IOException | SQLException e) {
+            e.printStackTrace();
+        }
 
         long initTime = System.currentTimeMillis();
 
@@ -73,10 +83,8 @@ public class Controller extends Application {
         right = new ComposerManager();
         root.setRight(right);
 
-        initSpAndCenter();
-
         // creating title for application and scene
-        primaryStage.setTitle("Sewanee Messenger");
+        primaryStage.setTitle("Sophia Messenger");
         Scene scene = new Scene(root);
         scene.getStylesheets().add("MessengerStyle.css");
 
@@ -131,49 +139,6 @@ public class Controller extends Application {
         primaryStage.show();
     }
 
-    private void initSpAndCenter() {
-        /**
-         *   creates and loads the messages for the center of the root
-         */
-/*        center = new TilePane();
-        center.setHgap(8);
-        center.setVgap(5);
-        center.setPadding(new Insets(8, 0, 8, 0));
-        center.setAlignment(Pos.CENTER);
-        center.setStyle("-fx-background-color: rgba(7, 171,202,.4)");
-        sp = new ScrollPane(center);
-        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        sp.setFitToWidth(true);
-*/
-    }
-
-    private boolean startsWith(String prefix, String str) {
-        if (prefix.length() > str.length()) return false;
-        for (int i = 0; i < prefix.length(); i++) {
-            if (prefix.charAt(i) != str.charAt(i))
-                return false;
-        }
-        return true;
-    }
-
-    private boolean sw(String prefix, String str) {
-        if (prefix.length() > str.length()) return false;
-        return prefix.equals(str.substring(0, prefix.length() + 1));
-    }
-
-    private String searchEmailAddressOnKeyPressed(List<String> emailAddresses,
-                                                  String searchText) {
-
-        int foundIndex = 0;
-        for (int i = 0; i < emailAddresses.size(); i++) {
-            if(emailAddresses.get(i).startsWith(searchText)) {
-                foundIndex = i;
-            }
-        }
-        return emailAddresses.get(foundIndex);
-    }
-
     public void userSearchForMessages(BorderPane root) {
         // TODO: HANDLE THE CASE WHERE NO MESSAGES ARE RETURNED
         // only search for messages if the searchField is visible
@@ -181,7 +146,7 @@ public class Controller extends Application {
         if(!searchField.isVisible() || searchField.getText().equals(""))
             return;
         // time is used to show how long search and ui update takes
-        /*List<Message> searchMessages =
+        /*List<DBMessage> searchMessages =
                 inbox.listMessagesMatchingQuery(searchField.getText());*/
 
         List<Message> tempMessages = inbox.listMessagesMatchingQuery(searchField.getText());
@@ -229,8 +194,6 @@ public class Controller extends Application {
 
         topMenu.setPadding(new Insets(2, 2, 2, 2));
         searchField.setStyle("-fx-font-size: 14;");
-
-
 
 
         searchField.setTranslateY(-3);

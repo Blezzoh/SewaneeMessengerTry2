@@ -9,12 +9,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -23,50 +20,65 @@ import java.util.List;
  *
  * @author Daniel Evans
  */
-public class DB {
+public class MessageTableManager {
 
-    // ----------------- ALL UPDATE DB METHODS -----------------------------
+    private static final String tableName = "email.message";
 
-    public static void updateDatabase(Inbox inbox)
+    // ----------------- ALL UPDATE MessageTableManager METHODS -----------------------------
+
+    public static void updateMessageTable(Inbox inbox)
             throws IOException, SQLException {
         Connection conn = Conn.makeConnection();
-        ResultSet resultSet = query(conn, "select date from mail order by date desc limit 1");
+        ResultSet resultSet = query(conn, "select date from " + tableName + " order by date desc limit 1");
+        // get most recent date from database
         String d = null;
         if (resultSet.next()) {
             d = resultSet.getString(1);
-            System.out.println("First date out of email table " + d);
-        } else
-            return;
-        // use this -> YYYY-mm-dd format because that is how the date was stored in MySQL
-        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-mm-dd");
-        Date date = null;
-        try {
-            date = sdf.parse(d);
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        System.out.println("after:" + getLocalDate(date, 1, "yyyy/LLLL/dd"));
-        List<Message> messages = inbox.listMessagesMatchingQuery
-                ("after:" + getLocalDate(date, 1, "yyyy/LLLL/dd"));
+        } else return;
+        // get the date 1 day before d
+        String ld = getLocalDate(d, 1, "yyyy/LLLL/dd");
+        // search for messages on google's servers that are newer than ld
+        List<Message> messages = inbox.listMessagesMatchingQuery("after:" + ld);
 
-        ResultSet rs = query(conn, "select id from mail");
+        // get messages as full messages and insert the them
+        List<FullMessage> fms = new ArrayList<>(messages.size());
+        for (Message message : messages)
+            fms.add(new FullMessage(inbox, message));
+        for (FullMessage fm : fms)
+            insertInto(conn, fm);
 
-        System.out.print("Saving new messages...");
-        saveAllNewMessages(messages, rs, conn);
-        System.out.println("Done. \nDeleting old messages");
-        deleteAllOldMessages(messages, rs, conn);
     }
 
-    private static String getLocalDate(Date date, int numDays, String format) {
-        LocalDate d = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    private static String getLocalDate(String date, int numDays, String format) {
+        LocalDate d = LocalDate.parse(date);
+        System.out.println("local date " + d);
         LocalDate numDaysBeforeNow = d.minusDays(numDays);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         return numDaysBeforeNow.format(formatter);
     }
 
+    public static void createMessageTable() {
+        Connection c = null;
+        try {
+            c = Conn.makeConnection();
+            execute(c, "CREATE TABLE IF NOT EXISTS " + tableName + "\n" +
+                    "(\n" +
+                    "  id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,\n" +
+                    "  subject VARCHAR(2000),\n" +
+                    "  snippet VARCHAR(1000),\n" +
+                    "  body LONGTEXT,\n" +
+                    "  message_id VARCHAR(100) NOT NULL UNIQUE,\n" +
+                    "  fromEmail VARCHAR(500),\n" +
+                    "  fromName VARCHAR(500),\n" +
+                    "  date DATE\n" +
+                    ")");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private static void saveAllNewMessages(List<Message> messages,
                                            ResultSet rs, Connection conn) {
-        System.out.println(messages.size());
     }
 
     private static void deleteAllOldMessages(List<Message> messages,
@@ -78,11 +90,15 @@ public class DB {
 
     }
 
+    private static boolean execute(Connection connection, String sql) throws SQLException {
+        return connection.createStatement().execute(sql);
+    }
+
     private static ResultSet query(Connection connection, String sql) throws SQLException {
         return connection.createStatement().executeQuery(sql);
     }
 
-    // ------------------------- END UPDATE DB METHODS ----------------------------
+    // ------------------------- END UPDATE MessageTableManager METHODS ----------------------------
 
     private static int numRows(Connection con) {
         ResultSet rs = null;
@@ -102,7 +118,7 @@ public class DB {
     }
 
     public static int numRows() throws SQLException {
-        ResultSet rs = query("select count(id) from mail");
+        ResultSet rs = query("select count(id) from " + tableName);
         if (rs.next())
             return rs.getInt(1);
         return -1;
@@ -121,7 +137,7 @@ public class DB {
         List<Message> messages = inbox.getInbox();
         if (numRows() == 0) {
             Connection connection = Conn.makeConnection();
-            System.out.print("DB connection successful. Loading " + messages.size() + " messages... ");
+            System.out.print("MessageTableManager connection successful. Loading " + messages.size() + " messages... ");
             for (int i = 0; i < messages.size(); i++) {
                 FullMessage fm = new FullMessage(inbox, messages.get(i));
                 insertInto(connection, fm);
@@ -129,9 +145,6 @@ public class DB {
             System.out.print("Done.\n");
             System.out.println("Initialization time: " + ((System.currentTimeMillis() - initTime) / 1000));
             connection.close();
-        } else {
-            System.out.println("Updating and exiting...");
-            updateDatabase(inbox);
         }
     }
 
@@ -159,7 +172,7 @@ public class DB {
 
         PreparedStatement stmt = null;
         try {
-            stmt = conn.prepareStatement("INSERT INTO email.mail (subject, snippet, body, id, fromEmail, fromName, date) " +
+            stmt = conn.prepareStatement("INSERT IGNORE INTO " + tableName + " (subject, snippet, body, message_id, fromEmail, fromName, date) " +
                     "values (?, ?, ?, ?, ?, ?, ?)");
             stmt.setString(1, subject);
             stmt.setString(2, snippet);
@@ -176,27 +189,6 @@ public class DB {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return false;
-    }
-
-    private boolean messageExists(Connection conn, Message message, ResultSet rs) {
-        System.out.print("Checking if message exists...");
-        try {
-            rs = query(conn, "SELECT id from mail");
-
-            int i = 0;
-            while (rs.next()) {
-                if (rs.getString(1).equals(message.getId())) {
-                    System.out.println("  Yes");
-                    return true;
-                }
-            }
-            System.out.println(" No");
-            return false;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        System.out.println("  No");
         return false;
     }
 }
