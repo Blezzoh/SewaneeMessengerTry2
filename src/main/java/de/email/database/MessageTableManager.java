@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class MessageTableManager {
 
-    private static final String tableName = "email.message";
+    public static final String tableName = "email.message";
 
     // ----------------- ALL UPDATE MessageTableManager METHODS -----------------------------
 
@@ -39,6 +39,8 @@ public class MessageTableManager {
         String ld = getLocalDate(d, 1, "yyyy/LLLL/dd");
         // search for messages on google's servers that are newer than ld
         List<Message> messages = inbox.listMessagesMatchingQuery("after:" + ld);
+
+        // TODO: FIGURE OUT WHY THE DATE AND OTHER FIELDS IN DBMESSAGE ARE NULL
 
         // get messages as full messages and insert the them
         List<FullMessage> fms = new ArrayList<>(messages.size());

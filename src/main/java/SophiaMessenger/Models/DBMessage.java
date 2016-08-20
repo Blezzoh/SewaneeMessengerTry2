@@ -2,6 +2,7 @@ package SophiaMessenger.Models;
 
 import com.google.api.services.gmail.model.Message;
 import de.email.FullMessage;
+import de.email.MessageParser;
 import de.email.database.Conn;
 import de.email.database.EmailDate;
 import de.email.interfaces.Mail;
@@ -11,6 +12,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import static de.email.database.MessageTableManager.tableName;
 
 /**
  * Created by evansdb0 on 8/11/16.
@@ -64,12 +67,10 @@ public class DBMessage implements Mail {
         try {
             con = Conn.makeConnection();
             ResultSet rs = null;  // 6 entries
-            PreparedStatement ps = con.prepareStatement("SELECT * FROM message WHERE id = ?");
+            PreparedStatement ps = con.prepareStatement("SELECT * FROM " + tableName + " WHERE message_id = ?");
+            System.out.println(mId);
             ps.setString(1, mId);
             rs = ps.executeQuery();
-            System.out.println(fromEmail);
-            System.out.println(fromEmail);
-            System.out.println(fromEmail);
             if (rs.next()) {
                 System.out.println(fromEmail);
                 initFieldsWithDBRecord(rs);
@@ -141,11 +142,11 @@ public class DBMessage implements Mail {
     }
 
     public String getFromEmail() {
-        return fromEmail;
+        return MessageParser.parseEmailAddress(fromEmail);
     }
 
     public String getFromName() {
-        return fromName;
+        return MessageParser.parseNameFromMessage(fromName);
     }
 
     public String getSnippet() {

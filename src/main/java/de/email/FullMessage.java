@@ -211,7 +211,7 @@ public class FullMessage implements EmailSender, Mail {
 
     @Override
     public String getFromName() {
-        return MessageParser.parseNameFromEmail(getHeaderPart(FROM));
+        return MessageParser.parseNameFromMessage(getHeaderPart(FROM));
     }
 
     @Override

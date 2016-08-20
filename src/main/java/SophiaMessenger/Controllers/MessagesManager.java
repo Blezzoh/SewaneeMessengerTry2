@@ -4,7 +4,6 @@ import SophiaMessenger.Models.DBMessage;
 import SophiaMessenger.Views.MessageView;
 import com.google.api.services.gmail.model.Message;
 import de.email.Authenticator;
-import de.email.database.EmailDate;
 import de.email.interfaces.Auth;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -70,7 +69,6 @@ public class MessagesManager extends Pagination {
         });
 */
     }
-
     private ScrollPane createPage(Integer pageIndex, List<Message> messages) {
 
         int page = pageIndex * itemsPerPage;
@@ -85,7 +83,7 @@ public class MessagesManager extends Pagination {
             }
             if (dbm != null) {
                 mvs[mvsIndex].getSenderField().setText(dbm.getFromName());
-                mvs[mvsIndex].getDateField().setText(new EmailDate(dbm.getDate()).slashDate());
+                mvs[mvsIndex].getDateField().setText(dbm.getDate());
                 mvs[mvsIndex].getSnippetField().setText(dbm.getSnippet());
                 mvs[mvsIndex].getSubjectField().setText(dbm.getSubject());
             }

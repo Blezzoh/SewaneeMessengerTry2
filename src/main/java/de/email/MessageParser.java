@@ -47,6 +47,7 @@ public class MessageParser {
         }
     }
 
+
     /**
      *
      * @param imgElement expects an element of type img
@@ -55,6 +56,18 @@ public class MessageParser {
     public static String getImgSrc(Element imgElement) {
         Preconditions.objectNotNull(imgElement, "imgElement is null");
         return imgElement.attr("src");
+    }
+
+    /**
+     * Precondition: from must be in the form NameOfPerson <emailAddress@example.com>
+     *
+     * @param from an email in form NameOfPerson <emailAddress@example.com>
+     * @return returns NameOfPerson
+     */
+    public static String parseNameFromMessage(String from) {
+        int i = from.indexOf('<');
+        if (i == -1) return from;
+        return stripEnds(from.substring(0, i));
     }
 
     /**
@@ -123,17 +136,6 @@ public class MessageParser {
         return str.substring(start, end + 1);
     }
 
-    /**
-     * Precondition: from must be in the form NameOfPerson <emailAddress@example.com>
-     *
-     * @param from an email in form NameOfPerson <emailAddress@example.com>
-     * @return returns NameOfPerson
-     */
-    static String parseNameFromEmail(String from) {
-        int i = from.indexOf('<');
-        if (i == -1) return from;
-        return stripEnds(from.substring(0, i));
-    }
     /**
      *
      * @param message Ay gmail message

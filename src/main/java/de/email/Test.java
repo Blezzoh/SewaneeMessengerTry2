@@ -1,9 +1,11 @@
 package de.email;
 
-import de.email.database.MessageTableManager;
+import SophiaMessenger.Models.DBMessage;
+import com.google.api.services.gmail.model.Message;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Created by Daniel Evans on 7/13/16.
@@ -17,14 +19,16 @@ public class Test {
     public static void main(String[] args) throws IOException, InterruptedException {
 
         Inbox inbox = new Inbox("iradub0@sewanee.edu");
+
+        List<Message> msgs = inbox.getInbox();
+
+        Message message = msgs.get(0);
+
+        DBMessage m = null;
         try {
-            MessageTableManager.createMessageTable();
-//            System.out.println(MessageTableManager.update(inbox));
-//            MessageTableManager.fillTable(inbox);
-            MessageTableManager.updateMessageTable(inbox);
+            m = new DBMessage(message);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 }
