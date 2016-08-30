@@ -1,10 +1,8 @@
 package SophiaMessenger.Models;
 
 import SophiaMessenger.Views.Composer;
-import de.email.interfaces.EmailSender;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 
 /**
@@ -14,10 +12,8 @@ import java.io.IOException;
 public class ComposerData {
     private String emailAddress, subject, cc, body;
     private int composerDataId;
-    private EmailSender emailSender;
 
-    public ComposerData(Composer composer, EmailSender emailSender) {
-        this.emailSender = emailSender;
+    public ComposerData(Composer composer) {
         this.emailAddress = composer.getEmailAddress().getText();
         this.subject= composer.getSubject().getText();
         this.cc = composer.getCc().getText();
@@ -87,23 +83,4 @@ public class ComposerData {
         return draft;
     }*/
 
-    // TODO: try to send multiple times, if fails notify user
-    // TODO: validate information in data fields
-    public void sendEmail() {
-        MimeMessage mimeMessage = null;
-        try {
-            mimeMessage = emailSender.composeMessage(emailAddress, subject, body);
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e1) {
-            }
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
-        try {
-            emailSender.sendMessage(mimeMessage);
-        } catch (MessagingException | IOException e) {
-            e.printStackTrace();
-        }
-    }
 }

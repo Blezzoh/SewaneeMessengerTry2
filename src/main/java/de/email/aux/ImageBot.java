@@ -1,5 +1,6 @@
-package de.email;
+package de.email.aux;
 
+import de.email.core.FullMessage;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;

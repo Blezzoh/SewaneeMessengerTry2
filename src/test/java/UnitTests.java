@@ -1,6 +1,5 @@
 import com.google.api.services.gmail.model.Message;
-import de.email.FullMessage;
-import de.email.Inbox;
+import de.email.core.Inbox;
 import org.junit.Test;
 
 import java.io.IOException;

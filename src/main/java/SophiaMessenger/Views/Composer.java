@@ -11,6 +11,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 
 /**
  * Created by daniel on 6/8/16.
@@ -26,12 +27,13 @@ public class Composer extends BorderPane {
     private TextField subject;
     private VBox vbox;
     private Rectangle xCloser;
+    private Text notificationsToUser;
 
     public Composer() {
 
         initFields();
 
-        HBox sendAndExtrasContainer = new HBox(8, send, attachments);
+        HBox sendAndExtrasContainer = new HBox(8, send, attachments, notificationsToUser);
         setButtonEvents();
         xCloser = xCloserSettings
                 (makeImage("https://cdn3.iconfinder.com/data/icons/virtual-notebook/16/button_close-128.png"
@@ -68,6 +70,14 @@ public class Composer extends BorderPane {
         return xCloser;
     }
 
+    public Text getNotificationsToUser() {
+        return notificationsToUser;
+    }
+
+    public void setNotificationsToUser(Text notificationsToUser) {
+        this.notificationsToUser = notificationsToUser;
+    }
+
     private void initFields() {
         subject = new TextField();
         subject.setPromptText("Subject");
@@ -80,6 +90,8 @@ public class Composer extends BorderPane {
         Cc.setPromptText("Cc: ");
         send = new Button("Send");
         attachments = new Button("Attachment");
+        notificationsToUser = new Text();
+        notificationsToUser.setVisible(false);
     }
 
     private Rectangle makeImage(String imageUrl,

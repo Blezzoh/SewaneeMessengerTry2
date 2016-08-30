@@ -1,4 +1,4 @@
-package de.email;
+package de.email.core;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -72,12 +72,6 @@ public class Authenticator {
 
     Gmail service;
     String userId;
-
-    /**
-     * creates an object that can be used to access the user's gmail account
-     *
-     * @param userId user's gmail email address
-     */
 
     public Authenticator(String userId) {
         try {

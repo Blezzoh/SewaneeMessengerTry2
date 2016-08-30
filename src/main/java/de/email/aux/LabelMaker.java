@@ -1,30 +1,35 @@
-package de.email;
+/*
+package de.email.aux;
 
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListLabelsResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyMessageRequest;
+import de.email.core.Authenticator;
+import de.email.core.Preconditions;
 import de.email.interfaces.Auth;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+*/
 /**
  * Created by daniel on 6/9/16.
  * @author Daniel Evans
- */
+ *//*
+
 public class LabelMaker {
     private static final String NULL_AUTH = "param auth is null";
 
-    /**
+    */
+/**
      * Add a new Label to user's inbox.
-     */
+ *//*
+
     public static Label createLabel(Auth auth, String newLabelName,
                                     boolean showInMessageList, boolean showInLabelList) throws IOException {
         Preconditions.objectNotNull(auth, NULL_AUTH);
-        Preconditions.objectNotNull(auth, newLabelName);
-
         String messageListVisibility = showInMessageList ? "show" : "hide";
         String labelListVisibility = showInLabelList ? "labelShow" : "labelHide";
         Label label = new Label().setName(newLabelName)
@@ -37,12 +42,14 @@ public class LabelMaker {
         return label;
     }
 
-    /**
+    */
+/**
      * Updates the specified label.
      *
      * @param labelId    ID of Label to patch. For example, CATEGORY_PERSONAL
      * @param labelPatch Label with properties to patch.
-     */
+ *//*
+
 
     public static Label patchLabel(Auth auth, String labelId, Label labelPatch) {
         Label patchedLabel = null;
@@ -66,13 +73,15 @@ public class LabelMaker {
         return null;
     }
 
-    /**
+    */
+/**
      * Update an existing label.
      * @param labelToUpdate     The label that will be updated
      * @param newLabelName      New name of the label.
      * @param showInMessageList Show or hide label in message.
      * @param showInLabelList   Show or hide label in label list.
-     */
+ *//*
+
     public static Label updateLabel(Auth auth,
                                     Label labelToUpdate,
                                     String newLabelName, boolean showInMessageList,
@@ -95,12 +104,14 @@ public class LabelMaker {
         return null;
     }
 
-    /**
+    */
+/**
      * Modify the labels a message is associated with.
      * @param messageId      ID of DBMessage to Modify.
      * @param labelsToAdd    List of label ids to add.
      * @param labelsToRemove List of label ids to remove.
-     */
+ *//*
+
     public static Message modifyMessage(Authenticator auth, String messageId
             , List<String> labelsToAdd, List<String> labelsToRemove) {
         if (labelsToAdd == null && labelsToRemove == null)
@@ -128,7 +139,8 @@ public class LabelMaker {
         return null;
     }
 
-    /**
+    */
+/**
      * @param auth               any class that implements Auth, used for account access/modification
      * @param messageId          the id of the message whose labels will be modified
      * @param labelToAddOrRemove the names of the labels to add or remove
@@ -136,7 +148,8 @@ public class LabelMaker {
      *                           remove the label
      * @return returns true if the message's labelList was successfully modified
      * false otherwise
-     */
+ *//*
+
 
     public static boolean modifyMessage(Auth auth,
                                         String messageId, String labelToAddOrRemove,
@@ -189,12 +202,14 @@ public class LabelMaker {
         return null;
     }
 
-    /**
+    */
+/**
      * @param auth any class that implements Auth  (needed for account access)
      * @param labelName the name of the label to delete
      * @return message to user saying that the label was deleted successfully
      * or that it failed
-     */
+ *//*
+
     public static boolean deleteLabel(Auth auth, String labelName) {
         return LabelMaker.deleteLabel(auth, findLabel(auth, labelName));
     }
@@ -207,9 +222,11 @@ public class LabelMaker {
         return null;
     }
 
-    /**
+    */
+/**
      * List the Labels in the user's mailbox.
-     */
+ *//*
+
     public static List<Label> listLabels(Auth auth) {
         Preconditions.objectNotNull(auth, NULL_AUTH);
         return listLabels(auth.getAuth());
@@ -225,3 +242,4 @@ public class LabelMaker {
         return null;
     }
 }
+*/

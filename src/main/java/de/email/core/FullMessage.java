@@ -1,15 +1,12 @@
-package de.email;
+package de.email.core;
 
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartHeader;
+import de.email.aux.MessageParser;
 import de.email.interfaces.Auth;
-import de.email.interfaces.EmailSender;
 import de.email.interfaces.Mail;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.util.List;
 
@@ -18,7 +15,7 @@ import java.util.List;
  *
  * @author Daniel Evans
  */
-public class FullMessage implements EmailSender, Mail {
+public class FullMessage implements Mail {
 
     private static final String DATE = "Date";
     private static final String DELIVERED_TO = "Delivered-To";
@@ -265,28 +262,5 @@ public class FullMessage implements EmailSender, Mail {
         return m;
     }
 
-    @Override
-    public MimeMessage composeMessage(String to,
-                                      String subject,
-                                      String message) throws MessagingException {
 
-        Preconditions.objectNotNull(to, "to is null");
-        Preconditions.objectNotNull(subject, "subject is null");
-        Preconditions.objectNotNull(message, "message is null");
-        MimeMessage m = new MimeMessage(Inbox.getSessionWithDefaultProps());
-        m.setFrom(new InternetAddress(this.auth.userId));
-
-        // TODO: if CC/BCC contains an email address, iterate through the
-        // TODO: email addresses using this method
-        m.addRecipients(javax.mail.Message.RecipientType.CC, to);
-        m.setSubject(subject);
-        m.setText(message);
-        return m;
-
-    }
-
-    @Override
-    public void sendMessage(MimeMessage email) throws MessagingException, IOException {
-
-    }
 }

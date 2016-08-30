@@ -1,7 +1,7 @@
 package SophiaMessenger.Controllers;
 
 import com.google.api.services.gmail.model.Message;
-import de.email.Inbox;
+import de.email.core.Inbox;
 import de.email.database.MessageTableManager;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
@@ -40,10 +40,8 @@ public class MainController extends Application {
     private static final String TOP_STYLE = "-fx-background-color: rgba(7, 171,202,.7); -fx-padding: 15px; -fx-spacing: 15px; -fx-start-margin: 40px; -fx-border-color:rgba(255, 153, 51, .8);" +
             "-fx-border-radius: 3px" ;
     private final TextField searchField = new TextField();
-    private long searchTime;
     private Inbox inbox;
     private List<Message> messages;
-    private int itemsPerPage = 15;
     private BorderPane root;
     private Stack<Scene> sceneStack;
     private ComposerManager right;
@@ -78,9 +76,9 @@ public class MainController extends Application {
         Button composeButton = new Button("Compose");
         composeButton.setStyle(COMPOSE_STYLE);
         top.getChildren().add(0, composeButton);
-        composeButton.setOnMousePressed(event -> right.createNewMessage(inbox));
+        composeButton.setOnMousePressed(event -> right.createNewMessage());
         root.setTop(top);
-        right = new ComposerManager();
+        right = new ComposerManager(inbox);
         root.setRight(right);
 
         // creating title for application and scene
@@ -117,7 +115,6 @@ public class MainController extends Application {
 
                         // USER HIT ENTER
                         if (event.getCode() == KeyCode.ENTER) {
-                            searchTime = System.currentTimeMillis();
                             userSearchForMessages(root);
                         }
                         char key = event.getText().charAt(0);

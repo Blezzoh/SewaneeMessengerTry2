@@ -1,8 +1,6 @@
 package SophiaMessenger;
 
 import SophiaMessenger.Views.MessageView;
-import com.google.api.services.gmail.model.Label;
-import de.email.LabelMaker;
 import de.email.interfaces.Auth;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -16,8 +14,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-
-import java.util.List;
 
 /**
  * Created by iradu_000 on 7/19/2016.
@@ -55,12 +51,13 @@ public class ListLabelsOnHover extends VBox{
 
     private String[] getAllTheLabels(Auth auth) {
 
-        List<Label> allLabel = LabelMaker.listLabels(auth);
+        /*List<Label> allLabel = LabelMaker.listLabels(auth);
         String[] labels = new String[allLabel.size() + 1];
         for (int i = 0; i < allLabel.size(); i++) {
             labels[i] = allLabel.get(i).getName();
         }
-        return labels;
+        return labels;*/
+        return null;
     }
 
     public ListView<String> getAllLabels() {

@@ -1,4 +1,4 @@
-package de.email;
+package de.email.aux;
 
 import java.io.IOException;
 

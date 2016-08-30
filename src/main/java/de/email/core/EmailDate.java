@@ -1,6 +1,4 @@
-package de.email.database;
-
-import de.email.Preconditions;
+package de.email.core;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

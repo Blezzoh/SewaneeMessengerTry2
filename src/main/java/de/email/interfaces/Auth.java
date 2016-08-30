@@ -1,6 +1,6 @@
 package de.email.interfaces;
 
-import de.email.Authenticator;
+import de.email.core.Authenticator;
 
 /**
  * Created by daniel on 7/31/16.

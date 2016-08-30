@@ -1,4 +1,4 @@
-package de.email;
+package de.email.core;
 
 import com.google.api.client.repackaged.org.apache.commons.codec.binary.StringUtils;
 import com.google.api.client.util.Base64;
@@ -8,11 +8,9 @@ import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;
 import de.email.interfaces.Auth;
-import de.email.interfaces.EmailSender;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,7 +23,7 @@ import java.util.Properties;
  * Created by daniel on 6/2/16.
  * @author Daniel Evans
  */
-public class Inbox implements Auth, EmailSender {
+public class Inbox implements Auth {
 
     /**
      * the number of messages to retrieve on both a search and on startup of the application
@@ -228,47 +226,6 @@ public class Inbox implements Auth, EmailSender {
         return auth.userId;
     }
 
-    /**
-     * Send an email from the user's mailbox to its recipient.
-     *
-     * can be used to indicate the authenticated user.
-     * @param email DBMessage to be sent.
-     * @throws MessagingException
-     * @throws IOException
-     */
-    public void sendMessage(MimeMessage email)
-            throws MessagingException, IOException {
-        Preconditions.objectNotNull(email, "email is null");
-        Message message = createMessageWithEmail(email);
-        message = auth.service.users().messages().send(auth.userId, message).execute();
-
-        System.out.println("DBMessage id: " + message.getId());
-        System.out.println(message.toPrettyString());
-    }
-
-    /**
-     *
-     * @param to email address of receiver
-     * @param subject subject of message
-     * @param message body of the message
-     * @return composed MimeMessage
-     * @throws MessagingException
-     */
-    public MimeMessage composeMessage(String to,
-                                      String subject,
-                                      String message) throws MessagingException {
-
-        MimeMessage m = new MimeMessage(getSessionWithDefaultProps());
-        m.setFrom(new InternetAddress(this.auth.userId));
-
-        // TODO: if CC/BCC contains an email address, iterate through the
-        // TODO: email addresses using this method
-        m.addRecipients(MimeMessage.RecipientType.CC, to);
-        m.setSubject(subject);
-        m.setText(message);
-        return m;
-    }
-    
     public List<String> loadEmailAddresses(List<Message> inbox) {
         Preconditions.objectNotNull(inbox, "inbox is null");
         List<String> emailAddresses = null;

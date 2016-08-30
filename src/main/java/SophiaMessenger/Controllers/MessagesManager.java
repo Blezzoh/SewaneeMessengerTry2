@@ -3,7 +3,7 @@ package SophiaMessenger.Controllers;
 import SophiaMessenger.Models.DBMessage;
 import SophiaMessenger.Views.MessageView;
 import com.google.api.services.gmail.model.Message;
-import de.email.Authenticator;
+import de.email.core.Authenticator;
 import de.email.interfaces.Auth;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -36,6 +36,7 @@ public class MessagesManager extends Pagination {
         initCenterContainer();
 
         mvs = new MessageView[itemsPerPage];
+        System.out.print("Initializing messageViews...");
         for (int i = 0; i < mvs.length; i++) {
             try {
                 mvs[i] = new MessageView(
@@ -44,6 +45,7 @@ public class MessagesManager extends Pagination {
                 e.printStackTrace();
             }
         }
+        System.out.println("  Done.");
         center.getChildren().addAll(mvs);
         setPagination(messages);
         setPaginationEvents();

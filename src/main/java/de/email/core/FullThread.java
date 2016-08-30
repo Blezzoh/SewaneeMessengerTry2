@@ -1,4 +1,4 @@
-package de.email;
+package de.email.core;
 
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;

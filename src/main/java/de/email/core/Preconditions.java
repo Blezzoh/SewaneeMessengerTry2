@@ -1,4 +1,4 @@
-package de.email;
+package de.email.core;
 
 /**
  * Created by evansdb0 on 7/15/16.

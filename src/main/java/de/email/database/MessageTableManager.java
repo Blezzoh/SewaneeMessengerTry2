@@ -1,8 +1,9 @@
 package de.email.database;
 
 import com.google.api.services.gmail.model.Message;
-import de.email.FullMessage;
-import de.email.Inbox;
+import de.email.core.EmailDate;
+import de.email.core.FullMessage;
+import de.email.core.Inbox;
 
 import java.io.IOException;
 import java.sql.Connection;
@@ -28,27 +29,30 @@ public class MessageTableManager {
 
     public static void updateMessageTable(Inbox inbox)
             throws IOException, SQLException {
-        Connection conn = Conn.makeConnection();
-        ResultSet resultSet = query(conn, "select date from " + tableName + " order by date desc limit 1");
-        // get most recent date from database
-        String d = null;
-        if (resultSet.next()) {
-            d = resultSet.getString(1);
-        } else return;
-        // get the date 1 day before d
-        String ld = getLocalDate(d, 1, "yyyy/LLLL/dd");
-        // search for messages on google's servers that are newer than ld
-        List<Message> messages = inbox.listMessagesMatchingQuery("after:" + ld);
+        if (update(inbox)) {
+            Connection conn = Conn.makeConnection();
+            ResultSet resultSet = query(conn, "select date from " + tableName + " order by date desc limit 1");
+            // get most recent date from database
+            String d = null;
+            if (resultSet.next()) {
+                d = resultSet.getString(1);
+            } else return;
+            // get the date 1 day before d
+            String ld = getLocalDate(d, 1, "yyyy/LLLL/dd");
+            // search for messages on google's servers that are newer than ld
+            List<Message> messages = inbox.listMessagesMatchingQuery("after:" + ld);
 
-        // TODO: FIGURE OUT WHY THE DATE AND OTHER FIELDS IN DBMESSAGE ARE NULL
+            // TODO: FIGURE OUT WHY THE DATE AND OTHER FIELDS IN DBMESSAGE ARE NULL
 
-        // get messages as full messages and insert the them
-        List<FullMessage> fms = new ArrayList<>(messages.size());
-        for (Message message : messages)
-            fms.add(new FullMessage(inbox, message));
-        for (FullMessage fm : fms)
-            insertInto(conn, fm);
-
+            // get messages as full messages and insert the them
+            List<FullMessage> fms = new ArrayList<>(messages.size());
+            for (Message message : messages)
+                fms.add(new FullMessage(inbox, message));
+            for (FullMessage fm : fms)
+                insertInto(conn, fm);
+        } else {
+            System.out.println("Nothing to update (MessageTableManager.updateMessageTable())");
+        }
     }
 
     private static String getLocalDate(String date, int numDays, String format) {
@@ -127,7 +131,7 @@ public class MessageTableManager {
     }
 
     private static boolean update(List<Message> messages) throws SQLException {
-        return numRows() != messages.size();
+        return numRows() <= messages.size();
     }
 
     public static boolean update(Inbox inbox) throws SQLException {
@@ -136,17 +140,18 @@ public class MessageTableManager {
 
     public static void fillTable(Inbox inbox) throws IOException, SQLException {
         long initTime = System.currentTimeMillis();
-        List<Message> messages = inbox.getInbox();
         if (numRows() == 0) {
+            List<Message> messages = inbox.getInbox();
             Connection connection = Conn.makeConnection();
             System.out.print("MessageTableManager connection successful. Loading " + messages.size() + " messages... ");
             for (int i = 0; i < messages.size(); i++) {
                 FullMessage fm = new FullMessage(inbox, messages.get(i));
                 insertInto(connection, fm);
             }
-            System.out.print("Done.\n");
-            System.out.println("Initialization time: " + ((System.currentTimeMillis() - initTime) / 1000));
+            System.out.println("Messages loaded.");
             connection.close();
+        } else {
+            System.out.println("Table filled.");
         }
     }
 
@@ -155,7 +160,7 @@ public class MessageTableManager {
     }
 
     private static boolean insertInto(Connection con, FullMessage fm) {
-        de.email.database.EmailDate emailDate = new de.email.database.EmailDate(fm.getDate());
+        EmailDate emailDate = new EmailDate(fm.getDate());
         return insertInto(con, fm.getSubject()
                 , fm.getSnippet(), fm.getId(), fm.getBodyBase64String()
                 , fm.getFromEmail(), fm.getFromName()

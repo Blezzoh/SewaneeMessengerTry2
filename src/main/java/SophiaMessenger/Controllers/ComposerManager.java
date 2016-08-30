@@ -3,14 +3,20 @@ package SophiaMessenger.Controllers;
 import SophiaMessenger.Models.ComposerData;
 import SophiaMessenger.Views.Composer;
 import SophiaMessenger.Views.ComposerButton;
-import de.email.FullMessage;
-import de.email.Inbox;
-import de.email.interfaces.EmailSender;
+import com.google.api.services.gmail.model.Draft;
+import de.email.core.Authenticator;
+import de.email.core.FullMessage;
+import de.email.core.Inbox;
+import de.email.core.Mailer;
+import de.email.interfaces.Mail;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
 
+import javax.mail.MessagingException;
+import javax.swing.*;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.ListIterator;
 
@@ -25,15 +31,19 @@ public class ComposerManager extends BorderPane {
     private static final int REPLY = 0;
     private static final int FWD = 1;
     private static final int DRAFT = 2;
+    private static final String SEND_ERROR_MESSAGE = "Failed to send message. Please retry later.";
+    private static final String SEND_SUCCESS_MESSAGE = "Failed to send message. Please retry later.";
     private LinkedList<ComposerData> composerDataList;
     private HBox buttonContainer;
     private Composer composer;
     private ComposerButton currentButton;
     private ComposerData currentData;
+    private Authenticator auth;
 
 
-    public ComposerManager() {
+    public ComposerManager(Inbox inbox) {
         super();
+        this.auth = inbox.getAuth();
         composer = new Composer();
         composer.setVisible(false);
         setComposerEvents();
@@ -76,15 +86,44 @@ public class ComposerManager extends BorderPane {
             }
             // close the Composer because there is not other ComposerData
             else {
+                // set Composer visibility false and clear all fields
                 hideComposer();
-                composerDataList.remove(currentData);
-                buttonContainer.getChildren().remove(currentButton);
-                System.out.println("composer data list size -> " + composerDataList.size());
+                // removes currentData (ComposerData) from composerDataList
+                // and currentButton (ComposerButton) from buttonContainer
+                removeDataFromLists();
             }
         });
         composer.getSend().setOnMousePressed(e -> {
-            currentData.sendEmail();
+            try {
+                new Mailer(currentData, auth).sendMessage();
+                // removes current ComposerData and currentButton from UI and from back end data containers
+                hideComposer();
+                removeDataFromLists();
+                showComposerNotification(SEND_SUCCESS_MESSAGE);
+            } catch (MessagingException | IOException e1) {
+                showComposerNotification(SEND_ERROR_MESSAGE);
+                e1.printStackTrace();
+            }
         });
+    }
+
+    /**
+     *
+     * @param messageToUser some message indicating to user the success or failure of their action
+     */
+    public void showComposerNotification(String messageToUser) {
+        composer.getNotificationsToUser().setText(messageToUser);
+        composer.getNotificationsToUser().setVisible(true);
+        Timer timer = new Timer(2000, e ->
+                /*hide notification*/
+                composer.getNotificationsToUser().setVisible(false));
+        timer.start();
+    }
+
+    private void removeDataFromLists() {
+        composerDataList.remove(currentData);
+        buttonContainer.getChildren().remove(currentButton);
+        System.out.println("composer data list size -> " + composerDataList.size());
     }
 
     /**
@@ -99,11 +138,12 @@ public class ComposerManager extends BorderPane {
 
     /**
      * Builds the composer from a draft, filling the corresponding fields of the composer
-     * @param emailSender any class implementing interface EmailSender, so that the draft can be sent
+     * @param draft draft to be edited in the Composer and sent
      * @return true if the Composer was created successfully
      */
-    public boolean createMessageFromDraft(EmailSender emailSender) {
-        return newComposer(emailSender, ComposerManager.DRAFT);
+    public boolean createComposerFromDraft(Draft draft) throws IOException {
+        FullMessage fm = new FullMessage(auth, draft.getMessage());
+        return newComposer(fm, ComposerManager.DRAFT);
     }
 
     /**
@@ -112,7 +152,7 @@ public class ComposerManager extends BorderPane {
      * @param fm needed to fill the corresponding fields of the composer
      * @return true if the Composer was created successfully
      */
-    public boolean createReplyToMessage(FullMessage fm) {
+    public boolean createComposerWithReplyTo(FullMessage fm) {
         return newComposer(fm, ComposerManager.REPLY);
     }
 
@@ -122,35 +162,34 @@ public class ComposerManager extends BorderPane {
      * @param fm needed to fill the corresponding fields of the composer
      * @return true if the Composer was created successfully
      */
-    public boolean createFwdMessage(FullMessage fm) {
+    public boolean createComposerWithFwdMessage(FullMessage fm) {
         return newComposer(fm, ComposerManager.FWD);
     }
 
     /**
-     * Builds the composer from the data in the Inbox
-     *
-     * @param inbox needed to send message (Inbox implements EmailSender) and account access
+     * Builds a new composer with all data fields empty and ready for
+     * editing of a new message
      * @return true if the Composer was created successfully
      */
-    public boolean createNewMessage(Inbox inbox) {
-        return newComposer(inbox, ComposerManager.FWD);
+    public boolean createNewMessage() {
+        return newComposer(null, ComposerManager.FWD);
     }
 
     /**
-     * @param emailSender        see the interface {@code EmailSender}
+     * @param mailData pass either a FullMessage, ComposerData, or null if there is no data to initialize the Composer with
      * @param typeOfComposer pass one of the predefined public ints: REPLY, FWD, NEW_MESSAGE, DRAFT;
      *                       the ComposerManager will automatically fill the correct fields in the Composer
      * @return returns true if the composer was correctly assembled, false otherwise
      */
-    private boolean newComposer(EmailSender emailSender, int typeOfComposer) {
+    private boolean newComposer(Mail mailData, int typeOfComposer) {
         if (composerDataList.size() != COMPOSER_MAX) {
 
             saveCurrentComposerData();
             showComposer();
-            setComposerType(emailSender, typeOfComposer);
+            setComposerTypeAndFillComposerFields(mailData, typeOfComposer);
 
             // ComposerData
-            ComposerData cd = new ComposerData(composer, emailSender);
+            ComposerData cd = new ComposerData(composer);
             currentData = cd;  // reset the current ComposerData
             cd.setComposerDataId(generateId()); // do this before adding to composerDataList
             composerDataList.add(cd);
@@ -223,9 +262,9 @@ public class ComposerManager extends BorderPane {
         composer.clearAllTextFields();
     }
 
-    private void setComposerType(EmailSender emailSender, int composerType) {
-        if (emailSender instanceof FullMessage) {
-            FullMessage fm = (FullMessage) emailSender;
+    private void setComposerTypeAndFillComposerFields(Mail mailData, int composerType) {
+        if (mailData instanceof FullMessage) {
+            FullMessage fm = (FullMessage) mailData;
             if (composerType == ComposerManager.REPLY) {
                 composer.getSubject().setText("Reply: " + fm.getSubject());
                 composer.getEmailAddress().setText(fm.getFromEmail());
@@ -235,9 +274,9 @@ public class ComposerManager extends BorderPane {
                 // TODO: what if the best message body is HTML?????
                 composer.getBodyText().setText(fm.getBody());
                 composer.getEmailAddress().requestFocus();
+            } else if (composerType == ComposerManager.DRAFT) {
+                // create composer from a draft
             }
-        } else if (composerType == ComposerManager.DRAFT) {
-            // create composer from a draft
         } else  // user is creating a new message
             composer.getEmailAddress().requestFocus();
     }

@@ -1,8 +1,6 @@
 package SophiaMessenger;
 
 import SophiaMessenger.Views.MessageView;
-import com.google.api.services.gmail.model.Label;
-import de.email.LabelMaker;
 import de.email.interfaces.Auth;
 import javafx.geometry.Insets;
 import javafx.scene.control.ScrollPane;
@@ -13,8 +11,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-
-import java.util.List;
 
 /**
  * Created by Blase & Danny on 6/8/2016.
@@ -29,7 +25,7 @@ public class LabelHolderOnHover extends VBox {
     public LabelHolderOnHover(Auth auth) {
 
         super();
-        String [] allLabels = getAllTheLabels(auth);
+//        String [] allLabels = getAllTheLabels(auth);
         Text title = new Text("Add To Label");
         VBox vBox = new VBox();
         MessageView.setSize(vBox, 60, 110);
@@ -73,13 +69,13 @@ public class LabelHolderOnHover extends VBox {
         int counter = 0;
 
         if (newLabel.getText().length() != 1){
-            for(String t :getAllTheLabels(auth)) {
+            /*for(String t :getAllTheLabels(auth)) {
 
                 if (newLabel.getText().equals(t)) {
                     counter++;
                     break;
                 }
-            }
+            }*/
         }
 
         if (counter == 0){
@@ -97,7 +93,7 @@ public class LabelHolderOnHover extends VBox {
     private void moveMessageToLabel(String text) {
     }
 
-    private String[] getAllTheLabels(Auth auth) {
+    /*private String[] getAllTheLabels(Auth auth) {
 
         List<Label> allLabel = LabelMaker.listLabels(auth);
         String[] labels = new String[allLabel.size()];
@@ -105,7 +101,7 @@ public class LabelHolderOnHover extends VBox {
             labels[i] = allLabel.get(i).getName();
         }
         return labels;
-    }
+    }*/
     private String getLabelText(NotificationIcon label){
         return label.getText();
     }

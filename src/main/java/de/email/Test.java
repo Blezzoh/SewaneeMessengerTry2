@@ -2,6 +2,7 @@ package de.email;
 
 import SophiaMessenger.Models.DBMessage;
 import com.google.api.services.gmail.model.Message;
+import de.email.core.Inbox;
 
 import java.io.IOException;
 import java.sql.SQLException;

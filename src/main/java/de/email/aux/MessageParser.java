@@ -1,5 +1,8 @@
-package de.email;
+package de.email.aux;
 
+import de.email.core.FullMessage;
+import de.email.core.Inbox;
+import de.email.core.Preconditions;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -7,8 +10,6 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
-
-import static de.email.Inbox.MESSAGE_NULL_ERROR;
 
 /**
  * Created by daniel on 6/2/16.
@@ -65,6 +66,9 @@ public class MessageParser {
      * @return returns NameOfPerson
      */
     public static String parseNameFromMessage(String from) {
+        if (from == null) {
+            return null;
+        }
         int i = from.indexOf('<');
         if (i == -1) return from;
         return stripEnds(from.substring(0, i));
@@ -167,7 +171,7 @@ public class MessageParser {
      */
     private static Document generateDocument(FullMessage message)
             throws IOException {
-        Preconditions.objectNotNull(message, MESSAGE_NULL_ERROR);
+        Preconditions.objectNotNull(message, "message is null");
         String messageAsHTML = null;
         try {
             messageAsHTML = message.getBody();
