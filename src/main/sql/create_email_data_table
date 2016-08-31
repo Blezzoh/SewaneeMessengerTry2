@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS email.message
+(
+  id         INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  subject    VARCHAR(2000),
+  snippet    VARCHAR(1000),
+  body       LONGTEXT,
+  message_id VARCHAR(100)    NOT NULL UNIQUE,
+  fromEmail  VARCHAR(500),
+  fromName   VARCHAR(500),
+  date       DATE
+);
+ALTER TABLE email.message
+  COMMENT = 'all emails stored here';
