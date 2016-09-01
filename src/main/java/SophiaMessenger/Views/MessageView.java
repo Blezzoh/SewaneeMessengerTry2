@@ -30,7 +30,7 @@ import java.io.FileNotFoundException;
 public class
 MessageView extends StackPane {
 
-    public static final String RESOURCES_PATH = "proj/IdeaProjects/SewaneeMessengerTry2/src/main/resources/";
+    public static final String RESOURCES_PATH = "IdeaProjects/SewaneeMessengerTry2/src/main/resources/";
     private static final String ITEM_STYLE = "-fx-padding: 10px; "+"-fx-background-color:white;" + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #66007a;";
     private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
     private static final String STYLE_ON_EXIT = "-fx-background-color: white;" + "-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";

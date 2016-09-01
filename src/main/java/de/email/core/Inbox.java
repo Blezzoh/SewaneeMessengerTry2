@@ -28,7 +28,7 @@ public class Inbox implements Auth {
     /**
      * the number of messages to retrieve on both a search and on startup of the application
      */
-    public static final int MESSAGE_SIZE = 50;
+    public static final int MESSAGE_SIZE = 500;
     static final String MESSAGE_NULL_ERROR = "param message is null";
     private static final String QUERY_NULL_ERROR = "param query is null";
     // Assuming you are sending email from localhost

@@ -29,30 +29,58 @@ public class MessageTableManager {
 
     public static void updateMessageTable(Inbox inbox)
             throws IOException, SQLException {
-        if (update(inbox)) {
-            Connection conn = Conn.makeConnection();
-            ResultSet resultSet = query(conn, "select date from " + tableName + " order by date desc limit 1");
-            // get most recent date from database
-            String d = null;
-            if (resultSet.next()) {
-                d = resultSet.getString(1);
-            } else return;
-            // get the date 1 day before d
-            String ld = getLocalDate(d, 1, "yyyy/LLLL/dd");
-            // search for messages on google's servers that are newer than ld
-            List<Message> messages = inbox.listMessagesMatchingQuery("after:" + ld);
-
-            // TODO: FIGURE OUT WHY THE DATE AND OTHER FIELDS IN DBMESSAGE ARE NULL
-
-            // get messages as full messages and insert the them
-            List<FullMessage> fms = new ArrayList<>(messages.size());
-            for (Message message : messages)
-                fms.add(new FullMessage(inbox, message));
-            for (FullMessage fm : fms)
-                insertInto(conn, fm);
-        } else {
-            System.out.println("Nothing to update (MessageTableManager.updateMessageTable())");
+        Connection conn = Conn.makeConnection();
+        ResultSet resultSet = query(conn, "select date from " + tableName + " order by date desc limit 1");
+        // get most recent date from database
+        String d = null;
+        if (resultSet.next()) {
+            d = resultSet.getString(1);
+        } else return;
+        // get the date 1 day before d
+        String ld = getLocalDate(d, 1, "yyyy/LLLL/dd");
+        // search for messages on google's servers that are newer than ld
+        // minimize the messages to insert by taking the date closest to now
+        List<Message> messages = inbox.listMessagesMatchingQuery("after:" + ld);
+        // eliminate duplicate messages before retrieving email data (FullMessages) b/c that is expensive
+        messages = checkAgainstDBMessages(conn, messages);
+        System.out.println("m.size " + messages.size());
+        // TODO: FIGURE OUT WHY THE DATE AND OTHER FIELDS IN DBMESSAGE ARE NULL
+        // TODO: delete all old messages in database, right now old messages are not shown
+        // TODO: the messages shown are in line with w/ messages from the inbox.getInbox() call, but they are still in the database
+        // constraint on db to disallow duplicate message ids so it
+        // will only insert messages that are not already in db
+        // get messages as full messages and insert the them
+        List<FullMessage> fms = new ArrayList<>(messages.size());
+        for (Message message : messages) {
+            fms.add(new FullMessage(inbox, message));
         }
+        for (FullMessage fm : fms)
+            insertInto(conn, fm);
+
+        // todo: update views w/ new data ?????????
+    }
+
+    private static List<Message> checkAgainstDBMessages(Connection conn, List<Message> messages) {
+        List<Message> nonDuplicateMessages = new ArrayList<>(messages.size());
+        try {
+            ResultSet rs;
+            int i = 0;
+            while (i < messages.size()) {
+                PreparedStatement ps = conn.prepareStatement("SELECT COUNT(message_id) FROM message WHERE message_id = ?");
+                ps.setString(1, messages.get(i).getId());
+                rs = ps.executeQuery();
+//                rs = query(conn, "select count(message_id) from message where message_id = " + messages.get(i).getId());
+                if (rs.next())
+                    if (rs.getInt(1) == 0) {
+
+                        nonDuplicateMessages.add(messages.get(i));
+                    }
+                ++i;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return nonDuplicateMessages;
     }
 
     private static String getLocalDate(String date, int numDays, String format) {
@@ -81,19 +109,6 @@ public class MessageTableManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    private static void saveAllNewMessages(List<Message> messages,
-                                           ResultSet rs, Connection conn) {
-    }
-
-    private static void deleteAllOldMessages(List<Message> messages,
-                                             ResultSet rs, Connection conn) {
-        matches();
-    }
-
-    private static void matches() {
-
     }
 
     private static boolean execute(Connection connection, String sql) throws SQLException {

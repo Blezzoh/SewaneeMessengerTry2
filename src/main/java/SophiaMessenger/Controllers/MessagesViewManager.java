@@ -18,7 +18,7 @@ import java.util.List;
  * Created by evansdb0 on 8/4/16.
  * @author Daniel Evans
  */
-public class MessagesManager extends Pagination {
+public class MessagesViewManager extends Pagination {
 
     private static final int itemsPerPage = 16;
     private final String imgUrl = "http://4.bp.blogspot.com/-SjsG6gvCasI/Ve6PJxhPEiI/AAAAAAAAFYU/dYvGfnIxPzk/s1600/Kundwa%2BDoriane%2Brwanda.jpg";
@@ -28,7 +28,7 @@ public class MessagesManager extends Pagination {
     private Authenticator auth;
 
 
-    public MessagesManager(Auth auth, List<Message> messages) {
+    public MessagesViewManager(Auth auth, List<Message> messages) {
         super();
         this.setPageCount(getPageCount(messages));
         this.auth = auth.getAuth();
@@ -48,11 +48,18 @@ public class MessagesManager extends Pagination {
         System.out.println("  Done.");
         center.getChildren().addAll(mvs);
         setPagination(messages);
-        setPaginationEvents();
 
     }
 
+    public void setMessagesInfo(List<Message> messages) {
+        System.out.println("Loading new message info...");
+        setPagination(messages);
+    }
+
+    // TODO: set up search logic in main controller, add update views button, and inbox labels on left side
     private void setPagination(List<Message> messages) {
+        this.setCurrentPageIndex(0);  // set to first page
+        this.setPageCount(getPageCount(messages));
         this.setPageFactory(
                 (Integer pageIndex) ->
                 {
@@ -61,16 +68,6 @@ public class MessagesManager extends Pagination {
                 });
     }
 
-    private void setPaginationEvents() {
-/*        this.setOnMousePressed(e ->
-        {
-            if (e.getClickCount() == 1)
-            {
-                searchField.setVisible(false);
-            }
-        });
-*/
-    }
     private ScrollPane createPage(Integer pageIndex, List<Message> messages) {
 
         int page = pageIndex * itemsPerPage;

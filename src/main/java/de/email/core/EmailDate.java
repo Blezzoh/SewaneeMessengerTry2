@@ -87,7 +87,7 @@ public class EmailDate {
     public String getDefault() {
         StringBuilder sb = new StringBuilder();
         // builds this format: MM/dd/yyyy HH:mm:ss
-        return sb.append(month).append("/").append(day)
+        return month == null ? null : sb.append(month).append("/").append(day)
                 .append("/").append(year).append(" ").append(hour)
                 .append(":").append(minute).append(":").append(second).toString();
     }
@@ -108,7 +108,8 @@ public class EmailDate {
         // a day in front of date i.e. if there is a Wed. or Mon.
         // in front of the rest of the date
         int i;
-        if (Character.isLetter(date.charAt(0))) i = 3;
+        int dl = date.length();
+        if (dl > 3 && Character.isLetter(date.charAt(0))) i = 3;
         else i = 0;
 
         for (; i + 5 < date.length(); i++) {
@@ -119,43 +120,48 @@ public class EmailDate {
             // been set
             if (day == null) {
                 // if a valid number is found
-                if (charIntVal != -1) {
+                if (i + 2 < dl && charIntVal != -1) {
                     // we want # we are at and the next one
                     day = date.substring(i, i + 2);
                     if (day.contains(" ")) day = "0" + day.trim();
                 }
-            }
+                }
             //  ---- month -----
             if (month == null) {
-                if (monthsName.get(date.substring(i, i + 3)) != null) {
+                if (i + 3 < dl && monthsName.get(date.substring(i, i + 3)) != null) {
                     // monthsName are 3 characters long, hence the i + 3
                     month = monthsName.get(date.substring(i, i + 3));
                 }
-            }
+                }
             // ----- year  -----
             if (year == null) {
                 try {
-                    // cheintcking to see if we throw exception; if not, we found the year
-                    Integer.parseInt(date.substring(i, i + 4));
-                    // only get here if we don't throw, years are (assumed) 4 chars long
-                    year = date.substring(i, i + 4);
+                    if (i + 4 < dl) {
+                        // cheintcking to see if we throw exception; if not, we found the year
+                        Integer.parseInt(date.substring(i, i + 4));
+                        // only get here if we don't throw, years are (assumed) 4 chars long
+                        year = date.substring(i, i + 4);
+                    }
                 } catch (NumberFormatException e) { /* do nothing here */ }
             }
             // hour, minute and second
             if (year != null) {
                 i += 5;
-                String time = date.substring(i, i + 8);
-                hour = time.substring(0, 2);
-                minute = time.substring(3, 5);
-                second = time.substring(6, 8);
-                break;
+                if (i < dl) {
+                    String time = date.substring(i, i + 8);
+                    hour = time.substring(0, 2);
+                    minute = time.substring(3, 5);
+                    second = time.substring(6, 8);
+                    break;
+                }
             }
-        }
+            }
     }
 
     private Date defaultDate() throws ParseException {
         SimpleDateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-        return formatter.parse(getDefault());
+        String aDefault = getDefault();
+        return aDefault == null ? null : formatter.parse(aDefault);
     }
 
     public String slashDate() {
@@ -173,8 +179,7 @@ public class EmailDate {
         }
         System.out.println(date);
         SimpleDateFormat dateFormatter = new SimpleDateFormat(pattern);
-        return dateFormatter.format(date);
-
+        return date == null ? "Date not available" : dateFormatter.format(date);
     }
 
 }

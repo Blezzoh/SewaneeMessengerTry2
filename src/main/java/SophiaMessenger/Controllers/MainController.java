@@ -1,7 +1,10 @@
 package SophiaMessenger.Controllers;
 
+import SophiaMessenger.Views.TopMenu;
 import com.google.api.services.gmail.model.Message;
 import de.email.core.Inbox;
+import de.email.core.MessageQueryManager;
+import de.email.core.SearchQueries;
 import de.email.database.MessageTableManager;
 import javafx.animation.ScaleTransition;
 import javafx.application.Application;
@@ -54,14 +57,17 @@ public class MainController extends Application {
     public void start(Stage primaryStage) throws FileNotFoundException {
 
         // inbox gives access to the user's gmail messages using an authenticator
-        inbox = new Inbox("iradub0@sewanee.edu");
-
+        inbox = new Inbox("evansdb0@sewanee.edu");
+        MessageQueryManager mqm = new MessageQueryManager(inbox);
         // loads the user's inbox
-        messages = inbox.getInbox();
+        messages = mqm.retrieveMessages(SearchQueries.INBOX);
+
         try {
             MessageTableManager.createMessageTable();
             MessageTableManager.fillTable(inbox);
+            long time = System.currentTimeMillis();
             MessageTableManager.updateMessageTable(inbox);
+            System.out.println(System.currentTimeMillis() - time);
         } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
@@ -71,13 +77,11 @@ public class MainController extends Application {
 
         // root container of the interface
         root = new BorderPane();
-
-        HBox top = makeTopMenu(root);
-        Button composeButton = new Button("Compose");
-        composeButton.setStyle(COMPOSE_STYLE);
-        top.getChildren().add(0, composeButton);
-        composeButton.setOnMousePressed(event -> right.createNewMessage());
-        root.setTop(top);
+        TopMenu topMenu = new TopMenu();
+//        HBox top = makeTopMenu(root);
+        // create a composer with compose button
+        topMenu.getComposeButton().setOnMousePressed(event -> right.createNewMessage());
+        root.setTop(topMenu);
         right = new ComposerManager(inbox);
         root.setRight(right);
 
@@ -125,8 +129,8 @@ public class MainController extends Application {
                         }
                     } catch (StringIndexOutOfBoundsException e) { /* user pressed a non-alphanumeric key */ }
                 });
-        MessagesManager messagesManager = new MessagesManager(inbox, messages);
-        root.setCenter(messagesManager);
+        MessagesViewManager messagesViewManager = new MessagesViewManager(inbox, messages);
+        root.setCenter(messagesViewManager);
         primaryStage.setScene(scene);
         primaryStage.initStyle(StageStyle.UNIFIED);
         primaryStage.setWidth(Toolkit.getDefaultToolkit().getScreenSize().getWidth() - 50);
@@ -177,7 +181,7 @@ public class MainController extends Application {
 
     private HBox makeTopMenu(BorderPane root) throws FileNotFoundException {
         HBox topMenu = new HBox();
-        Image search = new Image(new FileInputStream(new File(System.getProperty("user.home"), "proj/IdeaProjects/SewaneeMessengerTry2/src/main/resources/Search-white.png")), 30, 15, false, true);
+        Image search = new Image(new FileInputStream(new File(System.getProperty("user.home"), "IdeaProjects/SewaneeMessengerTry2/src/main/resources/Search-white.png")), 30, 15, false, true);
         ImageView view = new ImageView(search);
         Button searchButton = new Button();
         searchButton.setStyle(COMPOSE_STYLE);

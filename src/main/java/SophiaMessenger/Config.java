@@ -13,6 +13,6 @@ public class Config {
     public static final String DATABASE_NAME = "email";
     public static final String URL_PARAMS = "?autoReconnect=true&useSSL=false";
     public static final String USERNAME = "root";
-    public static final String PASS = "Scourts14?!";
+    public static final String PASS = "DSmith16?!";
 
 }

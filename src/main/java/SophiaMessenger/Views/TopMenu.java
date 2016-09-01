@@ -26,6 +26,7 @@ public class TopMenu extends HBox {
     private TextField searchField;
     private ImageView searchImage;
     private Button searchButton;
+    private Button composeButton;
 
     public TopMenu() {
         initFields();
@@ -33,7 +34,7 @@ public class TopMenu extends HBox {
 
         // add fields to layout and style layout
         this.setPadding(new Insets(2, 2, 2, 2));
-        this.getChildren().addAll(searchButton, searchField);
+        this.getChildren().addAll(composeButton, searchButton, searchField);
         this.setStyle(TOP_STYLE);
     }
 
@@ -41,6 +42,7 @@ public class TopMenu extends HBox {
         searchField = new TextField();
         searchImage = new ImageView();
         searchButton = new Button();
+        composeButton = new Button("Compose");
     }
 
     private void styleFields() {
@@ -49,23 +51,24 @@ public class TopMenu extends HBox {
         searchButton.setText("SEARCH");
         searchButton.setGraphic(searchImage);
 
+        // compose button 
+        composeButton.setStyle(COMPOSE_STYLE);
+
         // searchField
         searchField.setStyle("-fx-font-size: 14;");
         searchField.setTranslateY(-3);
-        searchField.setVisible(false);
+        searchField.setVisible(true);
+        searchField.setPromptText("Search for anything...");
         HBox.setHgrow(searchField, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
         HBox.setMargin(searchField, new Insets(10, 25, 10, 25));
 
     }
 
-    private void setFieldEvents() {
-/*        searchButton.setOnMouseClicked(e ->
-        {
-            if(searchField.isVisible()) {
-                userSearchForMessages(root, sp);
-                searchField.setVisible(false);
-            } else
-                displaySearchField(searchField);
-        });*/
+    public TextField getSearchField() {
+        return searchField;
+    }
+
+    public Button getComposeButton() {
+        return composeButton;
     }
 }

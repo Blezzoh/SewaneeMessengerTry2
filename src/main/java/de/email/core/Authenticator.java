@@ -21,6 +21,7 @@ import java.util.List;
 
 /**
  * Created by daniel on 6/3/16.
+ *
  * @author Daniel Evans
  */
 public class Authenticator {
@@ -29,13 +30,7 @@ public class Authenticator {
      * Application name.
      */
     private static final String APPLICATION_NAME =
-            "Sophia Messenger";
-
-    /**
-     * Directory to store user credentials for this application.
-     */
-    private static final java.io.File DATA_STORE_DIR = new java.io.File(
-            System.getProperty("user.home"), ".credentials/gmail-java-quickstart.json");
+            "Gmail API Java Quickstart";
     /**
      * Global instance of the JSON factory.
      */
@@ -45,12 +40,16 @@ public class Authenticator {
      * Global instance of the scopes required by this quickstart.
      * <p>
      * If modifying these scopes, delete your previously saved credentials
-     * at ~/.credentials/gmail-java-quickstart.json
+     * at ~/.credentials/gmail-java-quickstart
      */
     private static final List<String> SCOPES =
-            Arrays.asList(GmailScopes.GMAIL_LABELS
-                    , GmailScopes.GMAIL_COMPOSE
-                    ,GmailScopes.GMAIL_MODIFY);
+            Arrays.asList(GmailScopes.GMAIL_LABELS,
+                    GmailScopes.GMAIL_COMPOSE, GmailScopes.GMAIL_MODIFY);
+    /**
+     * Directory to store user credentials for this application.
+     */
+    private static java.io.File DATA_STORE_DIR;
+
     /**
      * Global instance of the {@link FileDataStoreFactory}.
      */
@@ -63,7 +62,6 @@ public class Authenticator {
     static {
         try {
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-            DATA_STORE_FACTORY = new FileDataStoreFactory(DATA_STORE_DIR);
         } catch (Throwable t) {
             t.printStackTrace();
             System.exit(1);
@@ -75,6 +73,9 @@ public class Authenticator {
 
     public Authenticator(String userId) {
         try {
+            DATA_STORE_DIR = new java.io.File(
+                    System.getProperty("user.home"), ".credentials/gmail-java-quickstart");
+            DATA_STORE_FACTORY = new FileDataStoreFactory(DATA_STORE_DIR);
             service = getGmailService();
             this.userId = userId;
         } catch (IOException e) {
@@ -83,15 +84,15 @@ public class Authenticator {
     }
 
     /**
+     * Creates an authorized Credential object.
      *
-     * @return returns a Credential either authorized by the user
-     * or throws an exception if the user provide access consent
+     * @return an authorized Credential object.
      * @throws IOException
      */
     public static Credential authorize() throws IOException {
         // Load client secrets.
         InputStream in =
-                Inbox.class.getResourceAsStream("/client_secret.json");
+                Authenticator.class.getResourceAsStream("/client_secret.json");
         GoogleClientSecrets clientSecrets =
                 GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
@@ -108,9 +109,11 @@ public class Authenticator {
                 "Credentials saved to " + DATA_STORE_DIR.getAbsolutePath());
         return credential;
     }
+
     /**
+     * Build and return an authorized Gmail client service.
      *
-     * @return returns the gmail service authorized with the user's credential
+     * @return an authorized Gmail client service
      * @throws IOException
      */
     public static Gmail getGmailService() throws IOException {
