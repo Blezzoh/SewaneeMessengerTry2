@@ -18,7 +18,6 @@ import java.util.List;
 
 /**
  * Created by evansdb0 on 8/12/16.
- *
  * @author Daniel Evans
  */
 public class MessageTableManager {
@@ -59,6 +58,31 @@ public class MessageTableManager {
 
         // todo: update views w/ new data ?????????
     }
+
+    public static int numberOfMatchingMessages(List<Message> messages) {
+        Connection con = null;
+        try {
+            con = Conn.makeConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        int count = 0;
+        for (Message message : messages) {
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+            try {
+                assert con != null;
+                ps = con.prepareStatement("SELECT * FROM " + tableName + " WHERE message_id = ?");
+                ps.setString(1, message.getId());
+                rs = ps.executeQuery();
+                if (rs.next()) ++count;
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return count;
+    }
+
 
     private static List<Message> checkAgainstDBMessages(Connection conn, List<Message> messages) {
         List<Message> nonDuplicateMessages = new ArrayList<>(messages.size());

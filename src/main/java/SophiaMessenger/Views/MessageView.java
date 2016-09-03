@@ -190,7 +190,7 @@ MessageView extends StackPane {
         snippetField.setWrappingWidth(190);
         snippetField.setFont(Font.font("Trebuchet MS", 13));
         snippetField.setFill(Color.WHITE);
-        snippetField.setOnMouseClicked(event -> showContent());
+//        snippetField.setOnMouseClicked(event -> showContent());
 
         dateField.setWrappingWidth(190);
         dateField.setFont(Font.font("Trebuchet MS", 13));

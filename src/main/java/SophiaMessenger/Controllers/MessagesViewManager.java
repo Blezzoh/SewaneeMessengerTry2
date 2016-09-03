@@ -3,16 +3,29 @@ package SophiaMessenger.Controllers;
 import SophiaMessenger.Models.DBMessage;
 import SophiaMessenger.Views.MessageView;
 import com.google.api.services.gmail.model.Message;
+import de.email.aux.MessageParser;
 import de.email.core.Authenticator;
+import de.email.database.Conn;
+import de.email.database.MessageTableManager;
 import de.email.interfaces.Auth;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
 
+import java.awt.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Stack;
 
 /**
  * Created by evansdb0 on 8/4/16.
@@ -25,13 +38,17 @@ public class MessagesViewManager extends Pagination {
     private TilePane center;  // child of centerContainer
     private ScrollPane centerContainer;  // child of MessageManager
     private MessageView[] mvs;
+    private boolean first = true;
     private Authenticator auth;
+    private Stack<Scene> sceneStack;
+    private Stage stage;
 
 
-    public MessagesViewManager(Auth auth, List<Message> messages) {
+    public MessagesViewManager(Auth auth, List<Message> messages, Stack<Scene> sceneStack) {
         super();
         this.setPageCount(getPageCount(messages));
         this.auth = auth.getAuth();
+        this.sceneStack = sceneStack;
         initCenter();
         initCenterContainer();
 
@@ -45,10 +62,71 @@ public class MessagesViewManager extends Pagination {
                 e.printStackTrace();
             }
         }
-        System.out.println("  Done.");
         center.getChildren().addAll(mvs);
         setPagination(messages);
+        setMessageViewEvents();
+    }
 
+    private void goBack() {
+        // pop() the seen created in showContent()
+        sceneStack.pop();
+        // sceneStack already has the original scene saved (controller pushed its scene)
+        // so it is available here
+        stage.setScene(sceneStack.peek());
+    }
+
+    private void showContent(String content) {
+        if (content != null) {
+            WebView wv = new WebView();
+
+            WebEngine engine = wv.getEngine();
+            if (!MessageParser.testForHTML(content))
+                // load plain text version
+                engine.loadContent(content, "text/plain");
+            else
+                // load html version
+                engine.loadContent(content);
+            stage = (Stage) this.getScene().getWindow();
+            double stageX = stage.getWidth(), stageY = stage.getHeight();
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            // make sure that the size of the of the scene is smaller than the screen size
+            stageX = stageX >= screenSize.getWidth() ? stageX - 250 : stageX;
+            stageY = stageY >= screenSize.getHeight() ? stageY - 250 : stageY;
+            BorderPane p = new BorderPane();
+            // back button
+            // p.setTop(b);
+            p.setCenter(wv);
+            Scene body = new Scene(p, stageX, stageY);
+            sceneStack.push(body);
+            body.getStylesheets().add("MessengerStyle.css");
+            stage.setScene(sceneStack.peek());
+        }
+    }
+
+    // TODO: display pop up window of email when clicking on snippet or subject
+
+    private void retrieveContent(String mId) {
+        System.out.println("dsflflksdjf");
+        String content = null;
+        try {
+            content = getBodyText(mId);
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        }
+        showContent(content);
+    }
+
+    public void setMessageViewEvents() {
+        for (int i = 0; i < mvs.length; i++) {
+            mvs[i].getSnippetField().setOnKeyPressed(e -> {
+                MessageView mv = (MessageView) e.getSource();
+                retrieveContent(mv.getMessageId());
+            });
+            mvs[i].getSubjectField().setOnKeyPressed(e -> {
+                MessageView mv = (MessageView) e.getSource();
+                retrieveContent(mv.getMessageId());
+            });
+        }
     }
 
     public void setMessagesInfo(List<Message> messages) {
@@ -58,7 +136,7 @@ public class MessagesViewManager extends Pagination {
 
     // TODO: set up search logic in main controller, add update views button, and inbox labels on left side
     private void setPagination(List<Message> messages) {
-        this.setCurrentPageIndex(0);  // set to first page
+        setPageIndex();
         this.setPageCount(getPageCount(messages));
         this.setPageFactory(
                 (Integer pageIndex) ->
@@ -66,6 +144,11 @@ public class MessagesViewManager extends Pagination {
                     System.out.println("Creating page...");
                     return createPage(pageIndex, messages);
                 });
+    }
+
+    private void setPageIndex() {
+        if (first) this.setCurrentPageIndex(0);
+        else this.setCurrentPageIndex(1);
     }
 
     private ScrollPane createPage(Integer pageIndex, List<Message> messages) {
@@ -94,7 +177,8 @@ public class MessagesViewManager extends Pagination {
 
 
     private int getPageCount(List<Message> messages) {
-        int pageCount = (int) Math.ceil(messages.size() / itemsPerPage);
+        int pageCount = MessageTableManager.numberOfMatchingMessages(messages) / itemsPerPage;
+//        int pageCount = (int) Math.ceil(messages.size() / itemsPerPage);
         return pageCount == 0 ? 1 : pageCount;
     }
 
@@ -111,5 +195,13 @@ public class MessagesViewManager extends Pagination {
         center.setPadding(new Insets(8, 0, 8, 0));
         center.setAlignment(Pos.CENTER);
         center.setStyle("-fx-background-color: rgba(7, 171,202,.4)");
+    }
+
+    public String getBodyText(String mId) throws SQLException {
+        Connection con = Conn.makeConnection();
+        PreparedStatement ps = con.prepareStatement("SELECT body from message where message_id = ?");
+        ps.setString(1, mId);
+        ResultSet rs = ps.executeQuery();
+        return rs.getString(1);
     }
 }
