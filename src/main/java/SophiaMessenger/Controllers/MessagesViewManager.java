@@ -5,6 +5,7 @@ import SophiaMessenger.Views.MessageView;
 import com.google.api.services.gmail.model.Message;
 import de.email.aux.MessageParser;
 import de.email.core.Authenticator;
+import de.email.core.Inbox;
 import de.email.database.Conn;
 import de.email.database.MessageTableManager;
 import de.email.interfaces.Auth;
@@ -41,6 +42,7 @@ public class MessagesViewManager extends Pagination {
     private boolean first = true;
     private Authenticator auth;
     private Stack<Scene> sceneStack;
+    private javafx.scene.control.Button b;
     private Stage stage;
 
 
@@ -51,6 +53,9 @@ public class MessagesViewManager extends Pagination {
         this.sceneStack = sceneStack;
         initCenter();
         initCenterContainer();
+
+        b = new javafx.scene.control.Button("Back");
+        b.setOnMousePressed(e -> goBack());
 
         mvs = new MessageView[itemsPerPage];
         System.out.print("Initializing messageViews...");
@@ -93,8 +98,7 @@ public class MessagesViewManager extends Pagination {
             stageX = stageX >= screenSize.getWidth() ? stageX - 250 : stageX;
             stageY = stageY >= screenSize.getHeight() ? stageY - 250 : stageY;
             BorderPane p = new BorderPane();
-            // back button
-            // p.setTop(b);
+            p.setTop(b);
             p.setCenter(wv);
             Scene body = new Scene(p, stageX, stageY);
             sceneStack.push(body);
@@ -106,10 +110,9 @@ public class MessagesViewManager extends Pagination {
     // TODO: display pop up window of email when clicking on snippet or subject
 
     private void retrieveContent(String mId) {
-        System.out.println("dsflflksdjf");
         String content = null;
         try {
-            content = getBodyText(mId);
+            content = Inbox.decodeString(getBodyText(mId));
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -118,13 +121,12 @@ public class MessagesViewManager extends Pagination {
 
     public void setMessageViewEvents() {
         for (int i = 0; i < mvs.length; i++) {
-            mvs[i].getSnippetField().setOnKeyPressed(e -> {
-                MessageView mv = (MessageView) e.getSource();
-                retrieveContent(mv.getMessageId());
+            final int temp = i;
+            mvs[i].getSnippetField().setOnMousePressed(e -> {
+                retrieveContent(mvs[temp].getMessageId());
             });
-            mvs[i].getSubjectField().setOnKeyPressed(e -> {
-                MessageView mv = (MessageView) e.getSource();
-                retrieveContent(mv.getMessageId());
+            mvs[i].getSubjectField().setOnMousePressed(e -> {
+                retrieveContent(mvs[temp].getMessageId());
             });
         }
     }
@@ -202,6 +204,9 @@ public class MessagesViewManager extends Pagination {
         PreparedStatement ps = con.prepareStatement("SELECT body from message where message_id = ?");
         ps.setString(1, mId);
         ResultSet rs = ps.executeQuery();
-        return rs.getString(1);
+        if (rs.next())
+            return rs.getString(1);
+        else
+            return null;
     }
 }
