@@ -32,7 +32,7 @@ public class ComposerManager extends BorderPane {
     private static final int FWD = 1;
     private static final int DRAFT = 2;
     private static final String SEND_ERROR_MESSAGE = "Failed to send message. Please retry later.";
-    private static final String SEND_SUCCESS_MESSAGE = "Failed to send message. Please retry later.";
+    private static final String SEND_SUCCESS_MESSAGE = "Message sent successfully.";
     private LinkedList<ComposerData> composerDataList;
     private HBox buttonContainer;
     private Composer composer;
@@ -63,8 +63,9 @@ public class ComposerManager extends BorderPane {
 
         // xCloser imageView event
         composer.getxCloser().setOnMousePressed(e -> {
-            // TEMPORARY
-//                    currentData.createDraft();
+            // >>>>>>>>>>>>>>>>>>>>>>> TEMPORARY COMMENTED OUT THE DRAFT CREATION <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+//                                             currentData.createDraft();
+
             // there is at least two active ComposerData
             // so I can fill the composer with the data
             // from the non-active ComposerData
@@ -95,6 +96,7 @@ public class ComposerManager extends BorderPane {
         });
         composer.getSend().setOnMousePressed(e -> {
             try {
+                updateCurrentData(); // update current data fields w/ composer data fields
                 new Mailer(currentData, auth).sendMessage();
                 // removes current ComposerData and currentButton from UI and from back end data containers
                 hideComposer();
@@ -118,6 +120,13 @@ public class ComposerManager extends BorderPane {
                 /*hide notification*/
                 composer.getNotificationsToUser().setVisible(false));
         timer.start();
+    }
+
+    private void updateCurrentData() {
+        currentData.setBody(composer.getBodyText().getText());
+        currentData.setCc(composer.getCc().getText());
+        currentData.setEmailAddress(composer.getEmailAddress().getText());
+        currentData.setSubject(composer.getSubject().getText());
     }
 
     private void removeDataFromLists() {

@@ -55,12 +55,14 @@ public class MessagesViewManager extends Pagination {
         initCenterContainer();
 
         b = new javafx.scene.control.Button("Back");
+        // hitting back button takes you back to the mail gridview page
         b.setOnMousePressed(e -> goBack());
 
         mvs = new MessageView[itemsPerPage];
         System.out.print("Initializing messageViews...");
         for (int i = 0; i < mvs.length; i++) {
             try {
+                // create message views with the database messages
                 mvs[i] = new MessageView(
                         new DBMessage(messages.get(i)), imgUrl);
             } catch (SQLException e) {
