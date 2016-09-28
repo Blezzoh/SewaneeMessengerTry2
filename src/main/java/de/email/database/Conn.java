@@ -17,4 +17,8 @@ public class Conn {
         return DriverManager.getConnection(SERVER_AND_PORT
                 + DATABASE_NAME + URL_PARAMS, USERNAME, PASS);
     }
+
+    public static boolean execute(Connection connection, String sql) throws SQLException {
+        return connection.createStatement().execute(sql);
+    }
 }

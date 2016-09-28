@@ -135,6 +135,11 @@ public class DBMessage implements Mail {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "From: " + fromEmail + " Subject: " + subject + " Snippet: " + snippet;
+    }
+
     public String getSubject() {
         return subject;
     }

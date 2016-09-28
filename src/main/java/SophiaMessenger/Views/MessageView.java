@@ -43,18 +43,15 @@ MessageView extends StackPane {
     private HBox firstRowOptions;
     private Button b;
     private ImageView labelEmail, downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
-    private Rectangle picCanvas;
+    private VBox picContainer;
+    private Rectangle pic;
     private String messageId;
 
-    public MessageView(Mail m, String imageUrl) {
-        this(m.getId(), imageUrl);
-    }
-
-    public MessageView(String messageId, String imageUrl) {
+    public MessageView(Mail m) {
 
         super();
         initFields();
-        this.messageId = messageId;
+        this.messageId = m.getId();
         initHoveredIcon();
         addMessageOptions();
 
@@ -65,12 +62,12 @@ MessageView extends StackPane {
         container.setBackground(new Background(new BackgroundFill(Color.rgb(255, 153, 51, .8), new CornerRadii(5), new Insets(0))));
         container.setPadding(new Insets(4));
         setSize(container, 200.0, 200.0);
-
-        VBox picField = loadImage(imageUrl);
-        setSize(picField, 100.0, 200.0);
+        pic = new Rectangle();
+        picContainer = new VBox(pic, senderField, dateField, firstRowOptions);
+        setSize(picContainer, 100.0, 200.0);
 
         HBox message = initMessage();
-        message.getChildren().addAll(picField, container);
+        message.getChildren().addAll(picContainer, container);
 
         this.getChildren().addAll(message, hoveredIcon);
 
@@ -132,11 +129,6 @@ MessageView extends StackPane {
         dropShadow.setOffsetY(5.0);
         dropShadow.setColor(Color.color(0.4, 0.5, 0.5));
         this.setEffect(dropShadow);
-    }
-
-    private VBox loadImage(String imageUrl) {
-        picCanvas = makeImage(imageUrl);
-        return new VBox(picCanvas, senderField, dateField, firstRowOptions);
     }
 
     public NotificationIcon getHoveredIcon() {
@@ -201,7 +193,6 @@ MessageView extends StackPane {
         subjectField.setWrappingWidth(190);
         subjectField.setFont(Font.font("Trebuchet MS", FontWeight.BLACK, 13));
         subjectField.setFill(Color.WHITE);
-        subjectField.setOnMouseClicked(event -> showContent());
     }
 
     private void initHoveredIcon() {
@@ -213,7 +204,6 @@ MessageView extends StackPane {
 
     private void setButtonAndImageEvents() {
         // EVENTS
-        b.setOnMouseClicked(event -> goBack());
         b.setOnMouseEntered(e -> this.getScene().setCursor(Cursor.HAND));
         b.setOnMouseExited(e -> this.getScene().setCursor(Cursor.DEFAULT));
 
@@ -272,49 +262,6 @@ MessageView extends StackPane {
         }
 //        addToTrash.setOnMouseClicked(event -> trashEmail());
 //        mark.setOnMouseClicked(event -> moveEmail("READ"));
-    }
-
-    // controller method
-    private void goBack() {
-        // pop() the seen created in showContent()
-
-//        sceneStack.pop();
-
-        // sceneStack already has the original scene saved (controller pushed its scene)
-        // so it is available here
-
-//        stage.setScene(sceneStack.peek());
-    }
-
-    // controller method
-    private void showContent() {
-/*        WebView wv = new WebView();
-        String bodyText = fm.getBestMessageBody();
-
-        // loadContent(String) will return and do nothing if bodyText is null
-        // therefore the old bodyText from previous message Item will be loaded when the
-        // user clicks on the snippet or the subject (see line 1199 of WebPage class)
-        WebEngine engine = wv.getEngine();
-        if (!MessageParser.testForHTML(bodyText))
-            // load plain text version
-            engine.loadContent(bodyText, "text/plain");
-        else
-            // load html version
-            engine.loadContent(bodyText);
-        stage = (Stage) this.getScene().getWindow();
-        double stageX = stage.getWidth(), stageY = stage.getHeight();
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        // make sure that the size of the of the scene is smaller than the screen size
-        stageX = stageX >= screenSize.getWidth() ? stageX - 250 : stageX;
-        stageY = stageY >= screenSize.getHeight() ? stageY - 250 : stageY;
-        BorderPane p = new BorderPane();
-        p.setTop(b);
-        p.setCenter(wv);
-        Scene body = new Scene(p, stageX, stageY);
-//        sceneStack.push(body);
-        body.getStylesheets().add("MessengerStyle.css");
-//        stage.setScene(sceneStack.peek());
-*/
     }
 
     // all mItem methods
@@ -434,14 +381,22 @@ MessageView extends StackPane {
         return addToTrash;
     }
 
-    public Rectangle getPicCanvas() {
-        return picCanvas;
+    public VBox getPicField() {
+        return picContainer;
     }
 
-    public void setPicCanvas(Rectangle picCanvas) {
-        this.picCanvas = picCanvas;
+    public void setPicField(VBox picContainer) {
+        this.picContainer = picContainer;
     }
 
+    public Rectangle getPic() {
+        return pic;
+    }
 
+    public void setPic(Rectangle pic) {
+        this.pic = pic;
+        picContainer.getChildren().remove(0);
+        picContainer.getChildren().add(0, pic);
+    }
 }
 

@@ -56,6 +56,8 @@ public class MessageTableManager {
         for (FullMessage fm : fms)
             insertInto(conn, fm);
 
+        conn.close();
+
         // todo: update views w/ new data ?????????
     }
 
@@ -119,7 +121,7 @@ public class MessageTableManager {
         Connection c = null;
         try {
             c = Conn.makeConnection();
-            execute(c, "CREATE TABLE IF NOT EXISTS " + tableName + "\n" +
+            Conn.execute(c, "CREATE TABLE IF NOT EXISTS " + tableName + "\n" +
                     "(\n" +
                     "  id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,\n" +
                     "  subject VARCHAR(2000),\n" +
@@ -133,10 +135,6 @@ public class MessageTableManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    private static boolean execute(Connection connection, String sql) throws SQLException {
-        return connection.createStatement().execute(sql);
     }
 
     private static ResultSet query(Connection connection, String sql) throws SQLException {

@@ -3,6 +3,7 @@ package SophiaMessenger.Controllers;
 import SophiaMessenger.Models.DBMessage;
 import SophiaMessenger.Views.MessageView;
 import com.google.api.services.gmail.model.Message;
+import de.email.aux.ImageBot;
 import de.email.aux.MessageParser;
 import de.email.core.Authenticator;
 import de.email.core.Inbox;
@@ -25,8 +26,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Deque;
 import java.util.List;
-import java.util.Stack;
 
 /**
  * Created by evansdb0 on 8/4/16.
@@ -41,12 +42,12 @@ public class MessagesViewManager extends Pagination {
     private MessageView[] mvs;
     private boolean first = true;
     private Authenticator auth;
-    private Stack<Scene> sceneStack;
+    private Deque<Scene> sceneStack;
     private javafx.scene.control.Button b;
     private Stage stage;
 
 
-    public MessagesViewManager(Auth auth, List<Message> messages, Stack<Scene> sceneStack) {
+    public MessagesViewManager(Auth auth, List<Message> messages, Deque<Scene> sceneStack) {
         super();
         this.setPageCount(getPageCount(messages));
         this.auth = auth.getAuth();
@@ -62,9 +63,9 @@ public class MessagesViewManager extends Pagination {
         System.out.print("Initializing messageViews...");
         for (int i = 0; i < mvs.length; i++) {
             try {
+                DBMessage dbMessage = new DBMessage(messages.get(i));
                 // create message views with the database messages
-                mvs[i] = new MessageView(
-                        new DBMessage(messages.get(i)), imgUrl);
+                mvs[i] = new MessageView(dbMessage);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -122,10 +123,14 @@ public class MessagesViewManager extends Pagination {
     }
 
     public void setMessageViewEvents() {
+        // second screen - email content
         for (int i = 0; i < mvs.length; i++) {
             final int temp = i;
             mvs[i].getSnippetField().setOnMousePressed(e -> {
                 retrieveContent(mvs[temp].getMessageId());
+            });
+            mvs[i].getReplyEmail().setOnMousePressed(e -> {
+
             });
             mvs[i].getSubjectField().setOnMousePressed(e -> {
                 retrieveContent(mvs[temp].getMessageId());
@@ -133,14 +138,19 @@ public class MessagesViewManager extends Pagination {
         }
     }
 
+    /**
+     * UPDATES TO MESSAGE DISPLAY HAPPEN WITH THIS METHOD
+     * Updates the message views with the messages parameter
+     *
+     * @param messages the updated messages list
+     */
     public void setMessagesInfo(List<Message> messages) {
         System.out.println("Loading new message info...");
         setPagination(messages);
     }
 
-    // TODO: set up search logic in main controller, add update views button, and inbox labels on left side
     private void setPagination(List<Message> messages) {
-        setPageIndex();
+        setIndexToFirstPage();
         this.setPageCount(getPageCount(messages));
         this.setPageFactory(
                 (Integer pageIndex) ->
@@ -150,7 +160,7 @@ public class MessagesViewManager extends Pagination {
                 });
     }
 
-    private void setPageIndex() {
+    private void setIndexToFirstPage() {
         if (first) this.setCurrentPageIndex(0);
         else this.setCurrentPageIndex(1);
     }
@@ -168,10 +178,21 @@ public class MessagesViewManager extends Pagination {
                 e.printStackTrace();
             }
             if (dbm != null) {
+                mvs[mvsIndex].setMessageId(messages.get(i).getId());
                 mvs[mvsIndex].getSenderField().setText(dbm.getFromName());
                 mvs[mvsIndex].getDateField().setText(dbm.getDate());
                 mvs[mvsIndex].getSnippetField().setText(dbm.getSnippet());
                 mvs[mvsIndex].getSubjectField().setText(dbm.getSubject());
+                System.out.println(dbm);
+                ImageBot ib = null;
+                try {
+                    ib = new ImageBot();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                if (ib != null)
+                    mvs[mvsIndex].setPic(MessageView.makeImage
+                            (ib.parseSenderImage(dbm.getFromEmail())));
             }
             ++mvsIndex;
         }
