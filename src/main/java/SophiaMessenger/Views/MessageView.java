@@ -8,16 +8,17 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,10 +32,9 @@ public class
 MessageView extends StackPane {
 
     public static final String RESOURCES_PATH = "IdeaProjects/SewaneeMessengerTry2/src/main/resources/";
-    private static final String ITEM_STYLE = "-fx-padding: 10px; "+"-fx-background-color:white;" + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #66007a;";
-    private static final String STYLE_ON_ENTER = "-fx-background-color: aquamarine;"+"-fx-background-radius: 0px;"+"-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
-    private static final String STYLE_ON_EXIT = "-fx-background-color: white;" + "-fx-padding: 10px; " + "-fx-border-radius: 0px;" + "-fx-border-style: solid;" + "-fx-border-color: #67007c;";
-    private static final String BACKB_STYLE = "-fx-font-family: AR DESTINE; -fx-font-size: 26px; -fx-background-color: rgba(7, 171,202,1); -fx-border-color: rgb(255, 153, 51);" +
+    private static final String PIC_HOVER_STYLE = "-fx-padding: 10px; -fx-border-radius: 0px";
+    private static final String RIGHT_CONTAINER_HOVER_STYLE = "-fx-background-insets: -10, -10;";
+    private static final String BACKB_STYLE = "-fx-font-family: AR DESTINE; -fx-font-size: 26px; -fx-background-color: rgba(7, 0,202,1); -fx-border-color: rgb(255, 153, 51);" +
             "-fx-effect: dropshadow(three-pass-box, black, 2, 0, 3, 3); -fx-text-fill: white; -fx-font-weight: bolder; ";
 
 
@@ -44,6 +44,7 @@ MessageView extends StackPane {
     private Button b;
     private ImageView labelEmail, downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
     private VBox picContainer;
+    private VBox rightContainer;
     private Rectangle pic;
     private String messageId;
 
@@ -51,23 +52,27 @@ MessageView extends StackPane {
 
         super();
         initFields();
+// doesn't do anythings
+//        this.setStyle("-fx-background-color: black");
+        senderField.getStyleClass().add("fields");
         this.messageId = m.getId();
         initHoveredIcon();
         addMessageOptions();
 
         VBox msgSummary = new VBox(subjectField, snippetField);
-        setSize(msgSummary, 200.0, 160.0);
+        msgSummary.setSpacing(20);
+        setSize(msgSummary, 300, 160.0);
 
-        VBox container = new VBox(msgSummary);
-        container.setBackground(new Background(new BackgroundFill(Color.rgb(255, 153, 51, .8), new CornerRadii(5), new Insets(0))));
-        container.setPadding(new Insets(4));
-        setSize(container, 200.0, 200.0);
+        rightContainer = new VBox(msgSummary);
+        rightContainer.getStyleClass().add("RightMessage");
+        rightContainer.setPadding(new Insets(4));
+        setSize(rightContainer, 200.0, 200.0);
         pic = new Rectangle();
-        picContainer = new VBox(pic, senderField, dateField, firstRowOptions);
+        picContainer = new VBox(3, pic, senderField, dateField, firstRowOptions);
         setSize(picContainer, 100.0, 200.0);
 
         HBox message = initMessage();
-        message.getChildren().addAll(picContainer, container);
+        message.getChildren().addAll(picContainer, rightContainer);
 
         this.getChildren().addAll(message, hoveredIcon);
 
@@ -76,17 +81,17 @@ MessageView extends StackPane {
         setButtonAndImageEvents();
 
         // the shadow behind the MessagePane
-        createMessagePaneShadow();
+//        createMessagePaneShadow();
 
     }
 
     public static Rectangle makeImage(String imageUrl) {
         // add the image to the message item
-        Image imageField = new Image(imageUrl, 80, 0, true, true, false);
+        Image imageField = new Image(imageUrl, 100, 50, true, true, false);
         ImagePattern imageView = new ImagePattern(imageField);
         Rectangle image = new Rectangle(imageField.getWidth(), imageField.getHeight(), imageView);
-        image.setArcHeight(20);
-        image.setArcWidth(20);
+        image.setArcHeight(10);
+        image.setArcWidth(10);
         return image;
     }
 
@@ -111,24 +116,21 @@ MessageView extends StackPane {
 
     private HBox initMessage() {
         HBox message = new HBox();
-        message.setStyle(ITEM_STYLE);
+        message.getStyleClass().add("MessageView");
         setSize(message, 300.0, 200.0);
         message.setOnMouseEntered(event -> {
-            message.setStyle(STYLE_ON_ENTER);
+            // rgba(153,153,255,.6)
+            // #6666ff
+            message.setStyle(PIC_HOVER_STYLE + ";-fx-background-color: rgba(136,136,255,.7)");
+            rightContainer.setStyle(RIGHT_CONTAINER_HOVER_STYLE + "-fx-background-color: rgba(40,57,158,.7)");
         });
         message.setOnMouseExited(event -> {
-            message.setStyle(STYLE_ON_EXIT);
+            message.setStyle(PIC_HOVER_STYLE + ";-fx-background-color: rgba(153,153,255,.7)");
+            // rgba(59,108,158,.6)
+            // 3B6C9E
+            rightContainer.setStyle(RIGHT_CONTAINER_HOVER_STYLE + "-fx-background-color: rgba(59,108,158,.7)");
         });
         return message;
-    }
-
-    private void createMessagePaneShadow() {
-        DropShadow dropShadow = new DropShadow();
-        dropShadow.setRadius(5. * 0);
-        dropShadow.setOffsetX(5.0);
-        dropShadow.setOffsetY(5.0);
-        dropShadow.setColor(Color.color(0.4, 0.5, 0.5));
-        this.setEffect(dropShadow);
     }
 
     public NotificationIcon getHoveredIcon() {
@@ -178,21 +180,29 @@ MessageView extends StackPane {
 
         // Look/Feel
         b.setStyle(BACKB_STYLE);
-
+        snippetField.getStyleClass().add("messagefields");
+        senderField.getStyleClass().add("messagefields");
+        subjectField.getStyleClass().add("messagefields");
+        dateField.getStyleClass().add("messagefields");
         snippetField.setWrappingWidth(190);
-        snippetField.setFont(Font.font("Trebuchet MS", 13));
-        snippetField.setFill(Color.WHITE);
-//        snippetField.setOnMouseClicked(event -> showContent());
+        snippetField.setFont(Font.font(13));
+        snippetField.setLineSpacing(5);
 
         dateField.setWrappingWidth(190);
-        dateField.setFont(Font.font("Trebuchet MS", 13));
+        dateField.setFont(Font.font(13));
 
-        senderField.setWrappingWidth(100);
-        senderField.setFont(Font.font("Trebuchet MS", 13));
+        senderField.setWrappingWidth(190);
+        senderField.setFont(Font.font(14));
+        senderField.setCache(true);
+        senderField.setX(10.0f);
+        senderField.setY(270.0f);
+        senderField.setFont(Font.font(null, FontWeight.SEMI_BOLD, 15));
 
-        subjectField.setWrappingWidth(190);
-        subjectField.setFont(Font.font("Trebuchet MS", FontWeight.BLACK, 13));
-        subjectField.setFill(Color.WHITE);
+        subjectField.setWrappingWidth(195);
+        subjectField.setFont(Font.font(null, FontWeight.SEMI_BOLD, 15));
+        subjectField.setTextAlignment(TextAlignment.CENTER);
+        subjectField.setLineSpacing(5);
+
     }
 
     private void initHoveredIcon() {
@@ -207,24 +217,8 @@ MessageView extends StackPane {
         b.setOnMouseEntered(e -> this.getScene().setCursor(Cursor.HAND));
         b.setOnMouseExited(e -> this.getScene().setCursor(Cursor.DEFAULT));
 
-        snippetField.setOnMouseEntered(event -> {
-            underline(snippetField);
-            this.getScene().setCursor(javafx.scene.Cursor.HAND);
-        });
-        snippetField.setOnMouseExited(event -> {
-            removeUnderline(snippetField);
-            this.getScene().setCursor(Cursor.DEFAULT);
-        });
-
-        subjectField.setOnMouseEntered(event -> {
-            underline(subjectField);
-            this.getScene().setCursor(javafx.scene.Cursor.HAND);
-
-        });
-        subjectField.setOnMouseExited(event -> {
-            removeUnderline(subjectField);
-            this.getScene().setCursor(Cursor.DEFAULT);
-        });
+        this.setOnMouseEntered(e -> this.getScene().setCursor(javafx.scene.Cursor.HAND));
+        this.setOnMouseExited(e -> this.getScene().setCursor(Cursor.DEFAULT));
 
         for (int i = 0; i < firstRowOptions.getChildren().size(); i++) {
             firstRowOptions.getChildren().get(i).setOnMouseEntered(e -> {

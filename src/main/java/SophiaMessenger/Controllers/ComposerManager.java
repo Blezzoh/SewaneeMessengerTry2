@@ -10,6 +10,7 @@ import de.email.core.Inbox;
 import de.email.core.Mailer;
 import de.email.interfaces.Mail;
 import javafx.scene.control.Button;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Font;
@@ -42,7 +43,9 @@ public class ComposerManager extends BorderPane {
 
 
     public ComposerManager(Inbox inbox) {
+
         super();
+        setBackground(Background.EMPTY);
         this.auth = inbox.getAuth();
         composer = new Composer();
         composer.setVisible(false);

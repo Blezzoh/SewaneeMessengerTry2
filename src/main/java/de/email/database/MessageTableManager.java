@@ -29,7 +29,7 @@ public class MessageTableManager {
     public static void updateMessageTable(Inbox inbox)
             throws IOException, SQLException {
         Connection conn = Conn.makeConnection();
-        ResultSet resultSet = query(conn, "select date from " + tableName + " order by date desc limit 1");
+        ResultSet resultSet = query(conn, "select date from " + tableName + " order by date asc limit 1");
         // get most recent date from database
         String d = null;
         if (resultSet.next()) {
@@ -61,7 +61,7 @@ public class MessageTableManager {
         // todo: update views w/ new data ?????????
     }
 
-    public static int numberOfMatchingMessages(List<Message> messages) {
+    public static int numberOfMatchingMessages(List<Message> messages) throws SQLException {
         Connection con = null;
         try {
             con = Conn.makeConnection();
@@ -82,6 +82,8 @@ public class MessageTableManager {
                 e.printStackTrace();
             }
         }
+        if (con != null)
+            con.close();
         return count;
     }
 
@@ -132,8 +134,16 @@ public class MessageTableManager {
                     "  fromName VARCHAR(500),\n" +
                     "  date DATE\n" +
                     ")");
+            c.close();
         } catch (SQLException e) {
             e.printStackTrace();
+            // close connections to db
+            try {
+                assert c != null;
+                c.close();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
         }
     }
 
@@ -146,7 +156,7 @@ public class MessageTableManager {
     private static int numRows(Connection con) {
         ResultSet rs = null;
         try {
-            rs = query(con, "select count(id) from mail");
+            rs = query(con, "select count(id) from message");
             if (rs.next())
                 return rs.getInt(1);
         } catch (SQLException e) {
@@ -177,18 +187,20 @@ public class MessageTableManager {
 
     public static void fillTable(Inbox inbox) throws IOException, SQLException {
         long initTime = System.currentTimeMillis();
-        if (numRows() == 0) {
+        Connection connection = Conn.makeConnection();
+        if (numRows(connection) == 0) {
             List<Message> messages = inbox.getInbox();
-            Connection connection = Conn.makeConnection();
             System.out.print("MessageTableManager connection successful. Loading " + messages.size() + " messages... ");
-            for (int i = 0; i < messages.size(); i++) {
-                FullMessage fm = new FullMessage(inbox, messages.get(i));
+            for (Message message : messages) {
+                FullMessage fm = new FullMessage(inbox, message);
                 insertInto(connection, fm);
             }
             System.out.println("Messages loaded.");
-            connection.close();
         } else {
             System.out.println("Table filled.");
+        }
+        if (connection != null) {
+            connection.close();
         }
     }
 

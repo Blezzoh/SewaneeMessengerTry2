@@ -6,6 +6,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import np.com.ngopal.control.AutoFillTextBox;
 
 /**
  * Created by evansdb0 on 8/4/16.
@@ -14,28 +15,25 @@ import javafx.scene.layout.Priority;
  */
 public class TopMenu extends HBox {
 
-    private static final String TOP_STYLE = "-fx-background-color: rgba(7, 171,202,.7);" +
-            " -fx-padding: 15px; -fx-spacing: 15px; -fx-start-margin: 40px;" +
-            " -fx-border-color:rgba(255, 153, 51, .8); -fx-border-radius: 3px";
-
-    private static final String COMPOSE_STYLE = "-fx-background-color: rgba(7, 171,202,.7);" +
-            " -fx-font-family: Trebuchet MS; -fx-font-size: 13px; -fx-font-weight: bold;" +
-            " -fx-border-color: white; -fx-effect: dropshadow(gaussian, black, 2, 0, 3, 3);" +
-            " -fx-border-insets: 3px; -fx-border-width: 2px; -fx-text-fill: white";
-
     private TextField searchField;
     private ImageView searchImage;
     private Button searchButton;
     private Button composeButton;
+    private AutoFillTextBox<String> searchBox;
 
     public TopMenu() {
+        super();
+        this.setStyle("-fx-background-color: transparent");
         initFields();
         styleFields();
 
         // add fields to layout and style layout
         this.setPadding(new Insets(2, 2, 2, 2));
         this.getChildren().addAll(composeButton, searchButton, searchField);
-        this.setStyle(TOP_STYLE);
+        this.getStyleClass().add("TopMenu");
+        composeButton.getStyleClass().add("Buttons");
+        searchButton.getStyleClass().add("Buttons");
+        searchField.getStyleClass().add("SearchField");
     }
 
     private void initFields() {
@@ -47,12 +45,10 @@ public class TopMenu extends HBox {
 
     private void styleFields() {
         // searchButton
-        searchButton.setStyle(COMPOSE_STYLE);
         searchButton.setText("SEARCH");
         searchButton.setGraphic(searchImage);
 
-        // compose button 
-        composeButton.setStyle(COMPOSE_STYLE);
+        // compose button
 
         // searchField
         searchField.setStyle("-fx-font-size: 14;");

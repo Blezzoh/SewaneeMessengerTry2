@@ -1,7 +1,6 @@
 package de.email.aux;
 
 import de.email.core.FullMessage;
-import de.email.core.Inbox;
 import de.email.core.Preconditions;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,8 +18,13 @@ import java.util.regex.Pattern;
 // TODO: detect links so we can send the user to that page
 public class MessageParser {
 
-    public static String getBodyTextFromHTML(String html) {
-        return generateDocument(Inbox.decodeString(html)).text();
+    public static void main(String[] args) {
+        String ea = "<this>";
+        System.out.println(MessageParser.parseEmailAddress(ea));
+    }
+
+    public static String getTextFromHTML(String html) {
+        return generateDocument(html).text();
     }
 
     private static Document generateDocument(String html) {
@@ -96,20 +100,12 @@ public class MessageParser {
     public static String parseEmailAddress(String emailAddress) {
         Preconditions.objectNotNull(emailAddress, "emailAddress is null");
         int start = emailAddress.indexOf('<');
-        int end = emailAddress.indexOf('>', start) + 1;
+        int end = emailAddress.indexOf('>', start);
         if (start == -1 || end == -1) return emailAddress;
-        String str = emailAddress.substring(start, end);
-        if (checkIsValidEmailAddress(str)) // primitive check for email address validity
-            return emailAddress;
-        else
-            return str;
+
+        return emailAddress.substring(start + 1, end);
     }
 
-    public static boolean checkIsValidEmailAddress(String emailAddress) {
-        return emailAddress.contains("@") && emailAddress.contains(".") && emailAddress.length() > 7;
-    }
-
-    // </?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[\^'">\s]+))?)+\s*|\s*)/?>
     public static boolean testForHTML(String strToTest) {
         String r1 = "</?\\w+((\\s+\\w+(\\s*=\\s*(?:\".*?\"|'.*?'|[\\^'\">\\s]+))?)+\\s*|\\s*)/?>";
         Pattern p1 = Pattern.compile(r1);
@@ -183,31 +179,4 @@ public class MessageParser {
             return Jsoup.parse(messageAsHTML);
         return null;
     }
-    /*public static String parseLinks(FullMessage m) {
-*//**
-     *  Document doc = null;
-     try {
-     doc = generateDocument(m);
-     } catch (IOException e) {
-     e.printStackTrace();
-     }
-     // message contained html
-     if(doc != null) {
-
-     }
-     *//*
-        String google = "http://www.google.com/search?q=";
-        String search = parseNameFromEmail(m);
-        String charset = "UTF-8";
-        String userAgent = "ImageBot 1.0 https://github.com/Blezzoh/My_Sewanee_Messenger";
-        Elements links = null;
-        try {
-            links = Jsoup.connect(google + URLEncoder.encode(search, charset)).userAgent(userAgent).get().select(".g>.r>a");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (links != null) {
-
-        }
-    }*/
 }

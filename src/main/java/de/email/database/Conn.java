@@ -4,7 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import static SophiaMessenger.Config.*;
+import static de.email.database.Config.*;
 
 /**
  * Created by evansdb0 on 8/11/16.

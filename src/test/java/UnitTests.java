@@ -1,4 +1,6 @@
 import com.google.api.services.gmail.model.Message;
+import de.email.aux.MessageParser;
+import de.email.core.FullMessage;
 import de.email.core.Inbox;
 import org.junit.Test;
 
@@ -9,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 
 /**
@@ -20,7 +22,7 @@ public class UnitTests {
 
     Inbox inbox = new Inbox("evansdb0@sewanee.edu");
 
-    List<Message> messages = inbox.getDefaultInbox();
+    List<Message> messages = inbox.getInbox();
 
     Hashtable<String, FullMessage> emailData = initEmailData();
 
@@ -55,9 +57,7 @@ public class UnitTests {
 
     @Test
     public void testHTML() {
-        assertTrue(FullMessage.testForHTML("<a kdlsjfdlkfjdfds>"));
-//        assertTrue(FullMessage.testForHTML("<a href=\"sdfd>\">"));
-//        assertTrue(FullMessage.testForHTML("<a kdlsjfdlkfjdfds>"));
-//        assertTrue(FullMessage.testForHTML("<a kdlsjfdlkfjdfds>"));
+        assertFalse(
+                MessageParser.testForHTML("<a kdlsjfdlkfjdfds>"));
     }
 }

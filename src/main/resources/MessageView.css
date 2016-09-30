@@ -1,0 +1,18 @@
+.messagefields {
+    -fx-font-family: Lora;
+    -fx-fill: whitesmoke;
+}
+
+/* #9999ff */
+.MessageView {
+    -fx-padding: 10px;
+    -fx-background-color: rgba(153, 153, 255, .8);
+    -fx-border-radius: 0px;
+}
+
+/* #3B6C9E */
+.RightMessage {
+    -fx-background-color: rgba(50, 108, 158, .8);
+    -fx-background-insets: -10, -10;
+}
+

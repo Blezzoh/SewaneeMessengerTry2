@@ -167,7 +167,15 @@ public class FullMessage implements Mail {
      * @return the first couple words (about 20 words) in the email
      */
     public String getSnippet() {
-        return m.getSnippet();
+        /*byte[] snip = Base64.decodeBase64(m.getSnippet());
+        return m.getSnippet();*/
+        try {
+            if (getBody().length() < 20) return "";
+            return MessageParser.getTextFromHTML(m.getSnippet());
+        } catch (StringIndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
     /**

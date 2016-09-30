@@ -2,7 +2,8 @@ package de.email.aux;
 
 import com.google.api.services.gmail.model.Message;
 import de.email.core.Inbox;
-import de.email.database.Conn;
+import de.email.database.Config;
+import de.email.database.DB;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -28,12 +29,13 @@ public class ImageBot {
     private static final String imageTable = "imageLookup";
     private Connection conn;
 
-    public ImageBot() throws SQLException {
-        conn = Conn.makeConnection();
+    public ImageBot(Connection conn) throws SQLException {
+        this.conn = conn;
     }
 
 
     public static void main(String[] args) throws IOException {
+
         Inbox inbox = new Inbox("evansdb0@sewanee.edu");
         List<Message> ms = inbox.getInbox();
         String ea = "<notification+kjdpik5jhvjd@facebookmail.com>";
@@ -135,7 +137,7 @@ public class ImageBot {
         final String suffix = getEmailSuffix(emailAddress);
         // Lookup the url to save time
         try {
-            String url = lookupURL(suffix);
+            String url = DB.lookup("url", Config.IMAGE_LOOKUP, "suffix", "=", suffix);
             if (url != null)
                 return url;
         } catch (SQLException e) {

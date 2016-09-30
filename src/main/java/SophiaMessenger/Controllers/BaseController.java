@@ -31,6 +31,8 @@ public class BaseController extends BorderPane {
 
     public BaseController(String accountEmailAddress) {
         super();
+//        this.setStyle("-fx-background-color: black");
+        this.getStyleClass().add("BaseController");
         inbox = new Inbox(accountEmailAddress);
         MessageQuery mqm = new MessageQuery(inbox, SearchQueries.INBOX);
         messages = mqm.retrieveMessages();
@@ -60,9 +62,13 @@ public class BaseController extends BorderPane {
             }
         });
 
+
         leftSideMenu.setEvents(messagesViewManager, inbox);
 
         this.setCenter(messagesViewManager);
+        this.getCenter().setStyle("-fx-background-color: transparent");
+        this.setStyle("-fx-background-color: transparent");
+
         this.setLeft(leftSideMenu);
     }
 

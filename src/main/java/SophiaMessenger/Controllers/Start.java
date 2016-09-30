@@ -4,7 +4,9 @@ import SophiaMessenger.Models.DBMessage;
 import com.google.api.services.gmail.model.Message;
 import de.email.aux.ImageBot;
 import de.email.core.Inbox;
+import de.email.database.Config;
 import de.email.database.Conn;
+import de.email.database.DB;
 import de.email.database.MessageTableManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -24,17 +26,14 @@ import java.util.List;
 
 public class Start extends Application {
 
-    static final String COMPOSE_STYLE = "-fx-background-color: rgba(7, 171,202,.7); -fx-font-family: Trebuchet MS; -fx-font-size: 13px; -fx-font-weight: bold; -fx-border-color: white;"
-            +"-fx-effect: dropshadow(gaussian, black, 2, 0, 3, 3); -fx-border-insets: 3px; -fx-border-width: 2px; -fx-text-fill: white";
-    private static final String TOP_STYLE = "-fx-background-color: rgba(7, 171,202,.7); -fx-padding: 15px; -fx-spacing: 15px; -fx-start-margin: 40px; -fx-border-color:rgba(255, 153, 51, .8);" +
-            "-fx-border-radius: 3px" ;
-
     public static void main(String[] args) {
         launch(args);
     }
 
     @Override
-    public void start(Stage primaryStage) throws FileNotFoundException {
+    public void start(Stage stage) throws FileNotFoundException {
+
+        stage.initStyle(StageStyle.TRANSPARENT);
         Connection conn = null;
         Inbox i = new Inbox("evansdb0@sewanee.edu");
         try {
@@ -52,7 +51,7 @@ public class Start extends Application {
         ImageBot.createLookupTable(conn);
         ImageBot ib = null;
         try {
-            ib = new ImageBot();
+            ib = new ImageBot(conn);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -68,7 +67,8 @@ public class Start extends Application {
                 if (m != null) {
                     String suffix = ib.getEmailSuffix(m.getFromEmail());
                     try {
-                        if (ib.lookupURL(suffix) == null)
+                        // "SELECT url FROM " + imageTable + " WHERE suffix = ?"
+                        if (DB.lookup("url", Config.IMAGE_LOOKUP, "suffix", "=", suffix) == null)
                             ib.store(suffix, ib.parseSenderImage(m.getFromEmail()));
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -76,16 +76,27 @@ public class Start extends Application {
                 }
             }
         }
+        try {
+            if (conn != null)
+                conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         BaseController bc = new BaseController("evansdb0@sewanee.edu");
         Scene scene = new Scene(bc);
         bc.pushStack(scene);
-        scene.getStylesheets().add("MessengerStyle.css");
 
-        primaryStage.setScene(scene);
-        primaryStage.initStyle(StageStyle.UNIFIED);
-        primaryStage.setWidth(Toolkit.getDefaultToolkit().getScreenSize().getWidth() - 50);
-        primaryStage.setHeight(Toolkit.getDefaultToolkit().getScreenSize().getHeight() - 100);
-        primaryStage.show();
+        scene.getStylesheets()
+                .addAll("MessengerStyle.css",
+                        "MessageView.css",
+                        "TopMenu.css");
+        scene.getStylesheets().add("http://fonts.googleapis.com/css?family=Lora");
+
+        stage.setScene(scene);
+        stage.initStyle(StageStyle.UNIFIED);
+        stage.setWidth(Toolkit.getDefaultToolkit().getScreenSize().getWidth() - 200);
+        stage.setHeight(Toolkit.getDefaultToolkit().getScreenSize().getHeight() - 300);
+        stage.show();
     }
 }

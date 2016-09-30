@@ -5,6 +5,7 @@ import de.email.core.Inbox;
 import de.email.core.MessageQuery;
 import de.email.core.SearchQueries;
 import javafx.geometry.Insets;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
@@ -27,7 +28,7 @@ public class LeftSideMenu extends VBox {
         initFields();
         this.getChildren()
                 .addAll(inbox, sent, important, drafts, starred);
-        setStyle();
+        setBackground(Background.EMPTY);
     }
 
     private void setStyle() {
