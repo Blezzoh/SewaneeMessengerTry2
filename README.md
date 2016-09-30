@@ -2,4 +2,4 @@
 
 Picture of current version:
 
-![alt tag](https://raw.githubusercontent.com/Blezzoh/Sofia-Messenger/accessory/sophia_messenger.png)
+[[https://github.com/Blezzoh/Sofia-Messenger/blob/master/accessory/sophia_messenger.png]]
