@@ -28,12 +28,11 @@ public class Inbox implements Auth {
     /**
      * the number of messages to retrieve on both a search and on startup of the application
      */
-    public static final int MESSAGE_SIZE = 50;
+    public static final int MESSAGE_SIZE = 2000;
     static final String MESSAGE_NULL_ERROR = "param message is null";
     private static final String QUERY_NULL_ERROR = "param query is null";
     // Assuming you are sending email from localhost
     private static String host = "localhost";
-    private static int NO_INTERNET_CONNECTION = 137;
     private Authenticator auth;
     private int retries = 0;
 
@@ -53,13 +52,6 @@ public class Inbox implements Auth {
      * @return decoded String in plain text
      */
     public static String decodeString(String base64String) {
-//        byte[] bytes = java.util.Base64.getDecoder().decode(base64String);
-//        try {
-//            return new String(bytes,"UTF-8");
-//        } catch (UnsupportedEncodingException e) {
-//            e.printStackTrace();
-//            System.out.println("Could not decode to UTF-8");
-//        }
         return StringUtils.newStringUtf8(Base64.decodeBase64(base64String));
     }
 

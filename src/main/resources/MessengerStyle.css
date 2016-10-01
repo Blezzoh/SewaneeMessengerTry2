@@ -40,7 +40,7 @@
 
 }
 .pagination .label {
-    -fx-text-fill: white;
+    -fx-text-fill: transparent;
 }
 .pagination .toggle-button {
     -fx-background-color: white;

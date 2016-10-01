@@ -177,7 +177,6 @@ public class EmailDate {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        System.out.println(date);
         SimpleDateFormat dateFormatter = new SimpleDateFormat(pattern);
         return date == null ? "Date not available" : dateFormatter.format(date);
     }

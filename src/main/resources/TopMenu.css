@@ -5,6 +5,10 @@
     -fx-border-radius: 3px
 }
 
+.autofill-text {
+    -fx-skin: "np.com.ngopal.control.AutoFillTextBoxSkin";
+}
+
 .Buttons {
     -fx-background-color: #3B6C9E;
     -fx-font-family: Lora;

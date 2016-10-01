@@ -1,8 +1,8 @@
 package SophiaMessenger.Views;
 
 import SophiaMessenger.LabelHolderOnHover;
+import SophiaMessenger.Models.DBMessage;
 import SophiaMessenger.NotificationIcon;
-import de.email.interfaces.Mail;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -48,14 +48,12 @@ MessageView extends StackPane {
     private Rectangle pic;
     private String messageId;
 
-    public MessageView(Mail m) {
+    public MessageView(String mId) {
 
         super();
         initFields();
-// doesn't do anythings
-//        this.setStyle("-fx-background-color: black");
         senderField.getStyleClass().add("fields");
-        this.messageId = m.getId();
+        this.messageId = mId;
         initHoveredIcon();
         addMessageOptions();
 
@@ -76,12 +74,8 @@ MessageView extends StackPane {
 
         this.getChildren().addAll(message, hoveredIcon);
 
-
         // button and image view events
         setButtonAndImageEvents();
-
-        // the shadow behind the MessagePane
-//        createMessagePaneShadow();
 
     }
 
@@ -104,6 +98,19 @@ MessageView extends StackPane {
         node.maxWidth(w);
         node.minWidth(w);
         node.prefWidth(w);
+    }
+
+    /**
+     * sets the fields of this message view
+     * to the information as described in dbm
+     *
+     * @param dbm the database message containing email info
+     */
+    public void setMessageFields(DBMessage dbm) {
+        senderField.setText(dbm.getFromName());
+        subjectField.setText(dbm.getSubject());
+        dateField.setText("Sent: " + dbm.getDate());
+        snippetField.setText(dbm.getSnippet());
     }
 
     public String getMessageId() {

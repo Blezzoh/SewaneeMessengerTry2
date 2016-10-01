@@ -36,6 +36,8 @@ public class Start extends Application {
         stage.initStyle(StageStyle.TRANSPARENT);
         Connection conn = null;
         Inbox i = new Inbox("evansdb0@sewanee.edu");
+        List<Message> messages = null;
+
         try {
             conn = Conn.makeConnection();
         } catch (SQLException e) {
@@ -44,7 +46,7 @@ public class Start extends Application {
         try {
             MessageTableManager.createMessageTable();
             MessageTableManager.fillTable(i);
-            MessageTableManager.updateMessageTable(i);
+            MessageTableManager.updateMessageTable(i, true);
         } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
@@ -56,7 +58,7 @@ public class Start extends Application {
             e.printStackTrace();
         }
         if (ib != null) {
-            List<Message> messages = i.getInbox();
+            messages = i.getInbox();
             for (int j = 0; j < 80; j++) {
                 DBMessage m = null;
                 try {
@@ -82,10 +84,11 @@ public class Start extends Application {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
-        BaseController bc = new BaseController("evansdb0@sewanee.edu");
+        BaseController bc = new BaseController(i, messages);
         Scene scene = new Scene(bc);
-        bc.pushStack(scene);
+        SceneManager sceneManager = new SceneManager(stage, scene);
+        /* Allows bc and all subManagers (controllers) to create new windows */
+        bc.setSceneManager(sceneManager);
 
         scene.getStylesheets()
                 .addAll("MessengerStyle.css",

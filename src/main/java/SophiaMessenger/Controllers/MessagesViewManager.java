@@ -23,19 +23,18 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 
-import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Deque;
 import java.util.List;
 
 /**
  * Created by evansdb0 on 8/4/16.
  * @author Daniel Evans
  */
-public class MessagesViewManager extends Pagination {
+public class
+MessagesViewManager extends Pagination {
 
     private static final int itemsPerPage = 12;
     private final String imgUrl = "http://4.bp.blogspot.com/-SjsG6gvCasI/Ve6PJxhPEiI/AAAAAAAAFYU/dYvGfnIxPzk/s1600/Kundwa%2BDoriane%2Brwanda.jpg";
@@ -44,18 +43,18 @@ public class MessagesViewManager extends Pagination {
     private MessageView[] mvs;
     private boolean first = true;
     private Authenticator auth;
-    private Deque<Scene> sceneStack;
     private javafx.scene.control.Button b;
     private Stage stage;
     private Connection con;
+    private SceneManager sceneManager;
 
 
-    public MessagesViewManager(Auth auth, List<Message> messages, Deque<Scene> sceneStack) {
+    public MessagesViewManager(Auth auth, List<Message> messages) {
         super();
         this.setStyle("-fx-background-color: transparent");
         this.setPageCount(getPageCount(messages));
         this.auth = auth.getAuth();
-        this.sceneStack = sceneStack;
+//        this.sceneStack = sceneStack;
         initCenter();
         initCenterContainer();
         try {
@@ -66,18 +65,13 @@ public class MessagesViewManager extends Pagination {
         }
         b = new javafx.scene.control.Button("Back");
         // hitting back button takes you back to the mail gridview page
-        b.setOnMousePressed(e -> goBack());
+        b.setOnMousePressed(e -> this.sceneManager.destroyCurrentWindow());
 
+        // writing to message views from database info
         mvs = new MessageView[itemsPerPage];
-        System.out.print("Initializing messageViews...");
+        System.out.println("Initializing messageViews...");
         for (int i = 0; i < mvs.length; i++) {
-            try {
-                DBMessage dbMessage = new DBMessage(messages.get(i));
-                // create message views with the database messages
-                mvs[i] = new MessageView(dbMessage);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            mvs[i] = new MessageView(messages.get(i).getId());
         }
         center.getChildren().addAll(mvs);
         center.setStyle("-fx-background-color: transparent");
@@ -85,38 +79,23 @@ public class MessagesViewManager extends Pagination {
         setMessageViewEvents();
     }
 
-    private void goBack() {
-        // pop() the seen created in showContent()
-        sceneStack.pop();
-        // sceneStack already has the original scene saved (controller pushed its scene)
-        // so it is available here
-        stage.setScene(sceneStack.peek());
-    }
-
     private void showContent(String content) {
         if (content != null) {
-            WebView wv = new WebView();
-            wv.contextMenuEnabledProperty().setValue(true);
-            WebEngine engine = wv.getEngine();
+            WebView emailContent = new WebView();
+            emailContent.contextMenuEnabledProperty().setValue(true);
+            WebEngine engine = emailContent.getEngine();
             if (!MessageParser.testForHTML(content))
                 // load plain text version
                 engine.loadContent(content, "text/plain");
             else
                 // load html version
                 engine.loadContent(content);
-            stage = (Stage) this.getScene().getWindow();
-            double stageX = stage.getWidth(), stageY = stage.getHeight();
-            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            // make sure that the size of the of the scene is smaller than the screen size
-            stageX = stageX >= screenSize.getWidth() ? stageX - 250 : stageX;
-            stageY = stageY >= screenSize.getHeight() ? stageY - 250 : stageY;
-            BorderPane p = new BorderPane();
-            p.setTop(b);
-            p.setCenter(wv);
-            Scene body = new Scene(p, stageX, stageY);
-            sceneStack.push(body);
-            body.getStylesheets().add("MessengerStyle.css");
-            stage.setScene(sceneStack.peek());
+            BorderPane emailContentRoot = new BorderPane();
+            emailContentRoot.setTop(b);
+            emailContentRoot.setCenter(emailContent);
+            Scene emailContentScene = sceneManager.createNewWindow(emailContentRoot);
+            emailContentScene.getStylesheets().add("MessengerStyle.css");
+            sceneManager.displayCurrentScene();
         }
     }
 
@@ -156,8 +135,10 @@ public class MessagesViewManager extends Pagination {
      * @param messages the updated messages list
      */
     public void setMessagesInfo(List<Message> messages) {
+        long t = System.currentTimeMillis();
         System.out.println("Loading new message info...");
         setPagination(messages);
+        System.out.println("Time to update message views = " + (System.currentTimeMillis() - t));
     }
 
     private void setPagination(List<Message> messages) {
@@ -166,7 +147,7 @@ public class MessagesViewManager extends Pagination {
         this.setPageFactory(
                 (Integer pageIndex) ->
                 {
-                    System.out.println("Creating page...");
+                    System.out.println("Writing to message views...");
                     return createPage(pageIndex, messages);
                 });
     }
@@ -181,34 +162,43 @@ public class MessagesViewManager extends Pagination {
         int page = pageIndex * itemsPerPage;
 
         int mvsIndex = 0;
-        for (int i = page; i < page + itemsPerPage && i < messages.size(); i++) {
+        for (int msgIndex = page;
+             msgIndex < page + itemsPerPage && msgIndex < messages.size();
+             msgIndex++) {
             DBMessage dbm = null;
             try {
-                dbm = new DBMessage(messages.get(i));
+                dbm = new DBMessage(messages.get(msgIndex));
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            if (dbm != null) {
-                mvs[mvsIndex].setMessageId(messages.get(i).getId());
-                mvs[mvsIndex].getSenderField().setText(dbm.getFromName());
-                mvs[mvsIndex].getDateField().setText("Sent: " + dbm.getDate());
-                mvs[mvsIndex].getSnippetField().setText(dbm.getSnippet());
-                mvs[mvsIndex].getSubjectField().setText(dbm.getSubject());
-                System.out.println(dbm);
-                ImageBot ib = null;
-                try {
-                    ib = new ImageBot(con);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                if (ib != null)
-                    mvs[mvsIndex].setPic(MessageView.makeImage
-                            (ib.parseSenderImage(dbm.getFromEmail())));
-            }
+
+            reloadMessageViewInfo(messages, dbm, mvsIndex, msgIndex);
             ++mvsIndex;
         }
         centerContainer.setContent(center);
         return centerContainer;
+    }
+
+    /*
+    writes information described by mvs[x] methods to the messageView
+     */
+    private void reloadMessageViewInfo(List<Message> messages,
+                                       DBMessage dbm,
+                                       int mvsIndex,
+                                       int msgIndex) {
+        if (dbm != null) {
+            mvs[mvsIndex].setMessageId(messages.get(msgIndex).getId());
+            mvs[mvsIndex].setMessageFields(dbm);
+            ImageBot ib = null;
+            try {
+                ib = new ImageBot(con);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            if (ib != null)
+                mvs[mvsIndex].setPic(MessageView.makeImage
+                        (ib.parseSenderImage(dbm.getFromEmail())));
+        }
     }
 
 
@@ -250,5 +240,9 @@ public class MessagesViewManager extends Pagination {
             retVal = rs.getString(1);
 
         return retVal;
+    }
+
+    void setSceneManager(SceneManager sceneManager) {
+        this.sceneManager = sceneManager;
     }
 }

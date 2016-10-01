@@ -26,38 +26,68 @@ public class MessageTableManager {
 
     // ----------------- ALL UPDATE MessageTableManager METHODS -----------------------------
 
-    public static void updateMessageTable(Inbox inbox)
+    public static void updateMessageTable(Inbox inbox, boolean before)
             throws IOException, SQLException {
+
         Connection conn = Conn.makeConnection();
-        ResultSet resultSet = query(conn, "select date from " + tableName + " order by date asc limit 1");
+        ResultSet resultSet = query(conn, "select date from " + tableName + " order by date desc limit 1");
+
         // get most recent date from database
         String d = null;
         if (resultSet.next()) {
             d = resultSet.getString(1);
         } else return;
+
         // get the date 1 day before d
         String ld = getLocalDate(d, 1, "yyyy/LLLL/dd");
+
         // search for messages on google's servers that are newer than ld
         // minimize the messages to insert by taking the date closest to now
         List<Message> messages = inbox.listMessagesMatchingQuery("after:" + ld);
+
         // eliminate duplicate messages before retrieving email data (FullMessages) b/c that is expensive
-        messages = checkAgainstDBMessages(conn, messages);
-        System.out.println("m.size " + messages.size());
+        if (messages.size() != 0)
+            messages = checkAgainstDBMessages(conn, messages);
+
+        System.out.println("message update size = " + messages.size());
+
+        List<Message> beforeDateMessages = null;
+
+        long time = System.currentTimeMillis();
+        if (before) {
+            beforeDateMessages = inbox.listMessagesMatchingQuery
+                    ("before:" + getLocalDate(d, -1, "yyyy/LLLL/dd"));
+            if (beforeDateMessages.size() != 0) {
+                beforeDateMessages = checkAgainstDBMessages(conn, beforeDateMessages);
+                System.out.println("m.size after check " + beforeDateMessages.size());
+            }
+        }
+
         // TODO: FIGURE OUT WHY THE DATE AND OTHER FIELDS IN DBMESSAGE ARE NULL
         // TODO: delete all old messages in database, right now old messages are not shown
         // TODO: the messages shown are in line with w/ messages from the inbox.getInbox() call, but they are still in the database
         // constraint on db to disallow duplicate message ids so it
         // will only insert messages that are not already in db
         // get messages as full messages and insert the them
+        System.out.println("Gathering email data....");
         List<FullMessage> fms = new ArrayList<>(messages.size());
-        for (Message message : messages) {
+
+        for (Message message : messages)
             fms.add(new FullMessage(inbox, message));
-        }
         for (FullMessage fm : fms)
             insertInto(conn, fm);
 
-        conn.close();
+        if (before) {
+            fms = new ArrayList<>(beforeDateMessages.size());
+            for (Message message : beforeDateMessages)
+                fms.add(new FullMessage(inbox, message));
+            for (FullMessage fm : fms)
+                insertInto(conn, fm);
+        }
 
+        conn.close();
+        System.out.println("Messages loaded.");
+        System.out.println("update time " + (System.currentTimeMillis() - time));
         // todo: update views w/ new data ?????????
     }
 
@@ -113,7 +143,6 @@ public class MessageTableManager {
 
     private static String getLocalDate(String date, int numDays, String format) {
         LocalDate d = LocalDate.parse(date);
-        System.out.println("local date " + d);
         LocalDate numDaysBeforeNow = d.minusDays(numDays);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
         return numDaysBeforeNow.format(formatter);
@@ -196,8 +225,6 @@ public class MessageTableManager {
                 insertInto(connection, fm);
             }
             System.out.println("Messages loaded.");
-        } else {
-            System.out.println("Table filled.");
         }
         if (connection != null) {
             connection.close();

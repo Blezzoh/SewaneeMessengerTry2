@@ -37,6 +37,26 @@ public class DB {
         }
         con.close();
         return retVal;
+    }
 
+    public static ResultSet selectAll(String selectWhat,
+                                      String modifier,
+                                      String tblName) throws SQLException {
+
+        Connection c = Conn.makeConnection();
+        PreparedStatement ps = null;
+        if (modifier == null)
+            ps = c.prepareStatement("SELECT "
+                    + selectWhat +
+                    " from "
+                    + tblName);
+        else
+            ps = c.prepareStatement("SELECT " + modifier + " "
+                    + selectWhat +
+                    " from "
+                    + tblName);
+
+        ResultSet rs = ps.executeQuery();
+        return rs;
     }
 }

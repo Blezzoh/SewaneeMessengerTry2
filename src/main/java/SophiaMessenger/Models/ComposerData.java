@@ -2,9 +2,6 @@ package SophiaMessenger.Models;
 
 import SophiaMessenger.Views.Composer;
 
-import javax.mail.MessagingException;
-import java.io.IOException;
-
 /**
  * Created by iradu_000 on 8/2/2016.
  * Class that holds data while of a Composer
@@ -17,7 +14,7 @@ public class ComposerData {
         this.emailAddress = composer.getEmailAddress().getText();
         this.subject= composer.getSubject().getText();
         this.cc = composer.getCc().getText();
-        this.body = composer.getBodyText().getText();
+        this.body = composer.getEditor().getHtmlText();
     }
 
     public String getEmailAddress() {
@@ -59,28 +56,5 @@ public class ComposerData {
     public void setComposerDataId(int composerDataId) {
         this.composerDataId = composerDataId;
     }
-
-    /**
-     * Create draft email.
-     *
-     * @return Created Draft.
-     * @throws MessagingException
-     * @throws IOException        probably there is no Internet
-     */
-    // TODO: job for the controller not for the composerData
-/*    public Draft createDraft()
-            throws MessagingException, IOException {
-
-        MimeMessage mimeMessage = emailSender.composeMessage(emailAddress, subject, body);
-        DBMessage message = Inbox.createMessageWithEmail(mimeMessage);
-        Draft draft = new Draft();
-        draft.setMessage(message);
-        draft = emailSender.getAuth().service.users()
-                .drafts().create(emailSender.getAuth().userId, draft).execute();
-
-        System.out.println("draft id: " + draft.getId());
-        System.out.println(draft.toPrettyString());
-        return draft;
-    }*/
 
 }

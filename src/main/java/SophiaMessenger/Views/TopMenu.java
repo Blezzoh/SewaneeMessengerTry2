@@ -1,12 +1,13 @@
 package SophiaMessenger.Views;
 
+import SophiaMessenger.Controllers.SceneManager;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import np.com.ngopal.control.AutoFillTextBox;
+
+import java.util.SortedSet;
 
 /**
  * Created by evansdb0 on 8/4/16.
@@ -15,56 +16,69 @@ import np.com.ngopal.control.AutoFillTextBox;
  */
 public class TopMenu extends HBox {
 
-    private TextField searchField;
     private ImageView searchImage;
-    private Button searchButton;
+    private Button settingsButton;
     private Button composeButton;
-    private AutoFillTextBox<String> searchBox;
+    private AutoSuggestTextBox searchTextBox;
+    private SceneManager sceneManager;
 
-    public TopMenu() {
+    public TopMenu(SortedSet<String> eas) {
         super();
         this.setStyle("-fx-background-color: transparent");
-        initFields();
+        initFields(eas);
         styleFields();
+        setEvents();
 
         // add fields to layout and style layout
         this.setPadding(new Insets(2, 2, 2, 2));
-        this.getChildren().addAll(composeButton, searchButton, searchField);
+        this.getChildren().addAll(composeButton, settingsButton);
         this.getStyleClass().add("TopMenu");
         composeButton.getStyleClass().add("Buttons");
-        searchButton.getStyleClass().add("Buttons");
-        searchField.getStyleClass().add("SearchField");
+        settingsButton.getStyleClass().add("Buttons");
+        searchTextBox.getStyleClass().add("SearchField");
+        this.getChildren().add(searchTextBox);
     }
 
-    private void initFields() {
-        searchField = new TextField();
+    private void initFields(SortedSet<String> eas) {
+        searchTextBox = new AutoSuggestTextBox(eas);
         searchImage = new ImageView();
-        searchButton = new Button();
+        settingsButton = new Button();
         composeButton = new Button("Compose");
     }
 
     private void styleFields() {
-        // searchButton
-        searchButton.setText("SEARCH");
-        searchButton.setGraphic(searchImage);
+        // settingsButton
+        settingsButton.setText("Settings");
 
         // compose button
 
         // searchField
-        searchField.setStyle("-fx-font-size: 14;");
-        searchField.setTranslateY(-3);
-        searchField.setVisible(true);
-        searchField.setPromptText("Search for anything...");
-        HBox.setHgrow(searchField, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
-        HBox.setMargin(searchField, new Insets(10, 25, 10, 25));
-
+        searchTextBox.setStyle("-fx-font-size: 14;");
+        searchTextBox.setTranslateY(-3);
+        searchTextBox.setVisible(true);
+        searchTextBox.setPromptText("Search for anything...");
+        HBox.setHgrow(searchTextBox, Priority.max(Priority.SOMETIMES, Priority.ALWAYS));
+        HBox.setMargin(searchTextBox, new Insets(10, 25, 10, 25));
     }
 
-    public TextField getSearchField() {
-        return searchField;
+    private void setEvents() {
+        settingsButton.setOnMousePressed(e -> {
+            Settings settingsView = new Settings();
+            sceneManager.createNewWindow(settingsView);
+            sceneManager.displayCurrentScene();
+        });
+    }
+
+    public AutoSuggestTextBox getSearchBox() {
+        return searchTextBox;
     }
 
     public Button getComposeButton() {
         return composeButton;
     }
+
+    public void setSceneManager(SceneManager sceneManager) {
+        this.sceneManager = sceneManager;
+    }
+
 }

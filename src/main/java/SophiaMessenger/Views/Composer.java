@@ -3,7 +3,6 @@ package SophiaMessenger.Views;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
@@ -12,6 +11,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
+import javafx.scene.web.HTMLEditor;
+
+import java.util.SortedSet;
 
 /**
  * Created by daniel on 6/8/16.
@@ -19,8 +21,9 @@ import javafx.scene.text.Text;
  */
 public class Composer extends BorderPane {
 
-    private TextArea bodyText;
-    private TextField emailAddress;
+    private final String XImageUrl = "https://cdn3.iconfinder.com/data/icons/virtual-notebook/16/button_close-128.png";
+    private HTMLEditor editor;
+    private AutoSuggestTextBox emailAddress;
     private TextField Cc;
     private Button send;
     private Button attachments;
@@ -29,18 +32,17 @@ public class Composer extends BorderPane {
     private Rectangle xCloser;
     private Text notificationsToUser;
 
-    public Composer() {
+    public Composer(SortedSet<String> eas) {
 
-        initFields();
-
+        initFields(eas);
         HBox sendAndExtrasContainer = new HBox(8, send, attachments, notificationsToUser);
         setButtonEvents();
         xCloser = xCloserSettings
-                (makeImage("https://cdn3.iconfinder.com/data/icons/virtual-notebook/16/button_close-128.png"
+                (makeImage(XImageUrl
                         , 15, 15));
         vbox = new VBox(8);
         vboxSettings();
-        vbox.getChildren().addAll(xCloser, emailAddress, Cc, subject, bodyText, sendAndExtrasContainer);
+        vbox.getChildren().addAll(xCloser, emailAddress, Cc, subject, editor, sendAndExtrasContainer);
         this.setCenter(vbox);
         this.setVisible(false);
     }
@@ -78,13 +80,11 @@ public class Composer extends BorderPane {
         this.notificationsToUser = notificationsToUser;
     }
 
-    private void initFields() {
+    private void initFields(SortedSet<String> eas) {
         subject = new TextField();
         subject.setPromptText("Subject");
-        bodyText = new TextArea();
-        bodyText.setPromptText("Body Text");
-        bodyText.setWrapText(true);
-        emailAddress = new TextField();
+        editor = new HTMLEditor();
+        emailAddress = new AutoSuggestTextBox(eas);
         emailAddress.setPromptText("To: ");
         Cc = new TextField();
         Cc.setPromptText("Cc: ");
@@ -108,16 +108,16 @@ public class Composer extends BorderPane {
         return emailAddress;
     }
 
-    public void setEmailAddress(TextField emailAddress) {
+    public void setEmailAddress(AutoSuggestTextBox emailAddress) {
         this.emailAddress = emailAddress;
     }
 
-    public TextArea getBodyText() {
-        return bodyText;
+    public HTMLEditor getEditor() {
+        return editor;
     }
 
-    public void setBodyText(TextArea bodyText) {
-        this.bodyText = bodyText;
+    public void setBodyText(HTMLEditor editor) {
+        this.editor = editor;
     }
 
     public TextField getCc() {
@@ -138,7 +138,7 @@ public class Composer extends BorderPane {
 
     public void clearAllTextFields() {
         emailAddress.setText("");
-        bodyText.setText("");
+        editor.setHtmlText("");
         Cc.setText("");
         subject.setText("");
     }

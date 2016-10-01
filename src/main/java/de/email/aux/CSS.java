@@ -36,7 +36,6 @@ public class CSS {
         if (!(style.charAt(style.length() - 1) == ';'))
             style += ";";
 
-        System.out.println(style + currStyle);
         return style + currStyle;
 
     }

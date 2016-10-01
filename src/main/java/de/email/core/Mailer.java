@@ -25,9 +25,6 @@ public class Mailer {
         Preconditions.objectNotNull(data, "ComposerData is null, data = " + data);
         Preconditions.objectNotNull(auth, "Auth is null, auth = " + auth);
         this.data = data;
-        System.out.println(data.getBody());
-        System.out.println(data.getSubject());
-        System.out.println(data.getEmailAddress());
         this.auth = auth;
     }
 
@@ -42,7 +39,6 @@ public class Mailer {
     public void sendMessage()
             throws MessagingException, IOException {
 
-        System.out.println("I can feel it now the rain has gone!");
         MimeMessage mimeMessage = composeMessage(data.getEmailAddress(), data.getSubject(), data.getBody());
         Message message = createMessageWithEmail(mimeMessage);
         message = auth.service.users().messages().send(auth.userId, message).execute();

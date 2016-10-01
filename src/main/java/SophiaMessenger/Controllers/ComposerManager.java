@@ -20,6 +20,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.ListIterator;
+import java.util.SortedSet;
 
 /**
  * Created by daniel on 7/31/16.
@@ -40,14 +41,15 @@ public class ComposerManager extends BorderPane {
     private ComposerButton currentButton;
     private ComposerData currentData;
     private Authenticator auth;
+    private SceneManager sceneManager;
 
 
-    public ComposerManager(Inbox inbox) {
+    public ComposerManager(Inbox inbox, SortedSet<String> eas) {
 
         super();
         setBackground(Background.EMPTY);
         this.auth = inbox.getAuth();
-        composer = new Composer();
+        composer = new Composer(eas);
         composer.setVisible(false);
         setComposerEvents();
         composerDataList = new LinkedList<>();
@@ -126,7 +128,7 @@ public class ComposerManager extends BorderPane {
     }
 
     private void updateCurrentData() {
-        currentData.setBody(composer.getBodyText().getText());
+        currentData.setBody(composer.getEditor().getHtmlText());
         currentData.setCc(composer.getCc().getText());
         currentData.setEmailAddress(composer.getEmailAddress().getText());
         currentData.setSubject(composer.getSubject().getText());
@@ -249,7 +251,7 @@ public class ComposerManager extends BorderPane {
         // the below condition will be true on all calls to composer such that there is
         // at least one ComposerButton on the screen
         if (currentData != null) {
-            currentData.setBody(composer.getBodyText().getText());
+            currentData.setBody(composer.getEditor().getHtmlText());
             currentData.setCc(composer.getCc().getText());
             currentData.setEmailAddress(composer.getEmailAddress().getText());
             currentData.setSubject(composer.getSubject().getText());
@@ -261,10 +263,12 @@ public class ComposerManager extends BorderPane {
     private void colorButtons(Button cmButton) {
         for (int i = 0; i < buttonContainer.getChildren().size(); i++) {
             Button button = (Button) buttonContainer.getChildren().get(i);
+            // color the current button a special color
             if (button == cmButton)
-                button.setStyle("-fx-background-color: rgba(7, 171,202,.7); -fx-text-fill: white");
+                button.setStyle("-fx-background-color: #3B6C9E; -fx-text-fill: white");
+                // color other buttons a different color
             else
-                button.setStyle("-fx-background-color: rgba(7, 171,202,1); -fx-text-fill: white");
+                button.setStyle("-fx-background-color: black; -fx-text-fill: white");
         }
     }
 
@@ -280,11 +284,11 @@ public class ComposerManager extends BorderPane {
             if (composerType == ComposerManager.REPLY) {
                 composer.getSubject().setText("Reply: " + fm.getSubject());
                 composer.getEmailAddress().setText(fm.getFromEmail());
-                composer.getBodyText().requestFocus();
+                composer.getEditor().requestFocus();
             } else if (composerType == ComposerManager.FWD) {
                 composer.getSubject().setText("Fwd: " + fm.getSubject());
                 // TODO: what if the best message body is HTML?????
-                composer.getBodyText().setText(fm.getBody());
+                composer.getEditor().setHtmlText(fm.getBody());
                 composer.getEmailAddress().requestFocus();
             } else if (composerType == ComposerManager.DRAFT) {
                 // create composer from a draft
@@ -297,7 +301,7 @@ public class ComposerManager extends BorderPane {
         return !composer.getEmailAddress().getText().equals("") ||
                 !composer.getSubject().getText().equals("") ||
                 !composer.getCc().getText().equals("") ||
-                !composer.getBodyText().getText().equals("");
+                !composer.getEditor().getHtmlText().equals("");
     }
 
     public void hideComposer() {
@@ -319,7 +323,7 @@ public class ComposerManager extends BorderPane {
     private void setComposerFields(ComposerData data) {
         composer.getEmailAddress().setText(data.getEmailAddress());
         composer.getSubject().setText(data.getSubject());
-        composer.getBodyText().setText(data.getBody());
+        composer.getEditor().setHtmlText(data.getBody());
         composer.getCc().setText(data.getCc());
     }
 
@@ -327,5 +331,9 @@ public class ComposerManager extends BorderPane {
         button.setFont(Font.font("Trebuchet MS", 15));
         button.setStyle("-fx-background-color: blue; -fx-text-fill: white");
         return button;
+    }
+
+    void setSceneManager(SceneManager sceneManager) {
+        this.sceneManager = sceneManager;
     }
 }
