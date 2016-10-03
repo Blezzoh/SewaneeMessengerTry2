@@ -27,8 +27,10 @@ public class Inbox implements Auth {
 
     /**
      * the number of messages to retrieve on both a search and on startup of the application
+     * BENCHMARK INFO: Connecting to server takes .5 seconds.
+     * Each message takes 1/1000 of a second to list.
      */
-    public static final int MESSAGE_SIZE = 2000;
+    public static final int MESSAGE_SIZE = 50;
     static final String MESSAGE_NULL_ERROR = "param message is null";
     private static final String QUERY_NULL_ERROR = "param query is null";
     // Assuming you are sending email from localhost
@@ -196,13 +198,15 @@ public class Inbox implements Auth {
                 .set("metadataHeaders", "To")
                 .set("metadataHeaders", "From")
                 .set("metadataHeaders", "Date")
-                .set("metadataHeaders", "Subject");
+                .set("metadataHeaders", "Subject")
+                .setQ("in:inbox"); // defaults to getting inbox info
 
         if (pageToken != null && query != null)
             return listMessages
                     .setQ(query)
                     .setPageToken(pageToken)
                     .execute();
+
         else if (query != null)
             return listMessages
                     .setQ(query)

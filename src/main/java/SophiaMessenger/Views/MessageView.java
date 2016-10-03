@@ -35,19 +35,21 @@ MessageView extends StackPane {
     private static final String PIC_HOVER_STYLE = "-fx-padding: 10px; -fx-border-radius: 0px";
     private static final String RIGHT_CONTAINER_HOVER_STYLE = "-fx-background-insets: -10, -10;";
     private static final String BACKB_STYLE = "-fx-font-family: AR DESTINE; -fx-font-size: 26px; -fx-background-color: rgba(7, 0,202,1); -fx-border-color: rgb(255, 153, 51);" +
-            "-fx-effect: dropshadow(three-pass-box, black, 2, 0, 3, 3); -fx-text-fill: white; -fx-font-weight: bolder; ";
+            " -fx-text-fill: white; -fx-font-weight: bolder; ";
 
 
     private NotificationIcon hoveredIcon;
-    private Text senderField, subjectField, snippetField, dateField;
+    private Text senderField, subjectField,
+            snippetField, dateField, emailField;
     private HBox firstRowOptions;
     private Button b;
-    private ImageView labelEmail, downloadAttach, forwardEmail, markEmail, replyEmail, addToTrash;
+    private ImageView labelEmail, downloadAttach,
+            forwardEmail, markEmail, replyEmail, addToTrash;
     private VBox picContainer;
+    private Text noification;
     private VBox rightContainer;
     private Rectangle pic;
     private String messageId;
-
     public MessageView(String mId) {
 
         super();
@@ -66,7 +68,8 @@ MessageView extends StackPane {
         rightContainer.setPadding(new Insets(4));
         setSize(rightContainer, 200.0, 200.0);
         pic = new Rectangle();
-        picContainer = new VBox(3, pic, senderField, dateField, firstRowOptions);
+        picContainer = new VBox(3, pic, senderField, emailField,
+                dateField, firstRowOptions, noification);
         setSize(picContainer, 100.0, 200.0);
 
         HBox message = initMessage();
@@ -100,6 +103,10 @@ MessageView extends StackPane {
         node.prefWidth(w);
     }
 
+    public VBox getRightContainer() {
+        return rightContainer;
+    }
+
     /**
      * sets the fields of this message view
      * to the information as described in dbm
@@ -111,6 +118,7 @@ MessageView extends StackPane {
         subjectField.setText(dbm.getSubject());
         dateField.setText("Sent: " + dbm.getDate());
         snippetField.setText(dbm.getSnippet());
+        emailField.setText(dbm.getFromEmail());
     }
 
     public String getMessageId() {
@@ -181,9 +189,11 @@ MessageView extends StackPane {
         b = new Button("<-");
         setSize(b, 60, 40);
         senderField = new Text();
+        emailField = new Text();
         subjectField = new Text();
         snippetField = new Text();
         dateField = new Text();
+        noification = new Text();
 
         // Look/Feel
         b.setStyle(BACKB_STYLE);
@@ -191,6 +201,8 @@ MessageView extends StackPane {
         senderField.getStyleClass().add("messagefields");
         subjectField.getStyleClass().add("messagefields");
         dateField.getStyleClass().add("messagefields");
+        emailField.getStyleClass().add("messagefields");
+        noification.getStyleClass().add("messagefields");
         snippetField.setWrappingWidth(190);
         snippetField.setFont(Font.font(13));
         snippetField.setLineSpacing(5);
@@ -199,7 +211,6 @@ MessageView extends StackPane {
         dateField.setFont(Font.font(13));
 
         senderField.setWrappingWidth(190);
-        senderField.setFont(Font.font(14));
         senderField.setCache(true);
         senderField.setX(10.0f);
         senderField.setY(270.0f);
@@ -209,6 +220,16 @@ MessageView extends StackPane {
         subjectField.setFont(Font.font(null, FontWeight.SEMI_BOLD, 15));
         subjectField.setTextAlignment(TextAlignment.CENTER);
         subjectField.setLineSpacing(5);
+
+        emailField.setWrappingWidth(150);
+        emailField.setFont(Font.font(null, FontWeight.MEDIUM, 13));
+        emailField.setX(10.0f);
+        emailField.setY(270.0f);
+
+        noification.setWrappingWidth(150);
+        noification.setFont(Font.font(null, FontWeight.MEDIUM, 13));
+        noification.setX(10.0f);
+        noification.setY(270.0f);
 
     }
 
@@ -276,6 +297,10 @@ MessageView extends StackPane {
 
     private void removeLabels(LabelHolderOnHover allLabels) {
         this.getParent();
+    }
+
+    public HBox getFirstRowOptions() {
+        return firstRowOptions;
     }
 
     /**
@@ -399,5 +424,18 @@ MessageView extends StackPane {
         picContainer.getChildren().remove(0);
         picContainer.getChildren().add(0, pic);
     }
+
+    public Text getEmailField() {
+        return emailField;
+    }
+
+    public void setNoifText(String text) {
+        this.noification.setText(text);
+    }
+
+    public Text getNoification() {
+        return noification;
+    }
+
 }
 

@@ -22,6 +22,7 @@ import static de.email.database.MessageTableManager.tableName;
  */
 public class DBMessage implements Mail {
 
+    private static final int TO = 9;
     // TODO: 8/12/16 TURN THIS INTO AN ENUM CLASS
     // COLUMN INDEXES FOR EACH COLUMN NAME
     public static int SUBJECT = 2;
@@ -31,7 +32,6 @@ public class DBMessage implements Mail {
     public static int FROM_EMAIL = 6;
     public static int FROM_NAME = 7;
     public static int DATE = 8;
-
     private String fromEmail;
     private String date;
     private String subject;
@@ -39,6 +39,7 @@ public class DBMessage implements Mail {
     private String snippet;
     private String body;
     private String messageId;
+    private String to;
 
     /**
      * useful for getting a database record using a full message
@@ -93,6 +94,7 @@ public class DBMessage implements Mail {
         body = rs.getString(BODY);
         messageId = rs.getString(MESSAGE_ID);
         date = rs.getString(DATE);
+        to = rs.getString(TO);
     }
 
     private boolean insertInto(Connection con, FullMessage fm) {
@@ -135,6 +137,20 @@ public class DBMessage implements Mail {
         return false;
     }
 
+    public void deleteMessage(String messageId) throws SQLException {
+        Connection c = Conn.makeConnection();
+        PreparedStatement deleteMessage = c.prepareStatement(
+                "DELETE FROM email.message WHERE message_id = ?"
+        );
+        deleteMessage.setString(1, "157776f3b11571f0");
+        deleteMessage.execute();
+        c.close();
+    }
+
+    public void deleteMessage() throws SQLException {
+        deleteMessage(this.getId());
+    }
+
     @Override
     public String toString() {
         return "From: " + fromEmail + " Subject: " + subject + " Snippet: " + snippet;
@@ -163,6 +179,11 @@ public class DBMessage implements Mail {
     @Override
     public String getId() {
         return messageId;
+    }
+
+    @Override
+    public String getTo() {
+        return to;
     }
 
     public String getDate() {

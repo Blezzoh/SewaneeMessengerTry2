@@ -49,7 +49,6 @@ public class MessageTableManager {
         if (messages.size() != 0)
             messages = checkAgainstDBMessages(conn, messages);
 
-        System.out.println("message update size = " + messages.size());
 
         List<Message> beforeDateMessages = null;
 
@@ -62,6 +61,8 @@ public class MessageTableManager {
                 System.out.println("m.size after check " + beforeDateMessages.size());
             }
         }
+        System.out.println("message update size = " + messages.size()
+                + (beforeDateMessages == null ? 0 : beforeDateMessages.size()));
 
         // TODO: FIGURE OUT WHY THE DATE AND OTHER FIELDS IN DBMESSAGE ARE NULL
         // TODO: delete all old messages in database, right now old messages are not shown
@@ -161,7 +162,8 @@ public class MessageTableManager {
                     "  message_id VARCHAR(100) NOT NULL UNIQUE,\n" +
                     "  fromEmail VARCHAR(500),\n" +
                     "  fromName VARCHAR(500),\n" +
-                    "  date DATE\n" +
+                    "  date DATE,\n" +
+                    "  toEmail VARCHAR(2000)\n" +
                     ")");
             c.close();
         } catch (SQLException e) {
@@ -240,7 +242,8 @@ public class MessageTableManager {
         return insertInto(con, fm.getSubject()
                 , fm.getSnippet(), fm.getId(), fm.getBodyBase64String()
                 , fm.getFromEmail(), fm.getFromName()
-                , emailDate.mysqlDate());
+                , emailDate.mysqlDate()
+                , fm.getTo());
     }
 
     private static boolean insertInto(Connection conn,
@@ -250,13 +253,14 @@ public class MessageTableManager {
                                       String body,
                                       String fromEmail,
                                       String fromName,
-                                      String date) {
+                                      String date,
+                                      String to) {
 
 
         PreparedStatement stmt = null;
         try {
-            stmt = conn.prepareStatement("INSERT IGNORE INTO " + tableName + " (subject, snippet, body, message_id, fromEmail, fromName, date) " +
-                    "values (?, ?, ?, ?, ?, ?, ?)");
+            stmt = conn.prepareStatement("INSERT IGNORE INTO " + tableName + " (subject, snippet, body, message_id, fromEmail, fromName, date,toEmail) " +
+                    "values (?, ?, ?, ?, ?, ?, ?, ?)");
             stmt.setString(1, subject);
             stmt.setString(2, snippet);
             stmt.setString(3, body);
@@ -264,6 +268,7 @@ public class MessageTableManager {
             stmt.setString(5, fromEmail);
             stmt.setString(6, fromName);
             stmt.setString(7, date);
+            stmt.setString(8, to);
             stmt.executeUpdate();
             System.out.println("Inserting data....");
 

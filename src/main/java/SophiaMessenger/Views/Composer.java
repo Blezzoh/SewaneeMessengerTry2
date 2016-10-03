@@ -21,6 +21,7 @@ import java.util.SortedSet;
  */
 public class Composer extends BorderPane {
 
+    private static int COMPOSER_WIDTH = 350;
     private final String XImageUrl = "https://cdn3.iconfinder.com/data/icons/virtual-notebook/16/button_close-128.png";
     private HTMLEditor editor;
     private AutoSuggestTextBox emailAddress;
@@ -35,14 +36,19 @@ public class Composer extends BorderPane {
     public Composer(SortedSet<String> eas) {
 
         initFields(eas);
-        HBox sendAndExtrasContainer = new HBox(8, send, attachments, notificationsToUser);
+        HBox sendAndExtrasContainer = new HBox(8, send, attachments,
+                notificationsToUser);
+
         setButtonEvents();
         xCloser = xCloserSettings
                 (makeImage(XImageUrl
                         , 15, 15));
         vbox = new VBox(8);
         vboxSettings();
-        vbox.getChildren().addAll(xCloser, emailAddress, Cc, subject, editor, sendAndExtrasContainer);
+        vbox.getChildren().addAll(xCloser, emailAddress,
+                Cc, subject, editor, sendAndExtrasContainer);
+
+        editor.setPrefWidth(COMPOSER_WIDTH);
         this.setCenter(vbox);
         this.setVisible(false);
     }
@@ -76,10 +82,6 @@ public class Composer extends BorderPane {
         return notificationsToUser;
     }
 
-    public void setNotificationsToUser(Text notificationsToUser) {
-        this.notificationsToUser = notificationsToUser;
-    }
-
     private void initFields(SortedSet<String> eas) {
         subject = new TextField();
         subject.setPromptText("Subject");
@@ -108,32 +110,25 @@ public class Composer extends BorderPane {
         return emailAddress;
     }
 
-    public void setEmailAddress(AutoSuggestTextBox emailAddress) {
-        this.emailAddress = emailAddress;
-    }
 
     public HTMLEditor getEditor() {
         return editor;
-    }
-
-    public void setBodyText(HTMLEditor editor) {
-        this.editor = editor;
     }
 
     public TextField getCc() {
         return Cc;
     }
 
-    public void setCc(TextField cc) {
-        Cc = cc;
+    public void setCc(String text) {
+        Cc.setText(text);
     }
 
     public TextField getSubject() {
         return subject;
     }
 
-    public void setSubject(TextField subject) {
-        this.subject = subject;
+    public void setSubject(String text) {
+        subject.setText(text);
     }
 
     public void clearAllTextFields() {
@@ -142,4 +137,35 @@ public class Composer extends BorderPane {
         Cc.setText("");
         subject.setText("");
     }
+
+    public boolean emailAddressIsEmpty() {
+        return emailAddress.getText().equals("");
+    }
+
+    // Helper methods for setting composer's data fields
+    public void setEmail(String text) {
+        emailAddress.setText(text);
+    }
+
+    // Helper methods for setting composer's data fields
+    public String getEmailText() {
+        return emailAddress.getText();
+    }
+
+    public String getCcText() {
+        return Cc.getText();
+    }
+
+    public String getSubjectText() {
+        return subject.getText();
+    }
+
+    public String getEditorText() {
+        return editor.getHtmlText();
+    }
+
+    public void setEditorText(String text) {
+        editor.setHtmlText(text);
+    }
+
 }

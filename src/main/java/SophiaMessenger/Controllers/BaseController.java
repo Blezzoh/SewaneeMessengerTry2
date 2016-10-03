@@ -38,6 +38,7 @@ public class BaseController extends BorderPane {
 
     public BaseController(Inbox inbox, List<Message> messages) {
         super();
+        System.out.println("Initializing base controller...");
         this.getStyleClass().add("BaseController");
         this.inbox = inbox;
         this.messages = messages;
@@ -63,6 +64,7 @@ public class BaseController extends BorderPane {
                 e.printStackTrace();
             }
         }
+        System.out.println("Loading menus...");
         topMenu = new TopMenu(eas);
         leftSideMenu = new LeftSideMenu();
         this.setTop(topMenu);
@@ -72,10 +74,10 @@ public class BaseController extends BorderPane {
         this.setRight(composerManager);
 
 //        sceneStack = new ArrayDeque<>();
+        System.out.println("Loading messageManager...");
+        messagesViewManager = new MessagesViewManager(messages, composerManager);
 
-        messagesViewManager = new MessagesViewManager(inbox, messages);
-
-        // SEEARCHING HAPPENS HERE
+        // SEARCHING HAPPENS HERE
         topMenu.getSearchBox().setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
                 javafx.scene.control.TextField searchField = (javafx.scene.control.TextField)
@@ -85,9 +87,7 @@ public class BaseController extends BorderPane {
                     // display search returns 0 messages
                 } else {
                     this.messages = messageQuery.retrieveMessages();
-                    long t = System.currentTimeMillis();
                     messagesViewManager.setMessagesInfo(this.messages);
-                    System.out.println(System.currentTimeMillis() - t);
                 }
             }
         });

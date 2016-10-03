@@ -45,11 +45,11 @@ public class FullMessage implements Mail {
      * @return returns true if the message was delete; false otherwise
      * @throws IOException
      */
-    public static boolean trashMessage(Inbox inbox, String msgId) {
+    public static boolean trashMessage(Auth auth, String msgId) {
         Message execute = null;
         try {
-            execute = inbox.getAuth().service.users()
-                    .messages().trash(inbox.getAuth().userId, msgId).execute();
+            execute = auth.getAuth().service.users()
+                    .messages().trash(auth.getAuth().userId, msgId).execute();
             System.out.println("DBMessage with id: " + msgId + " has been trashed.");
         } catch (IOException e) {
             e.printStackTrace();

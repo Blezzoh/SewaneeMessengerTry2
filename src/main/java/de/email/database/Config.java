@@ -17,6 +17,7 @@ public class Config {
 
     public static final String IMAGE_LOOKUP = "imageLookup";
     public static final String MESSAGES = "message";
+    public static final String USER_TABLE = "users";
 
 
 

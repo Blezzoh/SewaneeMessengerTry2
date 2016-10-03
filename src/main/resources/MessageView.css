@@ -16,3 +16,10 @@
     -fx-background-insets: -10, -10;
 }
 
+.popup {
+    -fx-fill: white;
+    -fx-background-color: black;
+    -fx-border-color: black;
+    -fx-font-size: 16;
+}
+

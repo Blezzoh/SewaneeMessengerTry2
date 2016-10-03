@@ -12,16 +12,18 @@ import de.email.database.Conn;
 import de.email.database.DB;
 import de.email.database.MessageTableManager;
 import de.email.interfaces.Auth;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Pagination;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import javafx.stage.Stage;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -34,27 +36,33 @@ import java.util.List;
  * @author Daniel Evans
  */
 public class
-MessagesViewManager extends Pagination {
+MessagesViewManager extends Pagination implements Auth {
 
-    private static final int itemsPerPage = 12;
-    private final String imgUrl = "http://4.bp.blogspot.com/-SjsG6gvCasI/Ve6PJxhPEiI/AAAAAAAAFYU/dYvGfnIxPzk/s1600/Kundwa%2BDoriane%2Brwanda.jpg";
+    // temporary change to 6, usually 12
+    private static final int itemsPerPage = 6;
+    private static final int REPLY_ICON = 0,
+            FORWARD_ICON = 1,
+            LABEL_ICON = 2,
+            DOWNLOAD_ICON = 3,
+            REMINDER_ICON = 4,
+            TRASH_ICON = 5;
     private TilePane center;  // child of centerContainer
     private ScrollPane centerContainer;  // child of MessageManager
     private MessageView[] mvs;
     private boolean first = true;
-    private Authenticator auth;
-    private javafx.scene.control.Button b;
-    private Stage stage;
+    private Button b;
     private Connection con;
     private SceneManager sceneManager;
+    // backing DBmessage array
+    private DBMessage[] dbm;
+    private Authenticator auth;
 
 
-    public MessagesViewManager(Auth auth, List<Message> messages) {
+    public MessagesViewManager(List<Message> messages, ComposerManager composerManager) {
         super();
         this.setStyle("-fx-background-color: transparent");
         this.setPageCount(getPageCount(messages));
-        this.auth = auth.getAuth();
-//        this.sceneStack = sceneStack;
+        this.auth = composerManager.getAuth();
         initCenter();
         initCenterContainer();
         try {
@@ -63,12 +71,14 @@ MessagesViewManager extends Pagination {
             System.out.println("IMPORTANT: UNABLE TO CONNECT TO DATABASE IN MESSAGE VIEW MANAGER");
             e.printStackTrace();
         }
-        b = new javafx.scene.control.Button("Back");
+        b = new Button("Back");
         // hitting back button takes you back to the mail gridview page
         b.setOnMousePressed(e -> this.sceneManager.destroyCurrentWindow());
 
         // writing to message views from database info
         mvs = new MessageView[itemsPerPage];
+        // backing dbmessage info
+        dbm = new DBMessage[itemsPerPage];
         System.out.println("Initializing messageViews...");
         for (int i = 0; i < mvs.length; i++) {
             mvs[i] = new MessageView(messages.get(i).getId());
@@ -76,7 +86,7 @@ MessagesViewManager extends Pagination {
         center.getChildren().addAll(mvs);
         center.setStyle("-fx-background-color: transparent");
         setPagination(messages);
-        setMessageViewEvents();
+        setMessageViewEvents(composerManager);
     }
 
     private void showContent(String content) {
@@ -112,19 +122,83 @@ MessagesViewManager extends Pagination {
         showContent(content);
     }
 
-    public void setMessageViewEvents() {
+    public void setMessageViewEvents(ComposerManager composerManager) {
         // second screen - email content
         for (int i = 0; i < mvs.length; i++) {
-            final int temp = i;
-            mvs[i].setOnMousePressed(e -> {
-                retrieveContent(mvs[temp].getMessageId());
-            });
+            final int k = i;
             mvs[i].getReplyEmail().setOnMousePressed(e -> {
 
             });
-            mvs[i].setOnMousePressed(e -> {
-                retrieveContent(mvs[temp].getMessageId());
+            mvs[i].getRightContainer().setOnMousePressed(e -> {
+                retrieveContent(mvs[k].getMessageId());
             });
+            ObservableList<Node> messageViewIcons = mvs[i].getFirstRowOptions().getChildren();
+            for (int j = 0; j < messageViewIcons.size(); j++) {
+                // reply icon
+                messageViewIcons.get(REPLY_ICON).setOnMouseEntered(e -> {
+                    mvs[k].setNoifText("Reply to " + dbm[k].getFromName());
+                });
+                messageViewIcons.get(REPLY_ICON).setOnMousePressed(e ->
+                        composerManager.createComposerWithReplyTo
+                                (dbm[k])
+                );
+                // -----------------------------------
+
+                // forward icon
+                messageViewIcons.get(FORWARD_ICON).setOnMouseEntered(e -> {
+                    mvs[k].setNoifText("Forward to " + dbm[k].getFromName());
+                });
+                messageViewIcons.get(FORWARD_ICON).setOnMousePressed(e -> {
+                    composerManager.createComposerWithFwdMessage(dbm[k]);
+                });
+                // ----------------------------------------
+
+                // label icon
+                messageViewIcons.get(LABEL_ICON).setOnMousePressed(e -> {
+                });
+                messageViewIcons.get(LABEL_ICON).setOnMouseEntered(e -> {
+                    mvs[k].setNoifText("Add label to email");
+                });
+                // ---------------------------------
+
+                // Download icon
+                messageViewIcons.get(DOWNLOAD_ICON).setOnMousePressed(e -> {
+                    // download (attachments/open body in google docs?
+                    // place email body to file? logic
+                });
+                messageViewIcons.get(DOWNLOAD_ICON).setOnMouseEntered(e -> {
+                    mvs[k].setNoifText("Download email to a file");
+                });
+                // ----------------------
+
+                // Reminder icon
+                messageViewIcons.get(REMINDER_ICON).setOnMousePressed(e -> {
+
+                });
+                messageViewIcons.get(REMINDER_ICON).setOnMouseEntered(e -> {
+                    mvs[k].setNoifText("Set reminder in calendar");
+                });
+                // ------------------------
+
+                // Trash icon
+                messageViewIcons.get(TRASH_ICON).setOnMouseEntered(e -> {
+                    mvs[k].setNoifText("Trash email");
+                });
+                messageViewIcons.get(TRASH_ICON).setOnMousePressed(e -> {
+                    System.out.println("Deleting message");
+                    // trash email
+                    /*
+                    try {
+//                        dbm[k].deleteMessage();
+                        // delete from gmail server
+//                    FullMessage.trashMessage(this,mvs[k].getMessageId());
+                    // visually delete it
+                    } catch (SQLException e1) {
+                        System.out.println("Problem deleting message from db");
+                        e1.printStackTrace();
+                    }*/
+                });
+            }
         }
     }
 
@@ -168,6 +242,8 @@ MessagesViewManager extends Pagination {
             DBMessage dbm = null;
             try {
                 dbm = new DBMessage(messages.get(msgIndex));
+                // backing db message
+                this.dbm[mvsIndex] = dbm;
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -244,5 +320,10 @@ MessagesViewManager extends Pagination {
 
     void setSceneManager(SceneManager sceneManager) {
         this.sceneManager = sceneManager;
+    }
+
+    @Override
+    public Authenticator getAuth() {
+        return auth;
     }
 }

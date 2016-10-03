@@ -21,4 +21,6 @@ public interface Mail {
     String getBody();
 
     String getId();
+
+    String getTo();
 }

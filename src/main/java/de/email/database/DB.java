@@ -59,4 +59,27 @@ public class DB {
         ResultSet rs = ps.executeQuery();
         return rs;
     }
+
+    public static void createUserTable() {
+        Connection c = null;
+        try {
+            c = Conn.makeConnection();
+            Conn.execute(c, "CREATE TABLE IF NOT EXISTS " + Config.USER_TABLE + "\n" +
+                    "(\n" +
+                    "  id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,\n" +
+                    "  username VARCHAR(500),\n" +
+                    "  pass VARCHAR(500)\n" +
+                    ")");
+            c.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // close connections to db
+            try {
+                assert c != null;
+                c.close();
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+            }
+        }
+    }
 }
